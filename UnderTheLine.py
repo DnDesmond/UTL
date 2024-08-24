@@ -50,6 +50,8 @@ class Bouncing:
         self.shielded = 10000
         self.shined = 10000
         self.grad = 180
+        self.base_grad = 180
+        self.sped_up = 15000
         self.bordereded = 0
         self.bardereded = 0
         self.left_bricks = 0
@@ -77,13 +79,13 @@ class Bouncing:
         self.paused = False
         self.swift = True
         self.rumbles = False
-        self.extras = 6
+        self.extras = 0
         self.star = False
         self.dos = False
         self.tres = False
         self.cuatro = False
         
-        self.lives_left = 30
+        self.lives_left = 10
         self.lives()
         self.spring_ball()
         self.moving_left = False
@@ -135,6 +137,7 @@ class Bouncing:
         self.ki('expand5')
         self.ki('barrier')
         self.ki("acidic")
+        self.ki("accelerate")
     
     def ki(self, ci):
         self.prof.append((setattr(self, ci, [])))
@@ -150,7 +153,11 @@ class Bouncing:
             self.timer += 1
             self.shielded += 10
             self.shined += 1
-            self.clock.tick(100)
+            self.sped_up += 1
+            if self.sped_up < 1500:
+                self.clock.tick(150)
+            else:
+                self.clock.tick(100)
     
     def update_screen(self):
         """Runs all screen base updates."""
@@ -388,6 +395,8 @@ class Bouncing:
         self.current_x = 0
         self.reinforce = 0
         self.shined = 10000
+        if level > 0:
+            self.grad = self.base_grad
         for brick in self.bricks:
             brick.kill()
         for brick in self.brickes:
@@ -548,6 +557,8 @@ class Bouncing:
         self.star = False
         new_brick = self.brick_base(width, height, inner, x_position, y_position)
         new_brick.gradient("Blue", int(self.grad))
+        if x_position == 576 and y_position == 300:
+            new_brick.paint_stripe()
         self.grad -= 0.5
         new_brick.rect.x = x_position
         new_brick.rect.y = y_position
@@ -746,6 +757,8 @@ class Ball(Sprite):
         self.war_crime = war_crime
         self.new = new
         self.bouncer = bounce
+        self.dead = False
+        self.dead_time = 100
         self.screen = bounce.screen
         self.screen_rect = self.screen.get_rect()
         self.recenter = False
@@ -797,10 +810,16 @@ class Ball(Sprite):
     
     def update(self):
         """Runs all collision checks for the bar, box and bricks as well as conducting the motion of the balls."""
-        self.motion()
+        if self.dead_time > 100:
+            self.motion()
         self.box_checks()
         self.brick_checks()
         self.bar_checks()
+        self.dead_time += 1
+        if self.dead:
+            self.dead_time = 0
+            self.dead = False
+        self.screen.blit(self.image, self.rect)
     
     def motion(self):
         """Does the moving where moving wants doing?"""
@@ -833,7 +852,6 @@ class Ball(Sprite):
         self.rect.x = self.x
         if self.recenter:
             self.recenters()
-        self.screen.blit(self.image, self.rect)
     
     def box_checks(self):
         """Checks for screen side collisions."""
@@ -1078,6 +1096,8 @@ class Ball(Sprite):
                     for material in self.bouncer.undamaged:
                         material.damage()
                     self.bouncer.undamaged.clear()
+                elif shard in self.bouncer.accelerate:
+                    self.bouncer.sped_up = 0
                 elif shard in self.bouncer.will_expand:
                     shard.bar_expand()
                     self.bouncer.unbreakable.append(shard)
@@ -1110,6 +1130,7 @@ class Ball(Sprite):
         self.y = self.rect.y
         self.x = self.rect.x
         self.recenter = False
+        self.dead = True
     
     def extra_clear(self, brock_broken):
         for brickoge in self.bouncer.can_upadte:
@@ -1417,6 +1438,11 @@ class Brick(Sprite):
         self.image = pygame.image.load("Graphics/Acid_Brick.png").convert_alpha()
         self.innervate()
         self.bouncer.acidic.append(self)
+    
+    def paint_stripe(self):
+        self.image = pygame.image.load("Graphics/BarExpand.png").convert_alpha()
+        self.innervate()
+        self.bouncer.accelerate.append(self)
 
     def damage(self):
         """Switches to the damaged sprite."""
