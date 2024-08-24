@@ -1,9 +1,12 @@
 import pygame
 from pygame.sprite import Group, Sprite
 import sys
+import os
 import random
 
 from Breakers import *
+
+os.chdir("C:/Users/isaac")
 
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
@@ -64,8 +67,8 @@ class Bouncing:
         self.can_update = pygame.sprite.Group()
         self.can_upadte = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
-        self.backgrund_image = pygame.image.load("Red/Shield.png").convert_alpha()
-        self.background_image = pygame.image.load("MappedCompassBack.png").convert_alpha()
+        self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
+        self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
         self.started = False
         self.inner = True
         self.alter = False
@@ -74,6 +77,7 @@ class Bouncing:
         self.paused = False
         self.swift = True
         self.rumbles = False
+        self.extras = 6
         self.star = False
         self.dos = False
         self.tres = False
@@ -130,6 +134,7 @@ class Bouncing:
         self.ki('expand4')
         self.ki('expand5')
         self.ki('barrier')
+        self.ki("acidic")
     
     def ki(self, ci):
         self.prof.append((setattr(self, ci, [])))
@@ -187,11 +192,6 @@ class Bouncing:
             self.borders()
             self.borderes()
         self.left_bricks = len(self.bricks)
-        #if self.joystick:
-        #    no_of_buttons = self.joystick.get_numbuttons()
-        #    for i in range(no_of_buttons):
-        #        if self.joystick.get_button(i):
-        #            print('button pressed:', i)
         pygame.display.flip()
     
     def levels(self):
@@ -229,7 +229,7 @@ class Bouncing:
         """Creates the pause screen."""
         self.screen.fill((38, 142, 102))
         is_not_scaled = (self.screen_width, self.screen_height)
-        self.pause_background_image = pygame.image.load("Backgrounf.png").convert_alpha()
+        self.pause_background_image = pygame.image.load("Graphics/Backgrounf.png").convert_alpha()
         self.pause_background_image = pygame.transform.scale(self.pause_background_image, is_not_scaled)
         self.background_rect = self.pause_background_image.get_rect()
         #self.blit_alpha(self.screen, self.pause_background_image, (0, 0), 128)
@@ -254,12 +254,8 @@ class Bouncing:
                         #sphere.fmoving_right = True
                         sphere.moving_up = True
                         self.started = True
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
+                        for cat in range(self.extras):
+                            self.spring_ball()
                 elif event.key == pygame.K_LEFT:
                     self.moving_left = True
                 elif event.key == pygame.K_RIGHT:
@@ -278,11 +274,6 @@ class Bouncing:
                 elif event.key == pygame.K_f:
                     for ball in self.spherage:
                         ball.recenters()
-                elif event.key == pygame.K_o:
-                    if self.swift:
-                        self.swift = False
-                    else:
-                        self.swift = True
                 elif event.key == pygame.K_RALT:
                     self.alter = True
                 elif event.key == pygame.K_LALT:
@@ -348,12 +339,8 @@ class Bouncing:
                         #sphere.fmoving_right = True
                         sphere.moving_up = True
                         self.started = True
-                        # self.spring_ball()
-                        # self.spring_ball()
-                        # self.spring_ball()
-                        # self.spring_ball()
-                        # self.spring_ball()
-                        # self.spring_ball()
+                        for cat in range(self.extras):
+                            self.spring_ball()
                 self.left_pressed = self.joystick.get_button(9)
                 self.right_pressed = self.joystick.get_button(10)
                 self.option_pressed = self.joystick.get_button(6)
@@ -379,17 +366,8 @@ class Bouncing:
                         #sphere.fmoving_right = True
                         sphere.moving_up = True
                         self.started = True
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                        self.spring_ball()
-                #if self.joystick.get_button(1):# and self.timer%100 == 0:
-                    #if self.paused:
-                    #    self.paused = False
-                    #else:
-                    #    self.paused = True
+                        for cat in range(self.extras):
+                            self.spring_ball()
                 self.left_pressed = self.joystick.get_button(4)
                 self.right_pressed = self.joystick.get_button(5)
         
@@ -510,8 +488,6 @@ class Bouncing:
     def display(self, x_position, y_position, width, height, holder, inner=False):
         """Creates the admin display."""
         self.star = False
-        #for sphere in self.spherage:
-        #    sphere.kill()
         new_brick = self.brick_base(width, height, inner, x_position, y_position)
         if self.grad == 0:
             new_brick.reinforce()
@@ -573,8 +549,6 @@ class Bouncing:
         new_brick = self.brick_base(width, height, inner, x_position, y_position)
         new_brick.gradient("Blue", int(self.grad))
         self.grad -= 0.5
-        if x_position == 576 and y_position == 300:
-            new_brick.bar_expand()
         new_brick.rect.x = x_position
         new_brick.rect.y = y_position
         holder.add(new_brick)
@@ -780,7 +754,7 @@ class Ball(Sprite):
         if self.war_crime:
             is_scale = (5,5)
 
-        self.image = pygame.image.load("Marble.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, is_scale)
         self.fatal = []
         self.matlod = []
@@ -1018,24 +992,24 @@ class Ball(Sprite):
             if lich not in self.bouncer.locked:
                 if lich not in self.bouncer.undamaged:
                     lich.kill()
-                    self.bouncer.borders()
-                    self.bouncer.borderes()
                     try:
                         self.bouncer.brick_dict.pop(lich)
                     except KeyError:
                         print("Lich key error")
+                    self.bouncer.borders()
+                    self.bouncer.borderes()
                 if lich in self.bouncer.undamaged:
                     self.bouncer.undamaged.remove(lich)
                     lich.damage()
         for lich in self.bomb_breaker:
             if lich not in self.bouncer.undamaged:
                 lich.kill()
-                self.bouncer.borders()
-                self.bouncer.borderes()
                 try:
                     self.bouncer.brick_dict.pop(lich)
                 except KeyError:
                     print("Lich key error")
+                self.bouncer.borders()
+                self.bouncer.borderes()
             if lich in self.bouncer.undamaged:
                 self.bouncer.undamaged.remove(lich)
                 lich.damage()
@@ -1069,12 +1043,18 @@ class Ball(Sprite):
                     x = shard.rect.x
                     y = shard.rect.y
                     shard.kill()
+                    self.bouncer.brick_dict.pop(shard)
+                    self.bouncer.borders()
+                    self.bouncer.borderes()
                     self.bouncer.explode(x,y)
                 elif shard in self.bouncer.doppelbomb:
                     self.bouncer.doppelbomb.remove(shard)
                     x = shard.rect.x
                     y = shard.rect.y
                     shard.kill()
+                    self.bouncer.brick_dict.pop(shard)
+                    self.bouncer.borders()
+                    self.bouncer.borderes()
                     self.bouncer.doppelexplode(x,y)
                 elif shard in self.bouncer.new_begin:
                     self.bouncer.kinds()
@@ -1094,6 +1074,10 @@ class Ball(Sprite):
                         victory = self.magnet(shard)
                 elif shard in self.bouncer.barrier:
                     self.bouncer.shielded = 0
+                elif shard in self.bouncer.acidic:
+                    for material in self.bouncer.undamaged:
+                        material.damage()
+                    self.bouncer.undamaged.clear()
                 elif shard in self.bouncer.will_expand:
                     shard.bar_expand()
                     self.bouncer.unbreakable.append(shard)
@@ -1102,6 +1086,9 @@ class Ball(Sprite):
                     x = shard.rect.x
                     y = shard.rect.y
                     shard.kill()
+                    self.bouncer.brick_dict.pop(shard)
+                    self.bouncer.borders()
+                    self.bouncer.borderes()
                     if self not in self.bouncer.launched:
                         self.bouncer.doppelexplode(x,y)
                 if shard in self.bouncer.expand:
@@ -1132,6 +1119,8 @@ class Ball(Sprite):
                     self.bouncer.bricke_dict.pop(brickoge)
                 except KeyError:
                     print("Inner key error")
+                self.bouncer.borders()
+                self.bouncer.borderes()
     
     def excalibur(self, shard):
         if shard in self.bouncer.expand1:
@@ -1220,7 +1209,7 @@ class Bal(Sprite):
         self.bouncer = bounce
         self.screen = self.bouncer.screen
         is_scale = (15,15)
-        self.image = pygame.image.load("Marble.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, is_scale)
         self.rect = self.image.get_rect()
     
@@ -1235,7 +1224,7 @@ class Star(Sprite):
         self.bouncer = bounce
         self.screen = self.bouncer.screen
         is_scale = (20,20)
-        self.image = pygame.image.load("Star_Icon_Small.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Star_Icon_Small.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, is_scale)
         self.rect = self.image.get_rect()
     
@@ -1253,10 +1242,10 @@ class Brick(Sprite):
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
         self.scaled = (width,height)
-        self.image = pygame.image.load("RedBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RedBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
-            self.image = pygame.image.load("Seafoam.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         self.rect = self.image.get_rect()
     
@@ -1267,88 +1256,88 @@ class Brick(Sprite):
     # Brick sprite changes and list appends for special bricks.
 
     def reinforce(self):
-        self.image = pygame.image.load("BlueBorderBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/BlueBorderBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.rect.height < 25:
-            self.image = pygame.image.load("BlueBrickWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/BlueBrickWide.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
-            self.image = pygame.image.load("Seafoam.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         self.bouncer.undamaged.append(self)
     
     def gunpowder(self):
-        self.image = pygame.image.load("BombBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/BombBrickWide.png").convert_alpha()
         self.innervate()
         self.bouncer.bomb.append(self)
 
     def doppelgunpowder(self):
-        self.image = pygame.image.load("DoppelBombBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/DoppelBombBrickWide.png").convert_alpha()
         self.innervate()
         self.bouncer.doppelbomb.append(self)
 
     def lock(self):
-        self.image = pygame.image.load("HardBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/HardBrickWide.png").convert_alpha()
         self.innervate()
         self.bouncer.locked.append(self)
         self.bouncer.lockaged.add(self)
 
     def key(self):
-        self.image = pygame.image.load("KeyWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/KeyWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
-            self.image = pygame.image.load("Seafoam.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         self.bouncer.keys.append(self)
     
     def open(self):
         if self in self.bouncer.bomb:
-            self.image = pygame.image.load("BombBrickWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/BombBrickWide.png").convert_alpha()
         elif self in self.bouncer.bomb:
-            self.image = pygame.image.load("BombBrickWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/BombBrickWide.png").convert_alpha()
         elif self in self.bouncer.doppelbomb:
-            self.image = pygame.image.load("DoppelBombBrickWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/DoppelBombBrickWide.png").convert_alpha()
         elif self in self.bouncer.lotus:
-            self.image = pygame.image.load("Lotus.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Lotus.png").convert_alpha()
         elif self in self.bouncer.new_begin:
-            self.image = pygame.image.load("RedoBrick.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/RedoBrick.png").convert_alpha()
         else:
-            self.image = pygame.image.load("HardGreenBrickWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/HardGreenBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
-            self.image = pygame.image.load("Seafoam.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         #self.bouncer.locked.remove(self)
 
     def unbreak(self):
-        self.image = pygame.image.load("UnbrickMoss.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/UnbrickMoss.png").convert_alpha()
         self.innervate()
         self.bouncer.unbreakable.append(self)
         self.bouncer.locked.append(self)
         self.bouncer.lockaged.add(self)
     
     def redo(self):
-        self.image = pygame.image.load("RedoBrick.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RedoBrick.png").convert_alpha()
         self.innervate()
         self.bouncer.new_begin.append(self)
 
     def star(self):
-        self.image = pygame.image.load("YeStarBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/YeStarBrickWide.png").convert_alpha()
         self.innervate()
         self.bouncer.shiny.append(self)
     
     def plus_one(self):
-        self.image = pygame.image.load("PlusOneWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/PlusOneWide.png").convert_alpha()
         self.innervate()
         self.bouncer.plus.append(self)
     
     def homicide(self):
-        self.image = pygame.image.load("Lotus.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Lotus.png").convert_alpha()
         self.innervate()
         self.bouncer.lotus.append(self)
     
     def bar_expand(self):
-        self.image = pygame.image.load("MonsterBrickKind.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/MonsterBrickKind.png").convert_alpha()
         self.innervate()
         self.bouncer.expand.append(self)
         self.bouncer.expand1.append(self)
@@ -1358,23 +1347,23 @@ class Brick(Sprite):
         self.bouncer.expand5.append(self)
     
     def bar_damage1(self):
-        self.image = pygame.image.load("MonsterBrick.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/MonsterBrick.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def bar_damage2(self):
-        self.image = pygame.image.load("MonsterBrickAngry.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/MonsterBrickAngry.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def bar_damage3(self):
-        self.image = pygame.image.load("MonsterBrickInjured.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/MonsterBrickInjured.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def bar_damage4(self):
-        self.image = pygame.image.load("MonsterBrickDying.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/MonsterBrickDying.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def mystiry(self):
-        self.image = pygame.image.load("Mystiry.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Mystiry.png").convert_alpha()
         self.innervate()
         fortuna = [
             self.bouncer.plus,
@@ -1387,55 +1376,60 @@ class Brick(Sprite):
         fortune.append(self)
     
     def ceiling(self):
-        self.image = pygame.image.load("BarExpand.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/BarExpand.png").convert_alpha()
         self.innervate()
         self.bouncer.sealing.append(self)
     
     def compass(self):
-        self.image = pygame.image.load("MappedCompass.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/MappedCompass.png").convert_alpha()
         self.innervate()
         self.bouncer.cardinal.append(self)
     
     def shield(self):
-        self.image = pygame.image.load("Red/Shield_Brick.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Red/Shield_Brick.png").convert_alpha()
         self.innervate()
         self.bouncer.barrier.append(self)
     
     def gradient(self, colour, shade):
         try:
-            self.image = pygame.image.load(f"Red/{colour}{shade}.png").convert_alpha()
+            self.image = pygame.image.load(f"Graphics/{colour}{shade}.png").convert_alpha()
         except FileNotFoundError:
-            self.image = pygame.image.load(f"Red/{colour}1.png").convert_alpha()
+            self.image = pygame.image.load(f"Graphics/{colour}1.png").convert_alpha()
         self.innervate()
     
     def up_outer(self):
-        self.image = pygame.image.load("RemnantUp.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RemnantUp.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def right_outer(self):
-        self.image = pygame.image.load("RemnantRight.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RemnantRight.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def down_outer(self):
-        self.image = pygame.image.load("RemnantDown.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RemnantDown.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
     
     def left_outer(self):
-        self.image = pygame.image.load("RemnantLeft.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RemnantLeft.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
+    
+    def acid(self):
+        self.image = pygame.image.load("Graphics/Acid_Brick.png").convert_alpha()
+        self.innervate()
+        self.bouncer.acidic.append(self)
 
     def damage(self):
         """Switches to the damaged sprite."""
-        self.image = pygame.image.load("BlueBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/BlueBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
-            self.image = pygame.image.load("Seafoam.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
     
     def innervate(self):
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
-            self.image = pygame.image.load("Seafoam.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         if self in self.bouncer.undamaged:
             self.bouncer.undamaged.remove(self)
