@@ -172,7 +172,7 @@ class BigMiddleBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (54,10)
 
-        self.image = pygame.image.load("Graphics/MiddleMudBarMonster.png")
+        self.image = pygame.image.load("Graphics/MiddleMudBarMonsterDoppel.png")
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -204,7 +204,7 @@ class BigRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (30,10)
 
-        self.image = pygame.image.load("Graphics/RightMudBarMonster.png")
+        self.image = pygame.image.load("Graphics/RightMudBarMonsterDoppel.png")
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -237,7 +237,7 @@ class BigFarRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (16,10)
 
-        self.image = pygame.image.load("Graphics/FarRightMudBarMonster.png")
+        self.image = pygame.image.load("Graphics/FarRightMudBarMonsterDoppel.png")
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -269,7 +269,7 @@ class BigLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (30,10)
 
-        self.image = pygame.image.load("Graphics/LeftMudBarMonster.png")
+        self.image = pygame.image.load("Graphics/LeftMudBarMonsterDoppel.png")
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -301,7 +301,7 @@ class BigFarLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (16,10)
 
-        self.image = pygame.image.load("Graphics/FarLeftMudBarMonster.png")
+        self.image = pygame.image.load("Graphics/FarLeftMudBarMonsterDoppel.png")
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center

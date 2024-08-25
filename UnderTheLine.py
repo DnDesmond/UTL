@@ -557,8 +557,6 @@ class Bouncing:
         self.star = False
         new_brick = self.brick_base(width, height, inner, x_position, y_position)
         new_brick.gradient("Blue", int(self.grad))
-        if x_position == 576 and y_position == 300:
-            new_brick.paint_stripe()
         self.grad -= 0.5
         new_brick.rect.x = x_position
         new_brick.rect.y = y_position
@@ -810,11 +808,11 @@ class Ball(Sprite):
     
     def update(self):
         """Runs all collision checks for the bar, box and bricks as well as conducting the motion of the balls."""
-        if self.dead_time > 100:
-            self.motion()
         self.box_checks()
         self.brick_checks()
         self.bar_checks()
+        if self.dead_time > 100:
+            self.motion()
         self.dead_time += 1
         if self.dead:
             self.dead_time = 0
@@ -1440,7 +1438,7 @@ class Brick(Sprite):
         self.bouncer.acidic.append(self)
     
     def paint_stripe(self):
-        self.image = pygame.image.load("Graphics/BarExpand.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Fast_Clock.png").convert_alpha()
         self.innervate()
         self.bouncer.accelerate.append(self)
 
