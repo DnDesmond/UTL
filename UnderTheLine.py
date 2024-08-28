@@ -598,18 +598,20 @@ class Bouncing:
                     new_brick.left_outer()
                 new_brick.gradient("red", int(self.grad))
                 if self.grad_up:
-                    self.grad += 1
+                    if self.grad <= 180:
+                        self.grad += 1
                 else:
-                    self.grad -= 1
+                    if self.grad > 1:
+                        self.grad -= 1
                 new_brick.rect.x = x_position
                 new_brick.rect.y = y_position
                 holder.add(new_brick)
                 x_position += 64
             if self.grad_up:
-                if self.grad <= 1:
+                if self.grad >= 180:
                     self.grad = self.base_grad
             else:
-                if self.grad >= 180:
+                if self.grad <= 1:
                     self.grad = self.base_grad
             x_position = 0
             y_position += 25
@@ -1480,7 +1482,7 @@ class Brick(Sprite):
             self.image = pygame.image.load(f"Graphics/{colour}{shade}.png").convert_alpha()
         except FileNotFoundError:
             self.image = pygame.image.load(f"Graphics/{colour}1.png").convert_alpha()
-            print(shade)
+            print("CAT")
             self.bouncer.grad = self.bouncer.base_grad
         self.innervate()
     
