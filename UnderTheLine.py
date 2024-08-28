@@ -49,8 +49,6 @@ class Bouncing:
         self.timer = 0
         self.shielded = 10000
         self.shined = 10000
-        self.grad = 180
-        self.base_grad = 180
         self.sped_up = 15000
         self.bordereded = 0
         self.bardereded = 0
@@ -89,6 +87,15 @@ class Bouncing:
         self.dos = False
         self.tres = False
         self.cuatro = False
+
+        # Gradient initialisations
+        self.grad_up = False
+        if self.grad_up:
+            self.grad = 1
+            self.base_grad = 1
+        else:
+            self.grad = 180
+            self.base_grad = 180
         
         self.lives_left = 10
         self.lives()
@@ -301,9 +308,9 @@ class Bouncing:
                             brick.kill()
                         for brick in self.brickes:
                             brick.kill()
-                        self.grad = 1
+                        self.grad = self.base_grad
                         self.create_wall(0)
-                        self.grad = 1
+                        self.grad = self.base_grad
                         self.dev = True
                 elif event.key == pygame.K_DOWN and self.shined > 10000:
                     if len(self.stars) > 0:
@@ -590,13 +597,20 @@ class Bouncing:
                 elif self.grad == 23:
                     new_brick.left_outer()
                 new_brick.gradient("red", int(self.grad))
-                self.grad -= 1
+                if self.grad_up:
+                    self.grad += 1
+                else:
+                    self.grad -= 1
                 new_brick.rect.x = x_position
                 new_brick.rect.y = y_position
                 holder.add(new_brick)
                 x_position += 64
-            if self.grad <= 1:
-                self.grad = self.base_grad
+            if self.grad_up:
+                if self.grad <= 1:
+                    self.grad = self.base_grad
+            else:
+                if self.grad >= 180:
+                    self.grad = self.base_grad
             x_position = 0
             y_position += 25
                 
@@ -606,7 +620,10 @@ class Bouncing:
         self.star = False
         new_brick = self.brick_base(width, height, inner, x_position, y_position)
         new_brick.gradient("Blue", int(self.grad))
-        self.grad -= 0.5
+        if self.grad_up:
+            self.grad += 0.5
+        else:
+            self.grad -= 0.5
         new_brick.rect.x = x_position
         new_brick.rect.y = y_position
         holder.add(new_brick)
