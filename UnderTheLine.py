@@ -55,6 +55,7 @@ class Bouncing:
         self.bordereded = 0
         self.bardereded = 0
         self.left_bricks = 0
+        self.extras = 0
         self.rightbreaker = RightBreaker(self)
         self.farrightbreaker = FarRightBreaker(self)
         self.leftbreaker = LeftBreaker(self)
@@ -69,6 +70,7 @@ class Bouncing:
         self.can_update = pygame.sprite.Group()
         self.can_upadte = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
+        self.dev_bricks = pygame.sprite.Group()
         self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
         self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
         self.started = False
@@ -79,7 +81,10 @@ class Bouncing:
         self.paused = False
         self.swift = True
         self.rumbles = False
-        self.extras = 0
+        self.dev = False
+        self.track_mouse = False
+        self.left_mouse = False
+        self.right_mouse = False
         self.star = False
         self.dos = False
         self.tres = False
@@ -190,8 +195,12 @@ class Bouncing:
         if not self.inner:
             for brick in self.brickes:
                 brick.update()
-        for brickage in self.bricks:
-            brickage.update()
+        if self.dev:
+            for brickage in self.dev_bricks:
+                brickage.update()
+        else:
+            for brickage in self.bricks:
+                brickage.update()
         if self.new_began:
             self.resets()
         self.levels()
@@ -207,6 +216,7 @@ class Bouncing:
                 brick.kill()
             for brick in self.brickes:
                 brick.kill()
+            self.dev = False
         if not self.bricks and self.dos == False:
             for cat in range(1,6):
                 self.horcrux()
@@ -294,6 +304,7 @@ class Bouncing:
                         self.grad = 1
                         self.create_wall(0)
                         self.grad = 1
+                        self.dev = True
                 elif event.key == pygame.K_DOWN and self.shined > 10000:
                     if len(self.stars) > 0:
                         self.shined = 0
@@ -323,6 +334,28 @@ class Bouncing:
             if event.type == pygame.JOYBUTTONUP:
                 if not self.joystick.get_button(6) and self.option_pressed:
                     self.option_pressed= False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.track_mouse = True
+                if pygame.mouse.get_pressed()[0]:
+                    self.left_mouse = True
+                elif pygame.mouse.get_pressed()[2]:
+                    self.right_mouse = True
+            if self.track_mouse:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.left_mouse:
+                    for brack in self.bricks:
+                        if brack.rect.collidepoint(mouse_pos):
+                            self.dev_bricks.add(brack)
+                elif self.right_mouse:
+                    for brack in self.bricks:
+                        if brack.rect.collidepoint(mouse_pos):
+                            self.dev_bricks.remove(brack)
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.track_mouse = False
+                if not pygame.mouse.get_pressed()[0]:
+                    self.left_mouse = False
+                if not pygame.mouse.get_pressed()[2]:
+                    self.right_mouse = False
         if self.joystick:
             if self.joystick.get_numbuttons() == 16:
                 if self.joystick.get_button(9):
@@ -406,6 +439,8 @@ class Bouncing:
                 if level == 0:
                     self.display(self.current_x, self.current_y, 64, 25, self.bricks)
                     self.display(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
+                    self.current_y = 300
+                    self.current_x = self.screen_width
                 elif level == 1:
                     self.level_one(self.current_x, self.current_y, 64, 25, self.bricks)
                     self.level_one(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
@@ -497,60 +532,74 @@ class Bouncing:
     def display(self, x_position, y_position, width, height, holder, inner=False):
         """Creates the admin display."""
         self.star = False
-        new_brick = self.brick_base(width, height, inner, x_position, y_position)
-        if self.grad == 0:
-            new_brick.reinforce()
-        elif self.grad == 1:
-            new_brick.damage()
-        elif self.grad == 2:
-            new_brick.gunpowder()
-        elif self.grad == 3:
-            new_brick.doppelgunpowder()
-        elif self.grad == 4:
-            new_brick.lock()
-        elif self.grad == 5:
-            new_brick.key()
-        elif self.grad == 6:
-            new_brick.open()
-        elif self.grad == 7:
-            new_brick.unbreak()
-        elif self.grad == 8:
-            new_brick.redo()
-        elif self.grad == 9:
-            new_brick.star()
-        elif self.grad == 10:
-            new_brick.plus_one()
-        elif self.grad == 11:
-            new_brick.homicide()
-        elif self.grad == 12:
-            new_brick.bar_expand()
-        elif self.grad == 13:
-            new_brick.bar_damage1()
-        elif self.grad == 14:
-            new_brick.bar_damage2()
-        elif self.grad == 15:
-            new_brick.bar_damage3()
-        elif self.grad == 16:
-            new_brick.bar_damage4()
-        elif self.grad == 17:
-            new_brick.mystiry()
-        elif self.grad == 18:
-            new_brick.ceiling()
-        elif self.grad == 19:
-            new_brick.compass()
-        elif self.grad == 20:
-            new_brick.up_outer()
-        elif self.grad == 21:
-            new_brick.right_outer()
-        elif self.grad == 22:
-            new_brick.down_outer()
-        elif self.grad == 23:
-            new_brick.left_outer()
-        if inner == True:
-           self.grad += 1
-        new_brick.rect.x = x_position
-        new_brick.rect.y = y_position
-        holder.add(new_brick)
+        if height >= 25:
+            y_position = 0
+        else:
+            y_position = 3
+        self.grad = self.base_grad
+        x_position = 0
+        while y_position < self.screen_height:
+            while x_position < self.screen_width:
+                new_brick = self.brick_base(width, height, inner, x_position, y_position)
+                if self.grad == 0:
+                    new_brick.reinforce()
+                elif self.grad == 1:
+                    new_brick.damage()
+                elif self.grad == 2:
+                    new_brick.gunpowder()
+                elif self.grad == 3:
+                    new_brick.doppelgunpowder()
+                elif self.grad == 4:
+                    new_brick.lock()
+                elif self.grad == 5:
+                    new_brick.key()
+                elif self.grad == 6:
+                    new_brick.open()
+                elif self.grad == 7:
+                    new_brick.unbreak()
+                elif self.grad == 8:
+                    new_brick.redo()
+                elif self.grad == 9:
+                    new_brick.star()
+                elif self.grad == 10:
+                    new_brick.star()
+                elif self.grad == 11:
+                    new_brick.homicide()
+                elif self.grad == 12:
+                    new_brick.bar_expand()
+                elif self.grad == 13:
+                    new_brick.bar_damage1()
+                elif self.grad == 14:
+                    new_brick.bar_damage2()
+                elif self.grad == 15:
+                    new_brick.bar_damage3()
+                elif self.grad == 16:
+                    new_brick.bar_damage4()
+                elif self.grad == 17:
+                    new_brick.mystiry()
+                elif self.grad == 18:
+                    new_brick.ceiling()
+                elif self.grad == 19:
+                    new_brick.compass()
+                elif self.grad == 20:
+                    new_brick.up_outer()
+                elif self.grad == 21:
+                    new_brick.right_outer()
+                elif self.grad == 22:
+                    new_brick.down_outer()
+                elif self.grad == 23:
+                    new_brick.left_outer()
+                new_brick.gradient("red", int(self.grad))
+                self.grad -= 1
+                new_brick.rect.x = x_position
+                new_brick.rect.y = y_position
+                holder.add(new_brick)
+                x_position += 64
+            if self.grad <= 1:
+                self.grad = self.base_grad
+            x_position = 0
+            y_position += 25
+                
     
     def level_one(self, x_position, y_position, width, height, holder, inner=False):
         """Creates all breaking bricks for level one."""
@@ -1011,7 +1060,7 @@ class Ball(Sprite):
                     try:
                         self.bouncer.brick_dict.pop(lich)
                     except KeyError:
-                        print("Lich key error")
+                        print("Lich key error:Brick Broken")
                     self.bouncer.borders()
                     self.bouncer.borderes()
                 if lich in self.bouncer.undamaged:
@@ -1023,7 +1072,7 @@ class Ball(Sprite):
                 try:
                     self.bouncer.brick_dict.pop(lich)
                 except KeyError:
-                    print("Lich key error")
+                    print("Lich key error:Bomb Breaker")
                 self.bouncer.borders()
                 self.bouncer.borderes()
             if lich in self.bouncer.undamaged:
@@ -1414,6 +1463,8 @@ class Brick(Sprite):
             self.image = pygame.image.load(f"Graphics/{colour}{shade}.png").convert_alpha()
         except FileNotFoundError:
             self.image = pygame.image.load(f"Graphics/{colour}1.png").convert_alpha()
+            print(shade)
+            self.bouncer.grad = self.bouncer.base_grad
         self.innervate()
     
     def up_outer(self):
