@@ -5,6 +5,7 @@ import os
 import random
 
 from Breakers import *
+from Brick_coordinates import *
 
 os.chdir("C:/Users/isaac")
 
@@ -54,6 +55,8 @@ class Bouncing:
         self.bardereded = 0
         self.left_bricks = 0
         self.extras = 0
+        self.Dict1 = Dict2()
+        self.dev_level1 = self.Dict1.dict
         self.rightbreaker = RightBreaker(self)
         self.farrightbreaker = FarRightBreaker(self)
         self.leftbreaker = LeftBreaker(self)
@@ -71,6 +74,7 @@ class Bouncing:
         self.dev_bricks = pygame.sprite.Group()
         self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
         self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+        self.dev_list = open("alien_invasion/UTL/Brick_coordinates.py", 'a')
         self.started = False
         self.inner = True
         self.alter = False
@@ -87,6 +91,7 @@ class Bouncing:
         self.dos = False
         self.tres = False
         self.cuatro = False
+        self.cinco = False
 
         # Gradient initialisations
         self.grad_up = False
@@ -176,7 +181,7 @@ class Bouncing:
         self.screen.fill((38, 142, 202))
         if self.shielded < 10000:
             self.screen.blit(self.backgrund_image, (0, self.middlebreaker.rect.y + 10))
-        self.screen.blit(self.background_image, (0,0))
+        #self.screen.blit(self.background_image, (0,0))
         for sphere in self.spherage:
             sphere.update()
         for spere in self.livess:
@@ -248,6 +253,14 @@ class Bouncing:
             self.cuatro = True
             self.borders()
             self.borderes()
+        elif not self.bricks and self.cinco == False:
+            for cat in range(1,6):
+                self.horcrux()
+            self.kinds()
+            self.create_wall(5)
+            self.cinco = True
+            self.borders()
+            self.borderes()
     
     def pause_screen(self):
         """Creates the pause screen."""
@@ -265,8 +278,19 @@ class Bouncing:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:# or event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
+                    if self.alter == True:
+                        pygame.quit()
+                        nombre = 0
+                        self.dev_list.write("\nclass Dict2:\n\tdef __init__(self):\n\t\tself.dict = {\n")
+                        for shade in self.dev_bricks:
+                            self.dev_list.write(f"\t\t\t{nombre}:({shade.rect.x},{shade.rect.y}),\n")
+                            nombre += 1
+                        self.dev_list.write("\t\t}")
+                        self.dev_list.close()
+                        sys.exit()
+                    else:
+                        pygame.quit()
+                        sys.exit()
                 elif event.key == pygame.K_ESCAPE:
                     if self.paused == True:
                         self.paused = False
@@ -460,6 +484,9 @@ class Bouncing:
                 elif level == 4:
                     self.level_four(self.current_x, self.current_y, 64, 25, self.bricks)
                     self.level_four(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
+                elif level == 5:
+                    self.devel(self.current_x, self.current_y, 64, 25, self.bricks)
+                    self.devel(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
                 self.current_x += 64
             self.current_x = 0
             self.current_y += 25
@@ -615,7 +642,32 @@ class Bouncing:
                     self.grad = self.base_grad
             x_position = 0
             y_position += 25
-                
+    
+    def devel(self, x_position, y_position, width, height, holder, inner=False):
+        """Recreates a dictionaried level."""
+        self.star = False
+        new_brick = self.brick_base(width, height, inner, x_position, y_position)
+        new_brick.gradient("Red", int(self.grad))
+        if self.grad_up:
+            self.grad += 0.5
+        else:
+            self.grad -= 0.5
+        new_brick.rect.x = x_position
+        new_brick.rect.y = y_position
+        for lost in self.dev_level1.values():
+            if not inner:
+                if x_position == lost[0] and y_position == lost[1]:
+                    holder.add(new_brick)
+            if inner:
+                if x_position == lost[0] and y_position == lost[1]+3:
+                    holder.add(new_brick)
+        if new_brick not in holder:
+            new_brick.kill()
+            if not inner:
+                self.brick_dict.pop(new_brick)
+            elif inner:
+                self.bricke_dict.pop(new_brick)
+
     
     def level_one(self, x_position, y_position, width, height, holder, inner=False):
         """Creates all breaking bricks for level one."""
