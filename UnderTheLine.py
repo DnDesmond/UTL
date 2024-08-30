@@ -79,6 +79,7 @@ class Bouncing:
         self.dev_bricks = pygame.sprite.Group()
         self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
         self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+        self.overlay_image = pygame.image.load("Graphics/Screenshot (9).png").convert_alpha()
         self.dev_list = open("alien_invasion/UTL/Brick_coordinates.py", 'a')
         self.started = False
         self.inner = True
@@ -92,6 +93,7 @@ class Bouncing:
         self.track_mouse = False
         self.left_mouse = False
         self.right_mouse = False
+        self.overlay = False
         self.star = False
         self.dos = False
         self.tres = False
@@ -209,6 +211,8 @@ class Bouncing:
         self.middlebreaker.update()
         #for brikage in self.brickes:
         #    brikage.update()
+        if self.overlay:
+            self.blit_alpha(self.screen, self.overlay_image, (0,0), 128)
         if not self.inner:
             for brick in self.brickes:
                 brick.update()
@@ -250,22 +254,22 @@ class Bouncing:
             self.tres = True
             self.borders()
             self.borderes()
-        elif not self.bricks and self.cuatro == False:
-            for cat in range(1,6):
-                self.horcrux()
-            self.kinds()
-            self.create_wall(4)
-            self.cuatro = True
-            self.borders()
-            self.borderes()
-        elif not self.bricks and self.cinco == False:
-            for cat in range(1,6):
-                self.horcrux()
-            self.kinds()
-            self.create_wall(5)
-            self.cinco = True
-            self.borders()
-            self.borderes()
+        # elif not self.bricks and self.cuatro == False:
+        #     for cat in range(1,6):
+        #         self.horcrux()
+        #     self.kinds()
+        #     self.create_wall(4)
+        #     self.cuatro = True
+        #     self.borders()
+        #     self.borderes()
+        # elif not self.bricks and self.cinco == False:
+        #     for cat in range(1,6):
+        #         self.horcrux()
+        #     self.kinds()
+        #     self.create_wall(5)
+        #     self.cinco = True
+        #     self.borders()
+        #     self.borderes()
     
     def pause_screen(self):
         """Creates the pause screen."""
@@ -286,7 +290,7 @@ class Bouncing:
                     if self.alter == True:
                         pygame.quit()
                         nombre = 0
-                        self.dev_list.write("\nclass Spec3:\n\tdef __init__(self):\n\t\tself.dict = {\n")
+                        self.dev_list.write("\nclass Level4:\n\tdef __init__(self):\n\t\tself.dict = {\n")
                         for shade in self.dev_bricks:
                             self.dev_list.write(f"\t\t\t{nombre}:({shade.rect.x},{shade.rect.y}),\n")
                             nombre += 1
@@ -348,6 +352,8 @@ class Bouncing:
                         self.shore.kill()
                     else:
                         pass
+                elif event.key == pygame.K_o:
+                    self.overlay = True
                 elif event.key == pygame.K_F4 and self.lalter:
                     pygame.quit()
                     sys.exit()
@@ -360,6 +366,8 @@ class Bouncing:
                     self.alter = False
                 elif event.key == pygame.K_LALT:
                     self.lalter = False
+                elif event.key == pygame.K_o:
+                    self.overlay = False
             if event.type == pygame.JOYBUTTONDOWN:
                 if self.joystick.get_button(6) and not self.option_pressed:
                     if not self.paused and not self.option_pressed:
@@ -575,7 +583,7 @@ class Bouncing:
                 elif self.grad == 9:
                     new_brick.star()
                 elif self.grad == 10:
-                    new_brick.star()
+                    new_brick.reinforce()
                 elif self.grad == 11:
                     new_brick.homicide()
                 elif self.grad == 12:
@@ -602,7 +610,13 @@ class Bouncing:
                     new_brick.down_outer()
                 elif self.grad == 23:
                     new_brick.left_outer()
-                new_brick.gradient("red", int(self.grad))
+                elif self.grad == 24:
+                    new_brick.acid()
+                elif self.grad == 25:
+                    new_brick.shield()
+                elif self.grad == 26:
+                    new_brick.paint_stripe()
+                #new_brick.gradient("red", int(self.grad))
                 if self.grad_up:
                     if self.grad <= 180:
                         self.grad += 1
@@ -1468,7 +1482,7 @@ class Brick(Sprite):
         self.bouncer.cardinal.append(self)
     
     def shield(self):
-        self.image = pygame.image.load("Graphics/Red/Shield_Brick.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Shield_Brick.png").convert_alpha()
         self.innervate()
         self.bouncer.barrier.append(self)
     
