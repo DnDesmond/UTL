@@ -55,7 +55,12 @@ class Bouncing:
         self.bardereded = 0
         self.left_bricks = 0
         self.extras = 0
-        self.Dict1 = Dict2()
+        self.Dict1 = Level1()
+        self.Dict2 = Level2()
+        self.Dict3 = Level3()
+        self.spec1 = Spec1()
+        self.spec2 = Spec2()
+        self.spec3 = Spec3()
         self.dev_level1 = self.Dict1.dict
         self.rightbreaker = RightBreaker(self)
         self.farrightbreaker = FarRightBreaker(self)
@@ -281,7 +286,7 @@ class Bouncing:
                     if self.alter == True:
                         pygame.quit()
                         nombre = 0
-                        self.dev_list.write("\nclass Dict2:\n\tdef __init__(self):\n\t\tself.dict = {\n")
+                        self.dev_list.write("\nclass Spec3:\n\tdef __init__(self):\n\t\tself.dict = {\n")
                         for shade in self.dev_bricks:
                             self.dev_list.write(f"\t\t\t{nombre}:({shade.rect.x},{shade.rect.y}),\n")
                             nombre += 1
@@ -473,20 +478,15 @@ class Bouncing:
                     self.current_y = 300
                     self.current_x = self.screen_width
                 elif level == 1:
-                    self.level_one(self.current_x, self.current_y, 64, 25, self.bricks)
-                    self.level_one(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
-                elif level == 2:
-                    self.level_two(self.current_x, self.current_y, 64, 25, self.bricks)
-                    self.level_two(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
-                elif level == 3:
-                    self.level_three(self.current_x, self.current_y, 64, 25, self.bricks)
-                    self.level_three(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
-                elif level == 4:
-                    self.level_four(self.current_x, self.current_y, 64, 25, self.bricks)
-                    self.level_four(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
-                elif level == 5:
-                    self.devel(self.current_x, self.current_y, 64, 25, self.bricks)
-                    self.devel(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
+                    self.gen_level(self.current_x, self.current_y, 64, 25, self.bricks,level, False, "Blue")
+                    self.gen_level(self.current_x, self.current_y+3, 64, 20, self.brickes,level, inner=self.inner, grad="Blue")
+                    self.current_y = 300
+                    self.current_x = self.screen_width
+                else:
+                    self.gen_level(self.current_x, self.current_y, 64, 25, self.bricks,level, False)
+                    self.gen_level(self.current_x, self.current_y+3, 64, 20, self.brickes,level, inner=self.inner)
+                    self.current_y = 300
+                    self.current_x = self.screen_width
                 self.current_x += 64
             self.current_x = 0
             self.current_y += 25
@@ -541,27 +541,6 @@ class Bouncing:
         if self.bardered < self.bardereded:
             print(self.bardered)
         self.bardereded = self.bardered
-
-    def lay_brick(self, x_position, y_position, width, height, holder, inner=False):
-        """Creates a brick to be broken.""" 
-        if not inner:
-            new_brick = Brick(self, width, height)
-        else:
-            new_brick = Brick(self, width, height, True)
-        new_brick.rect.x = x_position
-        new_brick.rect.y = y_position
-        if self.reinforce % 2 == 0:
-            new_brick.reinforce()
-        if self.current_y == 400 and self.current_x == 576:
-            new_brick.key()
-        if self.current_y == 250 and self.current_x == 576:
-            if height == 25:
-                new_brick.mystiry()
-        elif self.current_y == 250:
-            if height == 25:
-                new_brick.doppelgunpowder()
-            new_brick.lock()
-        holder.add(new_brick)
     
     def display(self, x_position, y_position, width, height, holder, inner=False):
         """Creates the admin display."""
@@ -643,87 +622,51 @@ class Bouncing:
             x_position = 0
             y_position += 25
     
-    def devel(self, x_position, y_position, width, height, holder, inner=False):
-        """Recreates a dictionaried level."""
+    def gen_level(self, x_position, y_position, width, height, holder, level, inner=False, grad=""):
         self.star = False
-        new_brick = self.brick_base(width, height, inner, x_position, y_position)
-        new_brick.gradient("Red", int(self.grad))
-        if self.grad_up:
-            self.grad += 0.5
+        if height >= 25:
+            y_position = 0
         else:
-            self.grad -= 0.5
-        new_brick.rect.x = x_position
-        new_brick.rect.y = y_position
-        for lost in self.dev_level1.values():
-            if not inner:
-                if x_position == lost[0] and y_position == lost[1]:
-                    holder.add(new_brick)
-            if inner:
-                if x_position == lost[0] and y_position == lost[1]+3:
-                    holder.add(new_brick)
-        if new_brick not in holder:
-            new_brick.kill()
-            if not inner:
-                self.brick_dict.pop(new_brick)
-            elif inner:
-                self.bricke_dict.pop(new_brick)
-
-    
-    def level_one(self, x_position, y_position, width, height, holder, inner=False):
-        """Creates all breaking bricks for level one."""
-        self.star = False
-        new_brick = self.brick_base(width, height, inner, x_position, y_position)
-        new_brick.gradient("Blue", int(self.grad))
-        if self.grad_up:
-            self.grad += 0.5
-        else:
-            self.grad -= 0.5
-        new_brick.rect.x = x_position
-        new_brick.rect.y = y_position
-        holder.add(new_brick)
-    
-    def level_two(self, x_position, y_position, width, height, holder, inner=False):
-        """Creates all breaking bricks for level two."""
-        #self.rebar()
-        self.star = False
-        if self.current_y <= 200:
-            new_brick = self.brick_base(width, height, inner, x_position, y_position)
-            if self.current_y % 2 == 0:
-                new_brick.reinforce()
-            new_brick.rect.x = x_position
-            new_brick.rect.y = y_position
-            holder.add(new_brick)
-    
-    def level_three(self, x_position, y_position, width, height, holder, inner=False):
-        """Creates all breaking bricks for level three."""
-        #self.rebar()
-        self.star = False
-        new_brick = self.brick_base(width, height, inner, x_position, y_position)
-        if x_position == 256 and y_position == 200:
-            new_brick.key()
-        if y_position == 100:
-            new_brick.gunpowder()
-        if x_position == 1024 and y_position == 200:
-            new_brick.homicide()
-        x_list = [960, 1024, 1088]
-        y_list = [175, 200, 225]
-        if x_position in x_list and y_position in y_list:
-            if x_position == 1024 and y_position == 200:
-                pass
+            y_position = 3
+        self.grad = self.base_grad
+        x_position = 0
+        while y_position < self.screen_height:
+            while x_position < self.screen_width:
+                new_brick = self.brick_base(width, height, inner, x_position, y_position)
+                if grad:
+                    new_brick.gradient(f"{grad}", int(self.grad))
+                new_brick.rect.x = x_position
+                new_brick.rect.y = y_position
+                for lost in getattr(self, f"Dict{level}").dict.values():
+                    if not inner:
+                        if x_position == lost[0] and y_position == lost[1]:
+                            holder.add(new_brick)
+                    if inner:
+                        if x_position == lost[0] and y_position == lost[1]+3:
+                            holder.add(new_brick)
+                if new_brick not in holder:
+                    new_brick.kill()
+                    if not inner:
+                        self.brick_dict.pop(new_brick)
+                    elif inner:
+                        self.bricke_dict.pop(new_brick)
+                getattr(self, f"spec{level}").full_specs(x_position, y_position, new_brick)
+                if new_brick in holder:
+                    if self.grad_up:
+                        if self.grad <= 180:
+                            self.grad += 1
+                    else:
+                        if self.grad > 1:
+                            self.grad -= 1
+                x_position += 64
+            if self.grad_up:
+                if self.grad >= 180:
+                    self.grad = self.base_grad
             else:
-                new_brick.lock()
-        new_brick.rect.x = x_position
-        new_brick.rect.y = y_position
-        holder.add(new_brick)
-    
-    def level_four(self, x_position, y_position, width, height, holder, inner=False):
-        """Creates all rbeaking bricks for level four."""
-        #self.rebar()
-        self.star = False
-        new_brick = self.brick_base(width, height, inner, x_position, y_position)
-        new_brick.rect.x = x_position
-        new_brick.rect.y = y_position
-        holder.add(new_brick)
+                if self.grad <= 1:
+                    self.grad = self.base_grad
+            x_position = 0
+            y_position += 25
 
     def brick_base(self, width, height, inner, x, y):
         self.shrapnel.empty()
