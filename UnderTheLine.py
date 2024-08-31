@@ -55,12 +55,16 @@ class Bouncing:
         self.bardereded = 0
         self.left_bricks = 0
         self.extras = 0
+        self.brick_height = 25
+        self.brick_width = 64
         self.Dict1 = Level1()
         self.Dict2 = Level2()
         self.Dict3 = Level3()
+        self.Dict4 = Level4()
         self.spec1 = Spec1()
         self.spec2 = Spec2()
         self.spec3 = Spec3()
+        # self.spec4 = Spec4()
         self.dev_level1 = self.Dict1.dict
         self.rightbreaker = RightBreaker(self)
         self.farrightbreaker = FarRightBreaker(self)
@@ -79,7 +83,7 @@ class Bouncing:
         self.dev_bricks = pygame.sprite.Group()
         self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
         self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
-        self.overlay_image = pygame.image.load("Graphics/Screenshot (9).png").convert_alpha()
+        self.overlay_image = pygame.image.load("Graphics/Screenshot (11).png").convert_alpha()
         self.dev_list = open("alien_invasion/UTL/Brick_coordinates.py", 'a')
         self.started = False
         self.inner = True
@@ -254,14 +258,14 @@ class Bouncing:
             self.tres = True
             self.borders()
             self.borderes()
-        # elif not self.bricks and self.cuatro == False:
-        #     for cat in range(1,6):
-        #         self.horcrux()
-        #     self.kinds()
-        #     self.create_wall(4)
-        #     self.cuatro = True
-        #     self.borders()
-        #     self.borderes()
+        elif not self.bricks and self.cuatro == False:
+            for cat in range(1,6):
+                self.horcrux()
+            self.kinds()
+            self.create_wall(4)
+            self.cuatro = True
+            self.borders()
+            self.borderes()
         # elif not self.bricks and self.cinco == False:
         #     for cat in range(1,6):
         #         self.horcrux()
@@ -290,7 +294,7 @@ class Bouncing:
                     if self.alter == True:
                         pygame.quit()
                         nombre = 0
-                        self.dev_list.write("\nclass Level4:\n\tdef __init__(self):\n\t\tself.dict = {\n")
+                        self.dev_list.write("\nclass Spec4:\n\tdef __init__(self):\n\t\tself.dict = {\n")
                         for shade in self.dev_bricks:
                             self.dev_list.write(f"\t\t\t{nombre}:({shade.rect.x},{shade.rect.y}),\n")
                             nombre += 1
@@ -481,23 +485,23 @@ class Bouncing:
         while self.current_y < 301:
             while self.current_x < self.screen_width:
                 if level == 0:
-                    self.display(self.current_x, self.current_y, 64, 25, self.bricks)
-                    self.display(self.current_x, self.current_y+3, 64, 20, self.brickes, inner=self.inner)
+                    self.display(self.current_x, self.current_y, self.brick_width, self.brick_height, self.bricks)
+                    self.display(self.current_x, self.current_y+3, self.brick_width, self.brick_height-5, self.brickes, inner=self.inner)
                     self.current_y = 300
                     self.current_x = self.screen_width
                 elif level == 1:
-                    self.gen_level(self.current_x, self.current_y, 64, 25, self.bricks,level, False, "Blue")
-                    self.gen_level(self.current_x, self.current_y+3, 64, 20, self.brickes,level, inner=self.inner, grad="Blue")
+                    self.gen_level(self.current_x, self.current_y, self.brick_width, self.brick_height, self.bricks,level, False, "Blue")
+                    self.gen_level(self.current_x, self.current_y+3, self.brick_width, self.brick_height-5, self.brickes,level, inner=self.inner, grad="Blue")
                     self.current_y = 300
                     self.current_x = self.screen_width
                 else:
-                    self.gen_level(self.current_x, self.current_y, 64, 25, self.bricks,level, False)
-                    self.gen_level(self.current_x, self.current_y+3, 64, 20, self.brickes,level, inner=self.inner)
+                    self.gen_level(self.current_x, self.current_y, self.brick_width, self.brick_height, self.bricks,level, False)
+                    self.gen_level(self.current_x, self.current_y+3, self.brick_width, self.brick_height-5, self.brickes,level, inner=self.inner)
                     self.current_y = 300
                     self.current_x = self.screen_width
-                self.current_x += 64
+                self.current_x += self.brick_width
             self.current_x = 0
-            self.current_y += 25
+            self.current_y += self.brick_height
             self.reinforce += 1
     
     def borders(self):
@@ -507,10 +511,10 @@ class Bouncing:
         self.can_update = pygame.sprite.Group()
         for key, value in self.brick_dict.items():
             #print(key, value)
-            temp = [value[0] + 64, value[1]]
-            temps = [value[0] - 64, value[1]]
-            tem = [value[0], value[1] + 25]
-            tmp = [value[0], value[1] - 25]
+            temp = [value[0] + self.brick_width, value[1]]
+            temps = [value[0] - self.brick_width, value[1]]
+            tem = [value[0], value[1] + self.brick_height]
+            tmp = [value[0], value[1] - self.brick_height]
             if temp in self.brick_dict.values() and temps in self.brick_dict.values() and tem in self.brick_dict.values() and tmp in self.brick_dict.values():
                 self.bordered += 1
                 self.cant_update.append(key)
@@ -532,10 +536,10 @@ class Bouncing:
         self.can_upadte = pygame.sprite.Group()
         for key, value in self.bricke_dict.items():
             #print(key, value)
-            temp = [value[0] + 64, value[1]]
-            temps = [value[0] - 64, value[1]]
-            tem = [value[0], value[1] + 25]
-            tmp = [value[0], value[1] - 25]
+            temp = [value[0] + self.brick_width, value[1]]
+            temps = [value[0] - self.brick_width, value[1]]
+            tem = [value[0], value[1] + self.brick_height]
+            tmp = [value[0], value[1] - self.brick_height]
             if temp in self.bricke_dict.values() and temps in self.bricke_dict.values() and tem in self.bricke_dict.values() and tmp in self.bricke_dict.values():
                 self.bardered += 1
                 self.cant_upadte.append(key)
@@ -553,7 +557,7 @@ class Bouncing:
     def display(self, x_position, y_position, width, height, holder, inner=False):
         """Creates the admin display."""
         self.star = False
-        if height >= 25:
+        if height >= self.brick_height:
             y_position = 0
         else:
             y_position = 3
@@ -616,7 +620,7 @@ class Bouncing:
                     new_brick.shield()
                 elif self.grad == 26:
                     new_brick.paint_stripe()
-                #new_brick.gradient("red", int(self.grad))
+                new_brick.gradient("red", int(self.grad))
                 if self.grad_up:
                     if self.grad <= 180:
                         self.grad += 1
@@ -626,7 +630,7 @@ class Bouncing:
                 new_brick.rect.x = x_position
                 new_brick.rect.y = y_position
                 holder.add(new_brick)
-                x_position += 64
+                x_position += self.brick_width
             if self.grad_up:
                 if self.grad >= 180:
                     self.grad = self.base_grad
@@ -634,11 +638,11 @@ class Bouncing:
                 if self.grad <= 1:
                     self.grad = self.base_grad
             x_position = 0
-            y_position += 25
+            y_position += self.brick_height
     
     def gen_level(self, x_position, y_position, width, height, holder, level, inner=False, grad=""):
         self.star = False
-        if height >= 25:
+        if height >= self.brick_height:
             y_position = 0
         else:
             y_position = 3
@@ -658,13 +662,13 @@ class Bouncing:
                     if inner:
                         if x_position == lost[0] and y_position == lost[1]+3:
                             holder.add(new_brick)
+                getattr(self, f"spec{level}").full_specs(x_position, y_position, new_brick)
                 if new_brick not in holder:
                     new_brick.kill()
                     if not inner:
                         self.brick_dict.pop(new_brick)
                     elif inner:
                         self.bricke_dict.pop(new_brick)
-                getattr(self, f"spec{level}").full_specs(x_position, y_position, new_brick)
                 if new_brick in holder:
                     if self.grad_up:
                         if self.grad <= 180:
@@ -672,7 +676,7 @@ class Bouncing:
                     else:
                         if self.grad > 1:
                             self.grad -= 1
-                x_position += 64
+                x_position += self.brick_width
             if self.grad_up:
                 if self.grad >= 180:
                     self.grad = self.base_grad
@@ -680,16 +684,17 @@ class Bouncing:
                 if self.grad <= 1:
                     self.grad = self.base_grad
             x_position = 0
-            y_position += 25
+            print("DOG")
+            y_position += self.brick_height
 
     def brick_base(self, width, height, inner, x, y):
         self.shrapnel.empty()
         for sphere in self.spherage:
             sphere.recenters()
         new_brick = Brick(self, width, height, inner)
-        if height >= 25:
+        if height >= self.brick_height:
             self.brick_dict[new_brick] = [x, y]
-        elif height < 25:
+        elif height < self.brick_height:
             self.bricke_dict[new_brick] = [x, y]
         return(new_brick)
 
@@ -961,9 +966,13 @@ class Ball(Sprite):
             if self.smoving_left:
                 self.smoving_right = True
                 self.smoving_left = False
-            if self.fmoving_left:
+                self.fmoving_right = False
+                self.fmoving_left = False
+            elif self.fmoving_left:
                 self.fmoving_right = True
                 self.fmoving_left = False
+                self.smoving_right = False
+                self.smoving_left = False
             # self.smoving_left = False
             # self.fmoving_left = False
             # self.moving_right = True
@@ -975,9 +984,13 @@ class Ball(Sprite):
             if self.smoving_right:
                 self.smoving_left = True
                 self.smoving_right = False
-            if self.fmoving_right:
+                self.fmoving_left = False
+                self.fmoving_right = False
+            elif self.fmoving_right:
                 self.fmoving_left = True
                 self.fmoving_right = False
+                self.smoving_left = False
+                self.smoving_right = False
             # self.smoving_right = False
             # self.fmoving_right = False
             # self.moving_left = True
@@ -1052,18 +1065,26 @@ class Ball(Sprite):
                 if self.smoving_left:
                     self.smoving_right = True
                     self.smoving_left = False
+                    self.fmoving_right = False
+                    self.fmoving_left = False
                 elif self.fmoving_left:
                     self.fmoving_right = True
                     self.fmoving_left = False
+                    self.smoving_right = False
+                    self.smoving_left = False
             elif self.moving_right:
                 self.moving_left = True
                 self.moving_right = False
                 if self.smoving_right:
                     self.smoving_left = True
                     self.smoving_right = False
+                    self.fmoving_left = False
+                    self.fmoving_right = False
                 elif self.fmoving_right:
                     self.fmoving_left = True
                     self.fmoving_right = False
+                    self.smoving_left = False
+                    self.smoving_right = False
             self.brik_broken.clear()
         elif self.brick_broken:
             if self.moving_up:
@@ -1354,7 +1375,7 @@ class Brick(Sprite):
     def reinforce(self):
         self.image = pygame.image.load("Graphics/BlueBorderBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
-        if self.rect.height < 25:
+        if self.rect.height < self.bouncer.brick_height:
             self.image = pygame.image.load("Graphics/BlueBrickWide.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
