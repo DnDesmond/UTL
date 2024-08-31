@@ -684,7 +684,6 @@ class Bouncing:
                 if self.grad <= 1:
                     self.grad = self.base_grad
             x_position = 0
-            print("DOG")
             y_position += self.brick_height
 
     def brick_base(self, width, height, inner, x, y):
