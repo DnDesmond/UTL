@@ -61,10 +61,12 @@ class Bouncing:
         self.Dict2 = Level2()
         self.Dict3 = Level3()
         self.Dict4 = Level4()
+        self.Dict5 = Level5()
         self.spec1 = Spec1()
         self.spec2 = Spec2()
         self.spec3 = Spec3()
-        # self.spec4 = Spec4()
+        self.spec4 = Spec4()
+        self.spec5 = Spec5()
         self.dev_level1 = self.Dict1.dict
         self.rightbreaker = RightBreaker(self)
         self.farrightbreaker = FarRightBreaker(self)
@@ -185,7 +187,7 @@ class Bouncing:
             if self.sped_up < 1500:
                 self.clock.tick(150)
             else:
-                self.clock.tick(100)
+                self.clock.tick(85)
     
     def update_screen(self):
         """Runs all screen base updates."""
@@ -262,18 +264,20 @@ class Bouncing:
             for cat in range(1,6):
                 self.horcrux()
             self.kinds()
+            self.brick_width = 32
             self.create_wall(4)
+            self.brick_width = 64
             self.cuatro = True
             self.borders()
             self.borderes()
-        # elif not self.bricks and self.cinco == False:
-        #     for cat in range(1,6):
-        #         self.horcrux()
-        #     self.kinds()
-        #     self.create_wall(5)
-        #     self.cinco = True
-        #     self.borders()
-        #     self.borderes()
+        elif not self.bricks and self.cinco == False:
+            for cat in range(1,6):
+                self.horcrux()
+            self.kinds()
+            self.create_wall(5)
+            self.cinco = True
+            self.borders()
+            self.borderes()
     
     def pause_screen(self):
         """Creates the pause screen."""
@@ -842,6 +846,7 @@ class Ball(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.recenter = False
         size = 15
+        self.fly = 0
         is_scale = (size,size)
         if self.war_crime:
             is_scale = (5,5)
@@ -929,6 +934,10 @@ class Ball(Sprite):
         
         self.rect.y = self.y
         self.rect.x = self.x
+        if self.chain:
+            self.fly += 1
+        if self.fly > 2:
+            self.kill()
         if self.recenter:
             self.recenters()
     
