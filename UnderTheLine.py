@@ -1400,6 +1400,11 @@ class Brick(Sprite):
         self.image = pygame.image.load("Graphics/DoppelBombBrickWide.png").convert_alpha()
         self.innervate()
         self.bouncer.doppelbomb.append(self)
+    
+    def smolgunpowder(self):
+        self.image = pygame.image.load("Graphics/BombBrickSmol.png").convert_alpha()
+        self.innervate()
+        self.bouncer.doppelbomb.append(self)
 
     def lock(self):
         self.image = pygame.image.load("Graphics/HardBrickWide.png").convert_alpha()

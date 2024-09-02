@@ -1454,4 +1454,4 @@ class Spec4:
 	def gunpowder(self, x,y, subject):
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
-				subject.doppelgunpowder()
+				subject.smolgunpowder()
