@@ -3,7 +3,7 @@ from pygame.sprite import Group, Sprite
 import sys
 import os
 import random
-
+  
 from Breakers import *
 from Brick_coordinates import *
 
@@ -55,6 +55,13 @@ class Bouncing:
         self.bardereded = 0
         self.left_bricks = 0
         self.extras = 0
+        self.opaque = 0
+        self.unopaque = 0
+        self.trail_length = 10
+        self.trail_gap = 4
+        self.trail_view = 2
+        self.trail_ether = 1
+        self.trail_ways = [self.opaque, self.unopaque]
         self.brick_height = 25
         self.brick_width = 64
         self.Dict1 = Level1()
@@ -168,6 +175,11 @@ class Bouncing:
         self.ki('barrier')
         self.ki("acidic")
         self.ki("accelerate")
+        self.ki("trails")
+        self.ki("vermillion")
+        self.ki("phtalo")
+        self.ki("jade")
+        self.ki("gold")
     
     def ki(self, ci):
         self.prof.append((setattr(self, ci, [])))
@@ -198,7 +210,7 @@ class Bouncing:
         for sphere in self.spherage:
             sphere.update()
         for spere in self.livess:
-            spere.update()
+            spere.update(999)
         for stare in self.stars:
             stare.update()
         for war_crime in self.shrapnel:
@@ -234,6 +246,18 @@ class Bouncing:
         if self.left_bricks > len(self.bricks) or self.timer % 50 == 0:
             self.borders()
             self.borderes()
+        if self.timer % self.trail_gap == 0:
+            self.trail()
+        for count in range(self.trail_length,0, -1):
+            if len(self.trails)>self.trail_length:
+                self.opaque = (self.trail_length-count)*self.trail_view
+                self.unopaque = (count)*self.trail_view
+                self.trail_ways = [self.opaque, self.unopaque]
+                dust = self.trails[-count]
+                dust.update(self.trail_ways[self.trail_ether])
+            else:
+                for cat in range(0,self.trail_length):
+                    self.trail()
         self.left_bricks = len(self.bricks)
         pygame.display.flip()
     
@@ -514,7 +538,6 @@ class Bouncing:
         self.cant_update.clear()
         self.can_update = pygame.sprite.Group()
         for key, value in self.brick_dict.items():
-            #print(key, value)
             temp = [value[0] + self.brick_width, value[1]]
             temps = [value[0] - self.brick_width, value[1]]
             tem = [value[0], value[1] + self.brick_height]
@@ -530,7 +553,8 @@ class Bouncing:
                 if True:
                     self.can_update.add(brick)
         if self.bordered < self.bordereded:
-            print(self.bordered)
+            # print(self.bordered)
+            pass
         self.bordereded = self.bordered
 
     def borderes(self):
@@ -539,7 +563,6 @@ class Bouncing:
         self.cant_upadte.clear()
         self.can_upadte = pygame.sprite.Group()
         for key, value in self.bricke_dict.items():
-            #print(key, value)
             temp = [value[0] + self.brick_width, value[1]]
             temps = [value[0] - self.brick_width, value[1]]
             tem = [value[0], value[1] + self.brick_height]
@@ -555,7 +578,8 @@ class Bouncing:
                 if True:
                     self.can_upadte.add(brick)
         if self.bardered < self.bardereded:
-            print(self.bardered)
+            # print(self.bardered)
+            pass
         self.bardereded = self.bardered
     
     def display(self, x_position, y_position, width, height, holder, inner=False):
@@ -830,6 +854,12 @@ class Bouncing:
         temp.blit(source, (0, 0))
         temp.set_alpha(opacity)        
         target.blit(temp, location)
+    
+    def trail(self):
+        tral = Bal(self)
+        tral.rect.x = self.mball.x
+        tral.rect.y = self.mball.y
+        self.trails.append(tral)
 
 class Ball(Sprite):
     """Makes ball"""
@@ -1117,7 +1147,7 @@ class Ball(Sprite):
                     try:
                         self.bouncer.brick_dict.pop(lich)
                     except KeyError:
-                        print("Lich key error:Brick Broken")
+                        pass
                     self.bouncer.borders()
                     self.bouncer.borderes()
                 if lich in self.bouncer.undamaged:
@@ -1129,7 +1159,7 @@ class Ball(Sprite):
                 try:
                     self.bouncer.brick_dict.pop(lich)
                 except KeyError:
-                    print("Lich key error:Bomb Breaker")
+                    pass
                 self.bouncer.borders()
                 self.bouncer.borderes()
             if lich in self.bouncer.undamaged:
@@ -1210,15 +1240,25 @@ class Ball(Sprite):
                     x = shard.rect.x
                     y = shard.rect.y
                     shard.kill()
-                    self.bouncer.brick_dict.pop(shard)
-                    self.bouncer.borders()
-                    self.bouncer.borderes()
+                    try:
+                        self.bouncer.brick_dict.pop(shard)
+                        self.bouncer.borders()
+                        self.bouncer.borderes()
+                    except KeyError:
+                        pass
                     if self not in self.bouncer.launched:
                         self.bouncer.doppelexplode(x,y)
                 if shard in self.bouncer.expand:
                     self.bouncer.unbreakable.append(shard)
                     self.bouncer.locked.append(shard)
                     self.excalibur(shard)
+            for shard in self.bouncer.keys:
+                if shard in self.bomb_breaker:
+                    for padlock in self.bouncer.locked:
+                        if padlock not in self.bouncer.unbreakable:
+                            padlock.open()
+                        else:
+                            self.matlod.append(padlock)
             for shard in self.brik_broken:
                 if shard in self.bouncer.undamaged:
                     shard.damage()
@@ -1306,22 +1346,18 @@ class Ball(Sprite):
                 if pol.rect.x == shard.rect.x and pol.rect.y < shard.rect.y:
                     pol.up_outer()
                     pol.update()
-                    #print("CAT")
             elif direction == 'Eat':
                 if pol.rect.y-3 == shard.rect.y and pol.rect.x > shard.rect.x:
                     pol.right_outer()
                     pol.update()
-                    #print("CAT")
             elif direction == 'Shredded':
                 if pol.rect.x == shard.rect.x and pol.rect.y > shard.rect.y:
                     pol.down_outer()
                     pol.update()
-                    #print("CAT")
             elif direction == 'Wheat':
                 if pol.rect.y-3 == shard.rect.y and pol.rect.x < shard.rect.x:
                     pol.left_outer()
                     pol.update()
-                    #print("CAT")
         pygame.display.flip()
         self.bouncer.clock.tick(100)
         return(victory)
@@ -1338,8 +1374,18 @@ class Bal(Sprite):
         self.image = pygame.transform.scale(self.image, is_scale)
         self.rect = self.image.get_rect()
     
-    def update(self):
-        self.screen.blit(self.image, self.rect)
+    def update(self, opacity=1):
+        # self.screen.blit(self.image, self.rect)
+        self.blit_alpha(self.screen, self.image, (self.rect.x, self.rect.y), opacity)
+    
+    def blit_alpha(self, target, source, location, opacity):
+        x = location[0]
+        y = location[1]
+        temp = pygame.Surface((source.get_width(), source.get_height())).convert()
+        temp.blit(target, (-x, -y))
+        temp.blit(source, (0, 0))
+        temp.set_alpha(opacity)        
+        target.blit(temp, location)
     
 class Star(Sprite):
     """Creates the star sprite for powerup bar"""
@@ -1525,7 +1571,7 @@ class Brick(Sprite):
             self.image = pygame.image.load(f"Graphics/{colour}{shade}.png").convert_alpha()
         except FileNotFoundError:
             self.image = pygame.image.load(f"Graphics/{colour}1.png").convert_alpha()
-            print("CAT")
+            print("GraphicsFileError")
             self.bouncer.grad = self.bouncer.base_grad
         self.innervate()
     
@@ -1554,6 +1600,22 @@ class Brick(Sprite):
         self.image = pygame.image.load("Graphics/Fast_Clock.png").convert_alpha()
         self.innervate()
         self.bouncer.accelerate.append(self)
+    
+    def fancekey(self, colour):
+        try:
+            self.image = pygame.image.load(f"Graphics/{colour}Key.png").convert_alpha()
+        except FileNotFoundError:
+            pass
+        self.innervate()
+        getattr(self.bouncer, f"{colour}").append(self)
+    
+    def coulock(self, colour):
+        try:
+            self.image = pygame.image.load(f"Graphic/{colour}Lock.png").convert_alpha()
+        except FileNotFoundError:
+            pass
+        self.innervate()
+        getattr(self.bouncer, f"{colour}lock").append(self)
 
     def damage(self):
         """Switches to the damaged sprite."""
