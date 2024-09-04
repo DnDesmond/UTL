@@ -57,11 +57,11 @@ class Bouncing:
         self.extras = 0
         self.opaque = 0
         self.unopaque = 0
-        self.trail_length = 10
+        self.trail_length = 50
         self.trail_gap = 4
         self.trail_view = 2
-        self.trail_ether = 1
-        self.trail_ways = [self.opaque, self.unopaque]
+        self.trail_ether = 0
+        self.trail_ways = []
         self.brick_height = 25
         self.brick_width = 64
         self.Dict1 = Level1()
@@ -876,12 +876,14 @@ class Ball(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.recenter = False
         size = 15
+        self.spangle = 45
         self.fly = 0
         is_scale = (size,size)
         if self.war_crime:
             is_scale = (5,5)
 
-        self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Arrow.png").convert_alpha()
+        self.rotated_image = pygame.image.load("Graphics/Marble.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, is_scale)
         self.fatal = []
         self.matlod = []
@@ -930,10 +932,19 @@ class Ball(Sprite):
         if self.dead_time > 100:
             self.motion()
         self.dead_time += 1
+        self.rot_center(self.image, 1, self.rect.centerx, self.rect.centery)
         if self.dead:
             self.dead_time = 0
             self.dead = False
-        self.screen.blit(self.image, self.rect)
+        #self.screen.blit(self.image, self.rect)
+    
+    def rot_center(self, image, angle, x, y):
+        if self.dead_time % 1 == 0:
+            self.rotated_image = pygame.transform.rotate(image, self.spangle)
+            self.spangle += 1
+        new_rect = self.rotated_image.get_rect(center = image.get_rect(center = (x, y)).center)
+
+        self.screen.blit(self.rotated_image, new_rect)
     
     def motion(self):
         """Does the moving where moving wants doing?"""
@@ -1376,6 +1387,7 @@ class Bal(Sprite):
     
     def update(self, opacity=1):
         # self.screen.blit(self.image, self.rect)
+        self.image = self.bouncer.mball.rotated_image
         self.blit_alpha(self.screen, self.image, (self.rect.x, self.rect.y), opacity)
     
     def blit_alpha(self, target, source, location, opacity):

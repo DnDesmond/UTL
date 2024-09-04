@@ -488,7 +488,8 @@ class Level1:
 		}
 class Spec1:
 	def full_specs(self, x,y, subject):
-		pass
+		if x % 128 == 0:
+			subject.lock()
 
 class Level2:
 	def __init__(self):
