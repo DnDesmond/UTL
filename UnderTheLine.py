@@ -61,7 +61,10 @@ class Bouncing:
         self.trail_gap = 4
         self.trail_view = 2
         self.trail_ether = 0
+        self.ball_sprite_index = 0
         self.trail_ways = []
+        self.spins = True
+        self.main_spins = True
         self.brick_height = 25
         self.brick_width = 64
         self.Dict1 = Level1()
@@ -363,6 +366,9 @@ class Bouncing:
                 elif event.key == pygame.K_f:
                     for ball in self.spherage:
                         ball.recenters()
+                elif event.key == pygame.K_e:
+                    self.mball.spin_inator(self.ball_sprite_index)
+                    self.ball_sprite_index += 1
                 elif event.key == pygame.K_RALT:
                     self.alter = True
                 elif event.key == pygame.K_LALT:
@@ -856,7 +862,7 @@ class Bouncing:
         target.blit(temp, location)
     
     def trail(self):
-        tral = Bal(self)
+        tral = Bal(self, self.spins)
         tral.rect.x = self.mball.x
         tral.rect.y = self.mball.y
         self.trails.append(tral)
@@ -876,15 +882,19 @@ class Ball(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.recenter = False
         size = 15
-        self.spangle = 45
+        self.spangle = 0
         self.fly = 0
-        is_scale = (size,size)
+        if self.bouncer.main_spins:
+            self.spinny = 1
+        else:
+            self.spinny = 0
+        self.is_scale = (size,size)
         if self.war_crime:
-            is_scale = (5,5)
+            self.is_scale = (5,5)
 
-        self.image = pygame.image.load("Graphics/Arrow.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
         self.rotated_image = pygame.image.load("Graphics/Marble.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, is_scale)
+        self.image = pygame.transform.scale(self.image, self.is_scale)
         self.fatal = []
         self.matlod = []
         self.rect = self.image.get_rect()
@@ -932,16 +942,21 @@ class Ball(Sprite):
         if self.dead_time > 100:
             self.motion()
         self.dead_time += 1
-        self.rot_center(self.image, 1, self.rect.centerx, self.rect.centery)
+        self.rot_center(self.image, self.spinny, self.rect.centerx, self.rect.centery)
         if self.dead:
             self.dead_time = 0
             self.dead = False
         #self.screen.blit(self.image, self.rect)
     
+    def spin_inator(self, image_index):
+        self.images = ["Arrow", "Marble", "Can_No_See"]
+        self.image = pygame.image.load(f"Graphics/{self.images[image_index%3]}.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, self.is_scale).convert_alpha()
+    
     def rot_center(self, image, angle, x, y):
         if self.dead_time % 1 == 0:
             self.rotated_image = pygame.transform.rotate(image, self.spangle)
-            self.spangle += 1
+            self.spangle += self.spinny
         new_rect = self.rotated_image.get_rect(center = image.get_rect(center = (x, y)).center)
 
         self.screen.blit(self.rotated_image, new_rect)
@@ -1375,19 +1390,25 @@ class Ball(Sprite):
 
 class Bal(Sprite):
     """Spoofs a ball for lives."""
-    def __init__(self, bounce):
+    def __init__(self, bounce, spins=False):
         """Does it all."""
         super().__init__()
         self.bouncer = bounce
+        self.spins = spins
         self.screen = self.bouncer.screen
         is_scale = (15,15)
         self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
+        if self.bouncer.started:
+            self.image = self.bouncer.mball.image
         self.image = pygame.transform.scale(self.image, is_scale)
         self.rect = self.image.get_rect()
     
     def update(self, opacity=1):
         # self.screen.blit(self.image, self.rect)
-        self.image = self.bouncer.mball.rotated_image
+        if self.spins:
+            self.image = self.bouncer.mball.rotated_image.convert_alpha()
+        else:
+            self.image = self.bouncer.mball.image.convert_alpha()
         self.blit_alpha(self.screen, self.image, (self.rect.x, self.rect.y), opacity)
     
     def blit_alpha(self, target, source, location, opacity):
