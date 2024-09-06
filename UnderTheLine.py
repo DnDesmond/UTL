@@ -46,7 +46,7 @@ class Bouncing:
                 self.right_pressed = self.joystick.get_button(5)
                 self.option_pressed = True
 
-
+        self.buttonise()    
         self.timer = 0
         self.shielded = 10000
         self.shined = 10000
@@ -60,6 +60,7 @@ class Bouncing:
         self.trail_length = 50
         self.trail_gap = 4
         self.trail_view = 2
+        self.trail_view_base = 2
         self.trail_ether = 0
         self.ball_sprite_index = 0
         self.trail_ways = []
@@ -93,6 +94,7 @@ class Bouncing:
         self.can_upadte = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
         self.dev_bricks = pygame.sprite.Group()
+        self.buttons = pygame.sprite.Group()
         self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
         self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
         self.overlay_image = pygame.image.load("Graphics/Screenshot (11).png").convert_alpha()
@@ -107,6 +109,7 @@ class Bouncing:
         self.rumbles = False
         self.dev = False
         self.track_mouse = False
+        self.track_mouse_pos = pygame.mouse.get_pos()
         self.left_mouse = False
         self.right_mouse = False
         self.overlay = False
@@ -150,6 +153,13 @@ class Bouncing:
             "touchpad":15
         }
     
+    def buttonise(self):
+        self.button_list = []
+        self.button_pause = Button(self, 764, 63, 53, 370, "ButtonContinue")
+        self.button_option = Button(self, 764, 63, 53, 370+63, "ButtonOption")
+        self.button_list.append(self.button_pause)
+        self.button_list.append(self.button_option)
+    
     def kinds(self):
         """Makes the lists for the types of specialised bricks."""
         self.prof = []
@@ -180,9 +190,9 @@ class Bouncing:
         self.ki("accelerate")
         self.ki("trails")
         self.ki("vermillion")
-        self.ki("phtalo")
-        self.ki("jade")
-        self.ki("gold")
+        self.ki("phthalo")
+        self.ki("sapphire")
+        self.ki("royal")
     
     def ki(self, ci):
         self.prof.append((setattr(self, ci, [])))
@@ -312,9 +322,14 @@ class Bouncing:
         is_not_scaled = (self.screen_width, self.screen_height)
         self.pause_background_image = pygame.image.load("Graphics/Backgrounf.png").convert_alpha()
         self.pause_background_image = pygame.transform.scale(self.pause_background_image, is_not_scaled)
-        self.background_rect = self.pause_background_image.get_rect()
-        #self.blit_alpha(self.screen, self.pause_background_image, (0, 0), 128)
         self.screen.blit(self.pause_background_image, (0,0))
+        self.background_rect = self.pause_background_image.get_rect()
+        for button in self.button_list:
+            self.buttons.add(button)
+        for button in self.buttons:
+            button.update()
+        #self.blit_alpha(self.screen, self.pause_background_image, (0, 0), 128)
+        # self.screen.blit(self.pause_background_image, (0,0))
         pygame.display.flip()
 
     def check_events(self):
@@ -338,6 +353,7 @@ class Bouncing:
                 elif event.key == pygame.K_ESCAPE:
                     if self.paused == True:
                         self.paused = False
+                        self.buttons = pygame.sprite.Group()
                     else:
                         self.paused = True
                 elif event.key == pygame.K_p and self.started == False:
@@ -418,6 +434,7 @@ class Bouncing:
                     self.option_pressed= False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.track_mouse = True
+                self.track_mouse_pos = pygame.mouse.get_pos()
                 if pygame.mouse.get_pressed()[0]:
                     self.left_mouse = True
                 elif pygame.mouse.get_pressed()[2]:
@@ -425,13 +442,23 @@ class Bouncing:
             if self.track_mouse:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.left_mouse:
-                    for brack in self.bricks:
-                        if brack.rect.collidepoint(mouse_pos):
-                            self.dev_bricks.add(brack)
+                    if not self.paused:
+                        for brack in self.bricks:
+                            if brack.rect.collidepoint(mouse_pos):
+                                self.dev_bricks.add(brack)
+                    else:
+                        if self.button_pause.rect.collidepoint(self.track_mouse_pos):
+                            self.paused = False
+                        elif self.button_option.rect.collidepoint(self.track_mouse_pos):
+                            if self.trail_view == self.trail_view_base:
+                                self.trail_view = 0
+                            else:
+                                self.trail_view = self.trail_view_base
                 elif self.right_mouse:
                     for brack in self.bricks:
                         if brack.rect.collidepoint(mouse_pos):
                             self.dev_bricks.remove(brack)
+                self.track_mouse_pos = (0,0)
             if event.type == pygame.MOUSEBUTTONUP:
                 self.track_mouse = False
                 if not pygame.mouse.get_pressed()[0]:
@@ -1640,7 +1667,7 @@ class Brick(Sprite):
         except FileNotFoundError:
             pass
         self.innervate()
-        getattr(self.bouncer, f"{colour}").append(self)
+        getattr(self.bouncer, f"{colour.lower()}").append(self)
     
     def coulock(self, colour):
         try:
@@ -1665,6 +1692,24 @@ class Brick(Sprite):
             self.image = pygame.transform.scale(self.image, self.scaled)
         if self in self.bouncer.undamaged:
             self.bouncer.undamaged.remove(self)
+    
+class Button(Sprite):
+    """Attempts to create pause screen buttons"""
+
+    def __init__(self, bouncer, width, height, x, y, image):
+        super().__init__()
+        self.scale = (width, height)
+        self.bouncer = bouncer
+        self.screen = self.bouncer.screen
+        self.image = pygame.image.load(f"Graphics/{image}.png")
+        self.image = pygame.transform.scale(self.image, self.scale)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+    
+    def update(self):
+        self.screen.blit(self.image, self.rect)
+
 
 
 

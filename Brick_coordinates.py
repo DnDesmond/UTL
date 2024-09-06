@@ -488,8 +488,16 @@ class Level1:
 		}
 class Spec1:
 	def full_specs(self, x,y, subject):
-		if x % 128 == 0:
-			subject.lock()
+		if x % (128*5) == 0:
+			subject.key()
+		elif x % (128*4) == 0:
+			subject.fancekey("Phthalo")
+		elif x % (128*3) == 0:
+			subject.fancekey("Vermillion")
+		elif x % (128*2) == 0:
+			subject.fancekey("Royal")
+		elif x % (128*1) == 0:
+			subject.fancekey("Sapphire")
 
 class Level2:
 	def __init__(self):
