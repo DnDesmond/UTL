@@ -487,17 +487,16 @@ class Level1:
 			179:(1152,250),
 		}
 class Spec1:
+	def __init__(self):
+		self.num_specced = 0
+		self.colours = [
+			"Vermillion",
+			"Phthalo",
+			"Royal",
+			"Sapphire"
+		]
 	def full_specs(self, x,y, subject):
-		if x % (128*5) == 0:
-			subject.key()
-		elif x % (128*4) == 0:
-			subject.fancekey("Phthalo")
-		elif x % (128*3) == 0:
-			subject.fancekey("Vermillion")
-		elif x % (128*2) == 0:
-			subject.fancekey("Royal")
-		elif x % (128*1) == 0:
-			subject.fancekey("Sapphire")
+		subject.soul_sale()
 
 class Level2:
 	def __init__(self):
@@ -894,6 +893,8 @@ class Spec3:
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
 				subject.gunpowder()
+		if x < 600:
+			subject.gunpowder()
 	
 	def key(self, x,y, subject):
 		if x == 256 and y == 200:

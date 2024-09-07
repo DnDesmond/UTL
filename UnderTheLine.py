@@ -68,6 +68,7 @@ class Bouncing:
         self.main_spins = True
         self.brick_height = 25
         self.brick_width = 64
+        self.frame_rate = 85
         self.Dict1 = Level1()
         self.Dict2 = Level2()
         self.Dict3 = Level3()
@@ -84,6 +85,7 @@ class Bouncing:
         self.leftbreaker = LeftBreaker(self)
         self.farleftbreaker = FarLeftBreaker(self)
         self.middlebreaker = MiddleBreaker(self)
+        self.in_game = Parabola(self)
         self.bricks = pygame.sprite.Group()
         self.brickes = pygame.sprite.Group()
         self.hard_bricks = pygame.sprite.Group()
@@ -113,6 +115,7 @@ class Bouncing:
         self.left_mouse = False
         self.right_mouse = False
         self.overlay = False
+        self.next = False
         self.star = False
         self.dos = False
         self.tres = False
@@ -189,10 +192,16 @@ class Bouncing:
         self.ki("acidic")
         self.ki("accelerate")
         self.ki("trails")
+        self.ki("unlocked")
         self.ki("vermillion")
         self.ki("phthalo")
         self.ki("sapphire")
         self.ki("royal")
+        self.ki("vermillionlock")
+        self.ki("phthalolock")
+        self.ki("sapphirelock")
+        self.ki("royallock")
+        self.ki("adoored")
     
     def ki(self, ci):
         self.prof.append((setattr(self, ci, [])))
@@ -210,9 +219,12 @@ class Bouncing:
             self.shined += 1
             self.sped_up += 1
             if self.sped_up < 1500:
-                self.clock.tick(150)
+                self.clock.tick((self.frame_rate*2)-20)
             else:
-                self.clock.tick(85)
+                self.clock.tick(self.frame_rate)
+            if self.next:
+                self.in_game.real_init()
+                break
     
     def update_screen(self):
         """Runs all screen base updates."""
@@ -818,7 +830,7 @@ class Bouncing:
             brick.kill()
         self.new_began = False
         self.update_screen()
-        self.clock.tick(60)
+        self.clock.tick(self.frame_rate)
         self.create_wall()
 
     def lives(self):
@@ -1236,7 +1248,6 @@ class Ball(Sprite):
                             padlock.open()
                         else:
                             self.matlod.append(padlock)
-                    self.bouncer.locked.clear()
                     for immutable in self.matlod:
                         self.bouncer.locked.append(immutable)
                     self.matlod.clear()
@@ -1289,6 +1300,9 @@ class Ball(Sprite):
                     shard.bar_expand()
                     self.bouncer.unbreakable.append(shard)
                     self.bouncer.locked.append(shard)
+                elif shard in self.bouncer.adoored:
+                    self.bouncer.next = True
+                self.keye(shard)
                 if self.bouncer.shined < 10000:
                     x = shard.rect.x
                     y = shard.rect.y
@@ -1339,6 +1353,23 @@ class Ball(Sprite):
                     print("Inner key error")
                 self.bouncer.borders()
                 self.bouncer.borderes()
+        for brick in self.bouncer.unlocked:
+            if brick in self.bouncer.locked:
+                self.bouncer.locked.remove(brick)
+    
+    def keye(self, shard):
+        if shard in self.bouncer.vermillion:
+            for carf in self.bouncer.vermillionlock:
+                carf.open()
+        elif shard in self.bouncer.phthalo:
+            for carf in self.bouncer.phthalolock:
+                carf.open()
+        elif shard in self.bouncer.sapphire:
+            for carf in self.bouncer.sapphirelock:
+                carf.open()
+        elif shard in self.bouncer.royal:
+            for carf in self.bouncer.royallock:
+                carf.open()
     
     def excalibur(self, shard):
         if shard in self.bouncer.expand1:
@@ -1412,7 +1443,7 @@ class Ball(Sprite):
                     pol.left_outer()
                     pol.update()
         pygame.display.flip()
-        self.bouncer.clock.tick(100)
+        self.bouncer.clock.tick(self.bouncer.frame_rate)
         return(victory)
 
 class Bal(Sprite):
@@ -1543,7 +1574,7 @@ class Brick(Sprite):
         if self.inner:
             self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
-        #self.bouncer.locked.remove(self)
+        self.bouncer.unlocked.append(self)
 
     def unbreak(self):
         self.image = pygame.image.load("Graphics/UnbrickMoss.png").convert_alpha()
@@ -1663,7 +1694,7 @@ class Brick(Sprite):
     
     def fancekey(self, colour):
         try:
-            self.image = pygame.image.load(f"Graphics/{colour}Key.png").convert_alpha()
+            self.image = pygame.image.load(f"Graphics/KeyWide.png").convert_alpha()
         except FileNotFoundError:
             pass
         self.innervate()
@@ -1671,11 +1702,17 @@ class Brick(Sprite):
     
     def coulock(self, colour):
         try:
-            self.image = pygame.image.load(f"Graphic/{colour}Lock.png").convert_alpha()
+            self.image = pygame.image.load(f"Graphics/HardBrickWide.png").convert_alpha()
         except FileNotFoundError:
-            pass
+            print("DASD")
         self.innervate()
-        getattr(self.bouncer, f"{colour}lock").append(self)
+        getattr(self.bouncer, f"{colour.lower()}lock").append(self)
+        self.bouncer.locked.append(self)
+    
+    def soul_sale(self):
+        self.image = pygame.image.load("Graphics/Door.png").convert_alpha()
+        self.innervate()
+        self.bouncer.adoored.append(self)
 
     def damage(self):
         """Switches to the damaged sprite."""
@@ -1710,8 +1747,40 @@ class Button(Sprite):
     def update(self):
         self.screen.blit(self.image, self.rect)
 
+class Parabola:
+    """Attempts to create an inner game."""
 
+    def __init__(self, bouncer):
+        self.bouncer = bouncer
+        self.cat = 0
 
+    def real_init(self):
+        self.bouncer.frame_rate = 0
+        pygame.init()
+        self.clock = pygame.time.Clock()
+        pygame.display.quit()
+
+        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        self.screen_width = self.screen.get_rect().width
+        self.screen_height = self.screen.get_rect().height
+        self.screen_rect = self.screen.get_rect()
+        pygame.display.set_caption("Bouncing Gimmick")
+        self.run_game()
+    
+    def run_game(self):
+        while True:
+            self.screen.fill((0,0,0))
+            self.clock.tick(85)
+        
+    def update_screen(self):
+        self.screen.fill((187, 92, 12))
+    
+    def check_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
 
 bounces = Bouncing()
 bounces.run_game()
