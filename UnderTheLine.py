@@ -1760,6 +1760,7 @@ class Yarn:
         self.bouncer.frame_rate = 0
         self.up_timer = 0
         self.down_timer = 0
+        self.gravity = 5
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.display.quit()
@@ -1771,9 +1772,22 @@ class Yarn:
         pygame.display.set_caption("Bouncing Gimmick")
 
         self.player = Player(self)
-        self.brick = Brick(self, 64, 25)
-        self.brick.rect.x = 70
-        self.brick.rect.y = 0
+        self.brick_x_plus = 0
+        self.brick_y_plus = 0
+        self.catch_plat = Brick(self, 64, 25)
+        self.players = pygame.sprite.Group()
+        self.bricks = pygame.sprite.Group()
+        for brisk in range(1,60):
+            brick = Brick(self, 64, 25)
+            brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
+            brick.rect.y = -self.brick_y_plus
+            self.bricks.add(brick)
+            self.brick_x_plus += 100
+            self.brick_y_plus += 13
+        self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
+        self.players.add(self.player)
+        self.bricks.add(self.catch_plat)
+
         self.times = 0
 
         self.run_game()
@@ -1787,10 +1801,11 @@ class Yarn:
     def update_screen(self):
         self.screen.fill((0, 60, 0))
         self.player.update()
-        scroll_block = self.brick.rect.copy()
-        scroll_block.x -= self.player.scroll[0]
-        scroll_block.y -= self.player.scroll[1]
-        self.screen.blit(self.brick.image, scroll_block)
+        for brick in self.bricks:
+            scroll_block = brick.rect.copy()
+            scroll_block.x -= self.player.scroll[0]
+            scroll_block.y -= self.player.scroll[1]
+            self.screen.blit(brick.image, scroll_block)
         self.times += 1
 
         pygame.display.flip()
@@ -1802,7 +1817,6 @@ class Yarn:
             self.player.points.append(y)
         for num in range(0, 8):
             self.player.points[num] = -abs(self.player.points[num])
-        #self.player.points.reverse()
         print(self.player.points)
 
     
@@ -1815,6 +1829,9 @@ class Yarn:
                 if event.key == pygame.K_UP:
                     self.parab()
                     self.player.up = True
+                    self.player.in_air = True
+                    self.player.jump_x = 0
+                    self.player.up_timer = 0
                 if event.key == pygame.K_DOWN:
                     self.player.down = False
                 if event.key == pygame.K_LEFT:
@@ -1824,9 +1841,9 @@ class Yarn:
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP:
                     self.parab()
+                    self.player.in_air = False
                     pass
                 if event.key == pygame.K_DOWN:
-                    # self.player.down = False
                     pass
                 if event.key == pygame.K_LEFT:
                     self.player.left = False
@@ -1846,9 +1863,11 @@ class Player(Sprite):
         self.up_timer = 0
         self.down_timer = 0
         self.jump_x = 0
+        self.in_air = False
 
         self.scroll = [0, 0]
         self.movement = []
+        self.points = []
 
         # Movement flags
         self.up = False
@@ -1864,37 +1883,53 @@ class Player(Sprite):
         self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 20
         self.movement = [0,0]
         if self.right:
-            self.movement[0] += 2
+            self.movement[0] += 3
         if self.left:
-            self.movement[0] -= 2
-        if self.up and self.loom.times % 3 == 0:
-            self.movement[1] += self.points[self.jump_x]
-            if self.up_timer > len(self.points)-2:
+            self.movement[0] -= 3
+        if self.up:
+            try:
+                self.movement[1] += round(self.points[self.jump_x]/3)
+            except IndexError:
+                self.movement[1] += round(self.points[-1]/3)
+            if self.up_timer > len(self.points)-1:
+                self.jump_x -= 1
                 self.up = False
-                self.down = True
-                self.up_timer = 0
                 self.jump_x = 0
-            else:
+                self.up_timer = 0
+                collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
+                if not collision:
+                    self.down = True
+            if self.loom.times % 3 == 0:
                 self.up_timer += 1
                 self.jump_x += 1
-        # if self.down:
-        #     self.movement[1] += self.down_timer
-        #     if self.down_timer < 0:
-        #         self.down = False
-        #         self.down_timer = 0
-        #     else:
-        #         self.down_timer += 0.3
+        if self.down:
+            self.movement[1] += self.down_timer + self.points[-6]
+            collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
+            if not collision:
+                self.down_timer += 0.3
+            else:
+                self.down_timer = 0
+        self.movement[1] += self.loom.gravity
         
         self.rect.x += self.movement[0]
-        if self.rect.colliderect(self.loom.brick.rect):
+        if pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False):
             self.rect.x -= self.movement[0]
         self.rect.y += self.movement[1]
-        if self.rect.colliderect(self.loom.brick.rect):
-            self.rect.y -= self.movement[1]
-            if self.rect.bottom < self.loom.brick.rect.top:
-                self.rect.bottom += self.loom.brick.rect.top - self.rect.bottom
+        collide = pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False)
+        if collide:
+            for brick in self.loom.bricks:
+                if brick.rect.colliderect(self.rect) and self.rect.y < brick.rect.y:
+                    self.rect.bottom = brick.rect.top
+            # self.rect.y -= self.movement[1]
+            # self.rect.y -= self.movement[1]
             self.down_timer = 0
             self.down = False
+            self.in_air = False
+        if not collide:
+            self.in_air = True
+        if self.rect.y > 100:
+            self.rect.x = 0
+            self.rect.y = 0
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]        
