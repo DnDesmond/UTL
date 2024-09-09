@@ -1780,6 +1780,8 @@ class Yarn:
         self.catch_plat = Brick(self, 72,22)
         self.players = pygame.sprite.Group()
         self.bricks = pygame.sprite.Group()
+        self.beejees = pygame.sprite.Group()
+        self.beejeesus = pygame.sprite.Group()
         for brisk in range(1,31):
             brick = Brick(self, 64, 25)
             brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
@@ -1791,7 +1793,21 @@ class Yarn:
                 self.brick_y_plus += 25
                 if self.brick_y_plus % 50 == 0:
                     brick.image = pygame.transform.flip(brick.image, True, False)
-        for brisk in range(1,31):
+        for bg in range(0,20):
+            brick = Brick(self, 1,1)
+            brick.image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+            brick.rect = brick.image.get_rect()
+            brick.rect.x = 0 + bg*brick.rect.width
+            brick.rect.y -= brick.rect.height/2
+            self.beejees.add(brick)
+        for bg in range(0,20):
+            brick = Brick(self, 1,1)
+            brick.image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+            brick.rect = brick.image.get_rect()
+            brick.rect.x = 0 + bg*brick.rect.width
+            brick.rect.y -= brick.rect.height/3
+            self.beejeesus.add(brick)
+        for brisk in range(1,1):
             brick = Brick(self, 72, 1220)
             brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
             brick.rect.y = -150
@@ -1822,6 +1838,16 @@ class Yarn:
         
     def update_screen(self):
         self.screen.fill((0, 60, 0))
+        for brick in self.beejees:
+            scroll_block = brick.rect.copy()
+            scroll_block.x -= (self.player.scroll[0]/1.5)
+            scroll_block.y -= (self.player.scroll[1]/1.5)
+            self.screen.blit(brick.image, scroll_block)
+        for brick in self.beejees:
+            scroll_block = brick.rect.copy()
+            scroll_block.x -= (self.player.scroll[0]/2)
+            scroll_block.y -= (self.player.scroll[1]/2)
+            self.screen.blit(brick.image, scroll_block)
         self.player.update()
         for brick in self.bricks:
             scroll_block = brick.rect.copy()
@@ -1867,6 +1893,7 @@ class Yarn:
                     self.player.in_air = True
                     self.player.jump_x = 0
                     self.player.up_timer = 0
+                    self.times = 0
                 if event.key == pygame.K_DOWN:
                     self.player.down = False
                 if event.key == pygame.K_LEFT:
@@ -1921,7 +1948,7 @@ class Player(Sprite):
             self.movement[0] -= 3
         if self.up:
             try:
-                self.movement[1] += round(self.points[self.jump_x]/5)
+                self.movement[1] += round(self.points[self.jump_x]/4)
             except IndexError:
                 self.movement[1] += round(self.points[-1]/3)
             if self.up_timer > len(self.points)-1:
