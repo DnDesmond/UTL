@@ -1504,7 +1504,7 @@ class Brick(Sprite):
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
         self.scaled = (width,height)
-        self.image = pygame.image.load("Graphics/RedBrickWide.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Dort.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
             self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
@@ -1761,6 +1761,7 @@ class Yarn:
         self.up_timer = 0
         self.down_timer = 0
         self.gravity = 5
+        self.attack = False
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.display.quit()
@@ -1770,20 +1771,41 @@ class Yarn:
         self.screen_height = self.screen.get_rect().height
         self.screen_rect = self.screen.get_rect()
         pygame.display.set_caption("Bouncing Gimmick")
+        self.sword_swipe = pygame.rect.Rect(0, 0, 50, 35)
+        self.swipe_time = 0
 
         self.player = Player(self)
         self.brick_x_plus = 0
         self.brick_y_plus = 0
-        self.catch_plat = Brick(self, 64, 25)
+        self.catch_plat = Brick(self, 72,22)
         self.players = pygame.sprite.Group()
         self.bricks = pygame.sprite.Group()
-        for brisk in range(1,60):
+        for brisk in range(1,31):
             brick = Brick(self, 64, 25)
             brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
-            brick.rect.y = -self.brick_y_plus
+            #brick.rect.y = -self.brick_y_plus
             self.bricks.add(brick)
-            self.brick_x_plus += 100
-            self.brick_y_plus += 13
+            self.brick_x_plus += 0
+            self.brick_y_plus += 0
+            if brick.rect.x > 300:
+                self.brick_y_plus += 25
+                if self.brick_y_plus % 50 == 0:
+                    brick.image = pygame.transform.flip(brick.image, True, False)
+        for brisk in range(1,31):
+            brick = Brick(self, 72, 1220)
+            brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
+            brick.rect.y = -150
+            brick.rect.y -= brick.rect.height
+            self.bricks.add(brick)
+            self.brick_x_plus += 0
+            self.brick_y_plus += 0
+            if brick.rect.x > 300:
+                self.brick_y_plus += 25
+                if self.brick_y_plus % 50 == 0:
+                    brick.image = pygame.transform.flip(brick.image, True, False)
+                
+                
+
         self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
         self.players.add(self.player)
         self.bricks.add(self.catch_plat)
@@ -1806,6 +1828,12 @@ class Yarn:
             scroll_block.x -= self.player.scroll[0]
             scroll_block.y -= self.player.scroll[1]
             self.screen.blit(brick.image, scroll_block)
+        if self.attack:
+            self.swipe()
+            self.swipe_time += 1
+            if self.swipe_time > 90:
+                self.swipe_time = 0
+                self.attack = False
         self.times += 1
 
         pygame.display.flip()
@@ -1813,12 +1841,19 @@ class Yarn:
     def parab(self):
         self.player.points = []
         for x in range(-9, 8, 1):
-            y = x**2+2*x+2
+            y = (x**2+2*x+2)*1.25
             self.player.points.append(y)
         for num in range(0, 8):
             self.player.points[num] = -abs(self.player.points[num])
         print(self.player.points)
-
+    
+    def swipe(self):
+        self.sword_swipe.centerx = self.player.rect.right
+        self.sword_swipe.centery = self.player.rect.centery
+        scroll_block = self.sword_swipe.copy()
+        scroll_block.x -= self.player.scroll[0]
+        scroll_block.y -= self.player.scroll[1]
+        pygame.draw.rect(self.screen, (90,90,90), scroll_block, 2)
     
     def check_events(self):
         for event in pygame.event.get():
@@ -1826,7 +1861,7 @@ class Yarn:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_UP and self.player.in_air == False:
                     self.parab()
                     self.player.up = True
                     self.player.in_air = True
@@ -1838,11 +1873,9 @@ class Yarn:
                     self.player.left = True
                 if event.key == pygame.K_RIGHT:
                     self.player.right = True
+                if event.key == pygame.K_w:
+                    self.attack = True
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_UP:
-                    self.parab()
-                    self.player.in_air = False
-                    pass
                 if event.key == pygame.K_DOWN:
                     pass
                 if event.key == pygame.K_LEFT:
@@ -1874,13 +1907,13 @@ class Player(Sprite):
         self.down = False
         self.left = False
         self.right = False
-        self.image = pygame.image.load("Graphics/MappedCompassBack.png")
+        self.image = pygame.image.load("Graphics/Marble.png")
         self.image = pygame.transform.scale(self.image, (50,50))
         self.rect = self.image.get_rect()
 
     def update(self):
-        self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 20
-        self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 20
+        self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
+        self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
         self.movement = [0,0]
         if self.right:
             self.movement[0] += 3
@@ -1888,7 +1921,7 @@ class Player(Sprite):
             self.movement[0] -= 3
         if self.up:
             try:
-                self.movement[1] += round(self.points[self.jump_x]/3)
+                self.movement[1] += round(self.points[self.jump_x]/5)
             except IndexError:
                 self.movement[1] += round(self.points[-1]/3)
             if self.up_timer > len(self.points)-1:
@@ -1899,7 +1932,7 @@ class Player(Sprite):
                 collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
                 if not collision:
                     self.down = True
-            if self.loom.times % 3 == 0:
+            if self.loom.times % 5 == 0:
                 self.up_timer += 1
                 self.jump_x += 1
         if self.down:
@@ -1924,6 +1957,7 @@ class Player(Sprite):
             # self.rect.y -= self.movement[1]
             self.down_timer = 0
             self.down = False
+            self.up = False
             self.in_air = False
         if not collide:
             self.in_air = True
