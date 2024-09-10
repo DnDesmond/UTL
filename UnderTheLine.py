@@ -2,13 +2,14 @@ import pygame
 from pygame.sprite import Group, Sprite
 import sys
 import os
+import pyautogui
 import random
   
 from Breakers import *
 from Brick_coordinates import *
 
 os.chdir("C:/Users/isaac")
-
+pyautogui.PAUSE = 0
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
 
@@ -1504,7 +1505,7 @@ class Brick(Sprite):
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
         self.scaled = (width,height)
-        self.image = pygame.image.load("Graphics/Grey.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/StoneCoils.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
             self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
@@ -1760,6 +1761,7 @@ class Yarn:
         self.bouncer.frame_rate = 0
         self.up_timer = 0
         self.down_timer = 0
+        self.leap = 0
         self.gravity = 5
         self.attack = False
         pygame.init()
@@ -1795,27 +1797,16 @@ class Yarn:
         self.bricks.add(self.right_pole)
         self.bricks.add(self.jesus)
         self.evils.add(self.enemy)
-        for brisk in range(1,31):
-            brick = Brick(self, 64, 25)
-            brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
-            #brick.rect.y = -self.brick_y_plus
-            self.bricks.add(brick)
-            self.brick_x_plus += 0
-            self.brick_y_plus += 0
-            if brick.rect.x > 300:
-                self.brick_y_plus += 25
-                if self.brick_y_plus % 50 == 0:
-                    brick.image = pygame.transform.flip(brick.image, True, False)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
-            brick.image = pygame.image.load("Graphics/MappedCompassbackBlock.png").convert_alpha()
+            brick.image = pygame.image.load("Graphics/MappedCompassbackBluck.png").convert_alpha()
             brick.rect = brick.image.get_rect()
             brick.rect.x = 0 + bg*brick.rect.width - bg*2
             brick.rect.y -= brick.rect.height/2
             self.beejees.add(brick)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
-            brick.image = pygame.image.load("Graphics/MappedCompassbackBlock.png").convert_alpha()
+            brick.image = pygame.image.load("Graphics/MappedCompassbackBluck.png").convert_alpha()
             brick.rect = brick.image.get_rect()
             brick.rect.x = 0 + bg*brick.rect.width - bg*2
             brick.rect.y -= brick.rect.height/3
@@ -1855,13 +1846,13 @@ class Yarn:
         self.screen.fill((0, 60, 0))
         for brick in self.beejees:
             scroll_block = brick.rect.copy()
-            scroll_block.x -= (self.player.scroll[0]/1.5)
-            scroll_block.y -= (self.player.scroll[1]/1.5)
+            scroll_block.x -= (self.player.scroll[0]/2)
+            scroll_block.y -= (self.player.scroll[1]/2)
             self.screen.blit(brick.image, scroll_block)
         for brick in self.beejees:
             scroll_block = brick.rect.copy()
-            scroll_block.x -= (self.player.scroll[0]/2)
-            scroll_block.y -= (self.player.scroll[1]/2)
+            scroll_block.x -= (self.player.scroll[0]/1.5)
+            scroll_block.y -= (self.player.scroll[1]/1.5)
             self.screen.blit(brick.image, scroll_block)
         for brick in self.bricks:
             scroll_block = brick.rect.copy()
@@ -1883,6 +1874,7 @@ class Yarn:
                 self.swipe_time = 0
                 self.attack = False
         self.times += 1
+        self.leap += 0.25
 
         pygame.display.flip()
     
@@ -1920,7 +1912,7 @@ class Yarn:
                     self.player.in_air = True
                     self.player.jump_x = 0
                     self.player.up_timer = 0
-                    self.times = 0
+                    self.leap = 0
                 if event.key == pygame.K_DOWN:
                     self.player.down = False
                 if event.key == pygame.K_LEFT:
@@ -1970,52 +1962,8 @@ class Player(Sprite):
         self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
         self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
         self.movement = [0,0]
-        if self.right:
-            self.movement[0] += 3
-        if self.left:
-            self.movement[0] -= 3
-        if self.up:
-            try:
-                self.movement[1] += round(self.points[self.jump_x]/4)
-            except IndexError:
-                self.movement[1] += round(self.points[-1]/3)
-            if self.up_timer > len(self.points)-1:
-                self.jump_x -= 1
-                self.up = False
-                self.jump_x = 0
-                self.up_timer = 0
-                collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
-                if not collision:
-                    self.down = True
-            if self.loom.times % 5 == 0:
-                self.up_timer += 1
-                self.jump_x += 1
-        if self.down:
-            self.movement[1] += self.down_timer + self.points[-6]
-            collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
-            if not collision:
-                self.down_timer += 0.3
-            else:
-                self.down_timer = 0
         self.movement[1] += self.loom.gravity
-        
-        self.rect.x += self.movement[0]
-        if pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False):
-            self.rect.x -= self.movement[0]
-        self.rect.y += self.movement[1]
-        collide = pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False)
-        if collide:
-            for brick in self.loom.bricks:
-                if brick.rect.colliderect(self.rect) and self.rect.y < brick.rect.y:
-                    self.rect.bottom = brick.rect.top
-            # self.rect.y -= self.movement[1]
-            # self.rect.y -= self.movement[1]
-            self.down_timer = 0
-            self.down = False
-            self.up = False
-            self.in_air = False
-        if not collide:
-            self.in_air = True
+        self.motion()
         if self.rect.y > 100:
             self.recenters()
         player_scroll_rect = self.rect.copy()
@@ -2026,6 +1974,67 @@ class Player(Sprite):
     def recenters(self):
         self.rect.x = 0
         self.rect.y = 0
+    
+    def jump(self):
+        """Conducts the full parabola for the jump"""
+        try:
+            self.movement[1] += round(self.points[self.jump_x]/4)
+        except IndexError:
+            self.movement[1] += round(self.points[-1]/3)
+        if self.up_timer > len(self.points)-1:
+            self.jump_x -= 1
+            self.up = False
+            self.jump_x = 0
+            self.up_timer = 0
+            collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
+            if not collision:
+                self.down = True
+        if self.loom.leap % 5 == 0:
+            self.up_timer += 1
+            self.jump_x += 1
+        
+    def fall(self):
+        """Adds any extra post-jump falling that needs to be done"""
+        self.movement[1] += self.down_timer + self.points[-6]
+        collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
+        if not collision:
+            self.down_timer += 0.3
+        else:
+            self.down_timer = 0
+
+    def motion(self):
+        """Runs both motion commands for ease of reading"""
+        self.calculate_motion()
+        self.do_motion()
+
+    def calculate_motion(self):
+        """Does the calculation for motion"""
+        if self.right:
+            self.movement[0] += 3
+        if self.left:
+            self.movement[0] -= 3
+        if self.up:
+            self.jump()
+        if self.down:
+            self.fall()
+
+    def do_motion(self):
+        """Conducts actual motion and primarily corrects for brick intersection"""
+        self.rect.x += self.movement[0]
+        if pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False):
+            self.rect.x -= self.movement[0]
+        self.rect.y += self.movement[1]
+        collide = pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False)
+        if collide:
+            for brick in self.loom.bricks:
+                if brick.rect.colliderect(self.rect) and self.rect.y < brick.rect.y:
+                    self.rect.bottom = brick.rect.top
+            self.down_timer = 0
+            self.down = False
+            self.up = False
+            self.in_air = False
+        if not collide:
+            self.in_air = True
 
 class Foe(Sprite):
     """Attempts to make a basic foe"""
@@ -2054,6 +2063,7 @@ class Foe(Sprite):
             self.rect.x -= 1
         elif self.right:
             self.rect.x += 1
+        pyautogui.press("up")
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
