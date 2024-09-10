@@ -721,8 +721,8 @@ class Bouncing:
             y_position = 3
         self.grad = self.base_grad
         x_position = 0
-        while y_position < self.screen_height:
-            while x_position < self.screen_width:
+        while y_position < 300:
+            while x_position < 5:
                 new_brick = self.brick_base(width, height, inner, x_position, y_position)
                 if grad:
                     new_brick.gradient(f"{grad}", int(self.grad))
@@ -1504,7 +1504,7 @@ class Brick(Sprite):
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
         self.scaled = (width,height)
-        self.image = pygame.image.load("Graphics/Dort.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/Grey.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
             self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
@@ -1778,10 +1778,23 @@ class Yarn:
         self.brick_x_plus = 0
         self.brick_y_plus = 0
         self.catch_plat = Brick(self, 72,22)
+        self.jesus = Brick(self, 100000,1000)
+        self.left_pole = Brick(self, 20,20)
+        self.left_pole.rect.x = 100
+        self.left_pole.rect.y = -20
+        self.right_pole = Brick(self, 20,20)
+        self.right_pole.rect.x = 300
+        self.right_pole.rect.y = -20
+        self.enemy = Foe(self)
+        self.evils = pygame.sprite.Group()
         self.players = pygame.sprite.Group()
         self.bricks = pygame.sprite.Group()
         self.beejees = pygame.sprite.Group()
         self.beejeesus = pygame.sprite.Group()
+        self.bricks.add(self.left_pole)
+        self.bricks.add(self.right_pole)
+        self.bricks.add(self.jesus)
+        self.evils.add(self.enemy)
         for brisk in range(1,31):
             brick = Brick(self, 64, 25)
             brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
@@ -1795,16 +1808,16 @@ class Yarn:
                     brick.image = pygame.transform.flip(brick.image, True, False)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
-            brick.image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+            brick.image = pygame.image.load("Graphics/MappedCompassbackBlock.png").convert_alpha()
             brick.rect = brick.image.get_rect()
-            brick.rect.x = 0 + bg*brick.rect.width
+            brick.rect.x = 0 + bg*brick.rect.width - bg*2
             brick.rect.y -= brick.rect.height/2
             self.beejees.add(brick)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
-            brick.image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+            brick.image = pygame.image.load("Graphics/MappedCompassbackBlock.png").convert_alpha()
             brick.rect = brick.image.get_rect()
-            brick.rect.x = 0 + bg*brick.rect.width
+            brick.rect.x = 0 + bg*brick.rect.width - bg*2
             brick.rect.y -= brick.rect.height/3
             self.beejeesus.add(brick)
         for brisk in range(1,1):
@@ -1823,6 +1836,8 @@ class Yarn:
                 
 
         self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
+        self.jesus.rect.x = 100
+        self.jesus.rect.y = 0
         self.players.add(self.player)
         self.bricks.add(self.catch_plat)
 
@@ -1848,12 +1863,19 @@ class Yarn:
             scroll_block.x -= (self.player.scroll[0]/2)
             scroll_block.y -= (self.player.scroll[1]/2)
             self.screen.blit(brick.image, scroll_block)
-        self.player.update()
         for brick in self.bricks:
             scroll_block = brick.rect.copy()
             scroll_block.x -= self.player.scroll[0]
             scroll_block.y -= self.player.scroll[1]
             self.screen.blit(brick.image, scroll_block)
+        if self.sword_swipe.colliderect(self.enemy.rect):
+            self.enemy.kill()
+        if pygame.sprite.groupcollide(self.evils, self.players, False, False):
+            self.player.recenters()
+        for enemy in self.evils:
+            enemy.update()
+        for player in self.players:
+            player.update()
         if self.attack:
             self.swipe()
             self.swipe_time += 1
@@ -1874,7 +1896,12 @@ class Yarn:
         print(self.player.points)
     
     def swipe(self):
-        self.sword_swipe.centerx = self.player.rect.right
+        if self.player.right:
+            self.sword_swipe.centerx = self.player.rect.right
+        elif self.player.left:
+            self.sword_swipe.centerx = self.player.rect.left
+        else:
+            self.sword_swipe.centerx = self.player.rect.right
         self.sword_swipe.centery = self.player.rect.centery
         scroll_block = self.sword_swipe.copy()
         scroll_block.x -= self.player.scroll[0]
@@ -1924,6 +1951,7 @@ class Player(Sprite):
         self.down_timer = 0
         self.jump_x = 0
         self.in_air = False
+        self.recenter = False
 
         self.scroll = [0, 0]
         self.movement = []
@@ -1989,12 +2017,47 @@ class Player(Sprite):
         if not collide:
             self.in_air = True
         if self.rect.y > 100:
-            self.rect.x = 0
-            self.rect.y = 0
+            self.recenters()
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]        
         self.screen.blit(self.image, player_scroll_rect)
+    
+    def recenters(self):
+        self.rect.x = 0
+        self.rect.y = 0
+
+class Foe(Sprite):
+    """Attempts to make a basic foe"""
+
+    def __init__(self, loom=Yarn):
+        super().__init__()
+        self.loom = loom
+        self.screen = self.loom.screen
+        self.image = pygame.image.load("Graphics/MappedCompassBack.png")
+        self.image = pygame.transform.scale(self.image, (40,40))
+        self.rect = self.image.get_rect()
+        self.right = False
+        self.left = True
+        self.rect.x = 200
+        self.rect.y = -50
+    
+    def update(self):
+        if pygame.sprite.groupcollide(self.loom.evils, self.loom.bricks, False, False):
+            if self.left:
+                self.left = False
+                self.right = True
+            elif self.right:
+                self.right = False
+                self.left = True
+        if self.left:
+            self.rect.x -= 1
+        elif self.right:
+            self.rect.x += 1
+        scroll_block = self.rect.copy()
+        scroll_block.x -= self.loom.player.scroll[0]
+        scroll_block.y -= self.loom.player.scroll[1]
+        self.screen.blit(self.image, scroll_block)
 
 
 bounces = Bouncing()
