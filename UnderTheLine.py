@@ -2,14 +2,17 @@ import pygame
 from pygame.sprite import Group, Sprite
 import sys
 import os
-import pyautogui
 import random
+import ctypes
+ctypes.windll.shcore.SetProcessDpiAwareness(0)
+import pyautogui
+pyautogui.PAUSE = 0
   
 from Breakers import *
-from Brick_coordinates import *
+if __name__ == "__main__":
+    from Brick_coordinates import *
 
 os.chdir("C:/Users/isaac")
-pyautogui.PAUSE = 0
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
 
@@ -722,13 +725,13 @@ class Bouncing:
             y_position = 3
         self.grad = self.base_grad
         x_position = 0
-        while y_position < 300:
-            while x_position < 5:
+        while y_position < self.screen_height:
+            while x_position < self.screen_width:
                 new_brick = self.brick_base(width, height, inner, x_position, y_position)
                 if grad:
                     new_brick.gradient(f"{grad}", int(self.grad))
-                new_brick.rect.x = self.mball.x#x_position
-                new_brick.rect.y = self.mball.y#y_position
+                new_brick.rect.x = x_position
+                new_brick.rect.y = y_position
                 for lost in getattr(self, f"Dict{level}").dict.values():
                     if not inner:
                         if x_position == lost[0] and y_position == lost[1]:
@@ -1505,7 +1508,7 @@ class Brick(Sprite):
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
         self.scaled = (width,height)
-        self.image = pygame.image.load("Graphics/StoneCoils.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/RedBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
             self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
@@ -1795,7 +1798,7 @@ class Yarn:
         self.beejeesus = pygame.sprite.Group()
         self.bricks.add(self.left_pole)
         self.bricks.add(self.right_pole)
-        self.bricks.add(self.jesus)
+        # self.bricks.add(self.jesus)
         self.evils.add(self.enemy)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
@@ -1811,18 +1814,51 @@ class Yarn:
             brick.rect.x = 0 + bg*brick.rect.width - bg*2
             brick.rect.y -= brick.rect.height/3
             self.beejeesus.add(brick)
-        for brisk in range(1,1):
-            brick = Brick(self, 72, 1220)
+        for brisk in range(1,200):
+            brick = Brick(self, 82, 60)
+            brick.image = pygame.image.load("Graphics/SnowQuestionMark.png").convert_alpha()
+            brick.rect = brick.image.get_rect()
             brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
-            brick.rect.y = -150
-            brick.rect.y -= brick.rect.height
+            brick.rect.y = 0
             self.bricks.add(brick)
             self.brick_x_plus += 0
             self.brick_y_plus += 0
-            if brick.rect.x > 300:
-                self.brick_y_plus += 25
-                if self.brick_y_plus % 50 == 0:
-                    brick.image = pygame.transform.flip(brick.image, True, False)
+        self.platform_1 = Brick(self, 50, 25)
+        self.platform_2 = Brick(self, 50, 25)
+        self.platform_3 = Brick(self, 50, 25)
+        self.platform_4 = Brick(self, 50, 25)
+        self.platform_1.rect.x = 200
+        self.platform_2.rect.x = 400
+        self.platform_3.rect.x = 200
+        self.platform_4.rect.x = 400
+        self.platform_1.rect.y = -200
+        self.platform_2.rect.y = -400
+        self.platform_3.rect.y = -600
+        self.platform_4.rect.y = -800
+        self.bricks.add(self.platform_1)
+        self.bricks.add(self.platform_2)
+        self.bricks.add(self.platform_3)
+        self.bricks.add(self.platform_4)
+        self.platfor_1 = Brick(self, 50, 25)
+        self.platfor_2 = Brick(self, 50, 25)
+        self.platfor_3 = Brick(self, 50, 25)
+        self.platfor_4 = Brick(self, 50, 25)
+        self.platfor_1.rect.x = 200
+        self.platfor_2.rect.x = 400
+        self.platfor_3.rect.x = 200
+        self.platfor_4.rect.x = 400
+        self.platfor_1.rect.y = -1000
+        self.platfor_2.rect.y = -1200
+        self.platfor_3.rect.y = -1400
+        self.platfor_4.rect.y = -1600
+        self.bricks.add(self.platfor_1)
+        self.bricks.add(self.platfor_2)
+        self.bricks.add(self.platfor_3)
+        self.bricks.add(self.platfor_4)
+        self.latform_1 = Brick(self, 50, 25)
+        self.latform_2 = Brick(self, 50, 25)
+        self.latform_3 = Brick(self, 50, 25)
+        self.latform_4 = Brick(self, 50, 25)
                 
                 
 
@@ -1929,11 +1965,10 @@ class Yarn:
                 if event.key == pygame.K_RIGHT:
                     self.player.right = False
 
-
 class Player(Sprite):
     """Makes the player for game 2"""
 
-    def __init__(self, loom):
+    def __init__(self, loom=Yarn):
         super().__init__()
         self.loom = loom
         self.screen = self.loom.screen
@@ -2063,12 +2098,16 @@ class Foe(Sprite):
             self.rect.x -= 1
         elif self.right:
             self.rect.x += 1
-        pyautogui.press("up")
+        try:
+            pyautogui.press("up")
+        except pyautogui.FailSafeException:
+            pass
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
         self.screen.blit(self.image, scroll_block)
 
 
-bounces = Bouncing()
-bounces.run_game()
+if __name__ == "__main__":
+    bounces = Bouncing()
+    bounces.run_game()

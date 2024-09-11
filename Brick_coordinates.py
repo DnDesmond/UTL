@@ -1,4 +1,5 @@
 import pygame
+from UnderTheLine import Brick
 class Dict1:
     def __init__(self):
         self.dict = {
@@ -495,8 +496,9 @@ class Spec1:
 			"Royal",
 			"Sapphire"
 		]
-	def full_specs(self, x,y, subject):
-		subject.soul_sale()
+	def full_specs(self, x,y, subject=Brick):
+		# subject.soul_sale()
+		pass
 
 class Level2:
 	def __init__(self):
@@ -667,7 +669,7 @@ class Spec2:
 			59:(64,100),
 		}
 
-	def full_specs(self, x,y, subject):
+	def full_specs(self, x,y, subject=Brick):
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
 				subject.reinforce()
@@ -883,28 +885,26 @@ class Spec3:
 		self.lockx = [960, 1024, 1088]
 		self.locky = [175, 200, 225]
 	
-	def full_specs(self, x,y, subject):
+	def full_specs(self, x,y, subject=Brick):
 		self.gunpowder(x,y, subject)
 		self.key(x,y, subject)
 		self.lotus(x,y, subject)
 		self.lock(x,y, subject)
 	
-	def gunpowder(self, x, y, subject):
+	def gunpowder(self, x, y, subject=Brick):
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
 				subject.gunpowder()
-		if x < 600:
-			subject.gunpowder()
 	
-	def key(self, x,y, subject):
+	def key(self, x,y, subject=Brick):
 		if x == 256 and y == 200:
 			subject.key()
 	
-	def lotus(self, x,y, subject):
+	def lotus(self, x,y, subject=Brick):
 		if x == 1024 and y == 200:
 			subject.homicide()
 	
-	def lock(self, x,y, subject):
+	def lock(self, x,y, subject=Brick):
 		if x in self.lockx and y in self.locky:
 			if not (x == 1024 and y == 200):
 				subject.lock()
@@ -999,7 +999,7 @@ class Spec5:
 			3:(704,25),
 		}
 	
-	def full_specs(self, x,y, subject):
+	def full_specs(self, x,y, subject=Brick):
 		if not subject.inner:
 			self.scaled = (1152-(192*2), 450-75)
 			subject.scaled = (1152-(192*2), 450-75)
@@ -1008,7 +1008,7 @@ class Spec5:
 			subject.scaled = (1152-(192*2), 450-75-5)
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
-				subject.bar_expand()
+				subject.soul_sale()
 				subject.image = pygame.image.load("Graphics/MonsterBrick.png").convert_alpha()
 				subject.image = pygame.transform.scale(subject.image, self.scaled)
 				subject.rect = subject.image.get_rect()
@@ -1458,7 +1458,7 @@ class Spec4:
 			73:(1248,275),
 		}
 	
-	def full_specs(self, x,y, subject):
+	def full_specs(self, x,y, subject=Brick):
 		self.gunpowder(x,y, subject)
 	
 	def gunpowder(self, x,y, subject):
