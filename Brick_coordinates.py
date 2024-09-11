@@ -497,7 +497,6 @@ class Spec1:
 			"Sapphire"
 		]
 	def full_specs(self, x,y, subject=Brick):
-		# subject.soul_sale()
 		pass
 
 class Level2:
@@ -1008,7 +1007,7 @@ class Spec5:
 			subject.scaled = (1152-(192*2), 450-75-5)
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
-				subject.soul_sale()
+				subject.bar_expand()
 				subject.image = pygame.image.load("Graphics/MonsterBrick.png").convert_alpha()
 				subject.image = pygame.transform.scale(subject.image, self.scaled)
 				subject.rect = subject.image.get_rect()

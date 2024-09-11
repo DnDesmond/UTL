@@ -114,6 +114,7 @@ class Bouncing:
         self.swift = True
         self.rumbles = False
         self.dev = False
+        self.easy_start = True
         self.track_mouse = False
         self.track_mouse_pos = pygame.mouse.get_pos()
         self.left_mouse = False
@@ -725,13 +726,24 @@ class Bouncing:
             y_position = 3
         self.grad = self.base_grad
         x_position = 0
-        while y_position < self.screen_height:
-            while x_position < self.screen_width:
+        if not self.easy_start:
+            rise = self.screen_height
+            run = self.screen_width
+        elif self.easy_start:
+            rise = 125
+            run = 5
+        while y_position < rise:
+            while x_position < run:
                 new_brick = self.brick_base(width, height, inner, x_position, y_position)
                 if grad:
                     new_brick.gradient(f"{grad}", int(self.grad))
-                new_brick.rect.x = x_position
-                new_brick.rect.y = y_position
+                if not self.easy_start:
+                    new_brick.rect.x = x_position
+                    new_brick.rect.y = y_position
+                elif self.easy_start:
+                    new_brick.rect.x = self.mball.rect.x
+                    new_brick.rect.y = self.mball.rect.y
+                    new_brick.soul_sale()
                 for lost in getattr(self, f"Dict{level}").dict.values():
                     if not inner:
                         if x_position == lost[0] and y_position == lost[1]:
