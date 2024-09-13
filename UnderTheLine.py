@@ -1777,7 +1777,8 @@ class Yarn:
         self.up_timer = 0
         self.down_timer = 0
         self.leap = 0
-        self.gravity = 5
+        self.gravity = 7
+        self.quick_fall = False
         self.attack = False
         pygame.init()
         self.clock = pygame.time.Clock()
@@ -1835,42 +1836,11 @@ class Yarn:
             self.bricks.add(brick)
             self.brick_x_plus += 0
             self.brick_y_plus += 0
-        self.platform_1 = Brick(self, 50, 25)
-        self.platform_2 = Brick(self, 50, 25)
-        self.platform_3 = Brick(self, 50, 25)
-        self.platform_4 = Brick(self, 50, 25)
-        self.platform_1.rect.x = 200
-        self.platform_2.rect.x = 400
-        self.platform_3.rect.x = 200
-        self.platform_4.rect.x = 400
-        self.platform_1.rect.y = -200
-        self.platform_2.rect.y = -400
-        self.platform_3.rect.y = -600
-        self.platform_4.rect.y = -800
-        self.bricks.add(self.platform_1)
-        self.bricks.add(self.platform_2)
-        self.bricks.add(self.platform_3)
-        self.bricks.add(self.platform_4)
-        self.platfor_1 = Brick(self, 50, 25)
-        self.platfor_2 = Brick(self, 50, 25)
-        self.platfor_3 = Brick(self, 50, 25)
-        self.platfor_4 = Brick(self, 50, 25)
-        self.platfor_1.rect.x = 200
-        self.platfor_2.rect.x = 400
-        self.platfor_3.rect.x = 200
-        self.platfor_4.rect.x = 400
-        self.platfor_1.rect.y = -1000
-        self.platfor_2.rect.y = -1200
-        self.platfor_3.rect.y = -1400
-        self.platfor_4.rect.y = -1600
-        self.bricks.add(self.platfor_1)
-        self.bricks.add(self.platfor_2)
-        self.bricks.add(self.platfor_3)
-        self.bricks.add(self.platfor_4)
-        self.latform_1 = Brick(self, 50, 25)
-        self.latform_2 = Brick(self, 50, 25)
-        self.latform_3 = Brick(self, 50, 25)
-        self.latform_4 = Brick(self, 50, 25)
+        for cat in range(1,101):
+            setattr(self, f"platform_{cat}", Brick(self, 50, 25))
+            getattr(self, f"platform_{cat}").rect.x = cat*200
+            getattr(self, f"platform_{cat}").rect.y = -cat*200
+            self.bricks.add(getattr(self, f"platform_{cat}"))
                 
                 
 
@@ -1934,6 +1904,9 @@ class Yarn:
         for num in range(0, 8):
             self.player.points[num] = -abs(self.player.points[num])
         print(self.player.points)
+        self.player.points.remove(1.25)
+        self.player.points.remove(2.5)
+        self.player.points.remove(-2.5)
     
     def swipe(self):
         if self.player.right:
@@ -2042,12 +2015,20 @@ class Player(Sprite):
         
     def fall(self):
         """Adds any extra post-jump falling that needs to be done"""
-        self.movement[1] += self.down_timer + self.points[-6]
+        if not self.loom.quick_fall:
+            self.movement[1] += self.down_timer + self.points[-1]/4
+        elif self.loom.quick_fall:
+            self.movement[1] += self.down_timer + self.points[-1]
         collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
         if not collision:
             self.down_timer += 0.3
         else:
             self.down_timer = 0
+        try:
+            pyautogui.press("up")
+            pass
+        except pyautogui.FailSafeException:
+            pass
 
     def motion(self):
         """Runs both motion commands for ease of reading"""
@@ -2082,6 +2063,8 @@ class Player(Sprite):
             self.in_air = False
         if not collide:
             self.in_air = True
+            if not self.up:
+                self.down = True
 
 class Foe(Sprite):
     """Attempts to make a basic foe"""
@@ -2111,7 +2094,8 @@ class Foe(Sprite):
         elif self.right:
             self.rect.x += 1
         try:
-            pyautogui.press("up")
+            # pyautogui.press("up")
+            pass
         except pyautogui.FailSafeException:
             pass
         scroll_block = self.rect.copy()
