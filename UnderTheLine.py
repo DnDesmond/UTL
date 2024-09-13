@@ -1778,7 +1778,7 @@ class Yarn:
         self.down_timer = 0
         self.leap = 0
         self.gravity = 7
-        self.quick_fall = False
+        self.quick_fall = True
         self.attack = False
         pygame.init()
         self.clock = pygame.time.Clock()
@@ -1793,6 +1793,7 @@ class Yarn:
         self.swipe_time = 0
 
         self.player = Player(self)
+        self.parab()
         self.brick_x_plus = 0
         self.brick_y_plus = 0
         self.catch_plat = Brick(self, 72,22)
@@ -1831,6 +1832,7 @@ class Yarn:
             brick = Brick(self, 82, 60)
             brick.image = pygame.image.load("Graphics/SnowQuestionMark.png").convert_alpha()
             brick.rect = brick.image.get_rect()
+            brick.image = pygame.image.load("Graphics/Unsee.png").convert_alpha()
             brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
             brick.rect.y = 0
             self.bricks.add(brick)
@@ -1878,7 +1880,10 @@ class Yarn:
             scroll_block.y -= self.player.scroll[1]
             self.screen.blit(brick.image, scroll_block)
         if self.sword_swipe.colliderect(self.enemy.rect):
-            self.enemy.kill()
+            self.enemy.life -= 10
+            self.sword_swipe.x = 0
+            self.sword_swipe.y = 0
+            self.attack = False
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
             self.player.recenters()
         for enemy in self.evils:
@@ -1891,6 +1896,8 @@ class Yarn:
             if self.swipe_time > 90:
                 self.swipe_time = 0
                 self.attack = False
+                self.sword_swipe.x = 0
+                self.sword_swipe.y = 0
         self.times += 1
         self.leap += 0.25
 
@@ -2063,7 +2070,7 @@ class Player(Sprite):
             self.in_air = False
         if not collide:
             self.in_air = True
-            if not self.up:
+            if not self.up and not self.in_air:
                 self.down = True
 
 class Foe(Sprite):
@@ -2078,6 +2085,7 @@ class Foe(Sprite):
         self.rect = self.image.get_rect()
         self.right = False
         self.left = True
+        self.life = 100
         self.rect.x = 200
         self.rect.y = -50
     
@@ -2101,6 +2109,8 @@ class Foe(Sprite):
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
+        if self.life < 1:
+            self.kill()
         self.screen.blit(self.image, scroll_block)
 
 
