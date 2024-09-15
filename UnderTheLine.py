@@ -7,6 +7,7 @@ import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
 import pyautogui
 pyautogui.PAUSE = 0
+game_scale = 1
   
 from Breakers import *
 if __name__ == "__main__":
@@ -1519,7 +1520,7 @@ class Brick(Sprite):
         self.bouncer = bouncer
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
-        self.scaled = (width,height)
+        self.scaled = (width/game_scale,height/game_scale)
         self.image = pygame.image.load("Graphics/RedBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
@@ -1796,14 +1797,13 @@ class Yarn:
         self.parab()
         self.brick_x_plus = 0
         self.brick_y_plus = 0
-        self.catch_plat = Brick(self, 72,22)
-        self.jesus = Brick(self, 100000,1000)
-        self.left_pole = Brick(self, 20,20)
-        self.left_pole.rect.x = 100
-        self.left_pole.rect.y = -20
-        self.right_pole = Brick(self, 20,20)
-        self.right_pole.rect.x = 300
-        self.right_pole.rect.y = -20
+        self.catch_plat = Brick(self, 72/game_scale,22/game_scale)
+        self.left_pole = Brick(self, 20/game_scale,20/game_scale)
+        self.left_pole.rect.x = 100/game_scale
+        self.left_pole.rect.y = -20/game_scale
+        self.right_pole = Brick(self, 20/game_scale,20/game_scale)
+        self.right_pole.rect.x = 300/game_scale
+        self.right_pole.rect.y = -20/game_scale
         self.enemy = Foe(self)
         self.evils = pygame.sprite.Group()
         self.players = pygame.sprite.Group()
@@ -1812,43 +1812,39 @@ class Yarn:
         self.beejeesus = pygame.sprite.Group()
         self.bricks.add(self.left_pole)
         self.bricks.add(self.right_pole)
-        # self.bricks.add(self.jesus)
         self.evils.add(self.enemy)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
             brick.image = pygame.image.load("Graphics/MappedCompassbackBluck.png").convert_alpha()
             brick.rect = brick.image.get_rect()
-            brick.rect.x = 0 + bg*brick.rect.width - bg*2
-            brick.rect.y -= brick.rect.height/2
+            brick.rect.x = (0 + bg*brick.rect.width - bg*2)/game_scale
+            brick.rect.y -= (brick.rect.height/2)/game_scale
             self.beejees.add(brick)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
             brick.image = pygame.image.load("Graphics/MappedCompassbackBluck.png").convert_alpha()
             brick.rect = brick.image.get_rect()
-            brick.rect.x = 0 + bg*brick.rect.width - bg*2
-            brick.rect.y -= brick.rect.height/3
+            brick.rect.x = (0 + bg*brick.rect.width - bg*2)/game_scale
+            brick.rect.y -= (brick.rect.height/3)/game_scale
             self.beejeesus.add(brick)
         for brisk in range(1,200):
             brick = Brick(self, 82, 60)
             brick.image = pygame.image.load("Graphics/SnowQuestionMark.png").convert_alpha()
-            brick.rect = brick.image.get_rect()
-            brick.image = pygame.image.load("Graphics/Unsee.png").convert_alpha()
-            brick.rect.x = 70 + brick.rect.width*brisk + self.brick_x_plus
+            brick.image = pygame.transform.scale(brick.image, brick.scaled)
+            brick.rect.x = (70 + brick.rect.width*brisk + self.brick_x_plus)
             brick.rect.y = 0
             self.bricks.add(brick)
             self.brick_x_plus += 0
             self.brick_y_plus += 0
         for cat in range(1,101):
             setattr(self, f"platform_{cat}", Brick(self, 50, 25))
-            getattr(self, f"platform_{cat}").rect.x = cat*200
-            getattr(self, f"platform_{cat}").rect.y = -cat*200
+            getattr(self, f"platform_{cat}").rect.x = (cat*200)/game_scale
+            getattr(self, f"platform_{cat}").rect.y = (-cat*200)/game_scale
             self.bricks.add(getattr(self, f"platform_{cat}"))
                 
                 
 
         self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
-        self.jesus.rect.x = 100
-        self.jesus.rect.y = 0
         self.players.add(self.player)
         self.bricks.add(self.catch_plat)
 
@@ -1942,7 +1938,8 @@ class Yarn:
                     self.player.up_timer = 0
                     self.leap = 0
                 if event.key == pygame.K_DOWN:
-                    self.player.down = False
+                    # self.player.down = False
+                    pass
                 if event.key == pygame.K_LEFT:
                     self.player.left = True
                 if event.key == pygame.K_RIGHT:
@@ -1981,8 +1978,8 @@ class Player(Sprite):
         self.down = False
         self.left = False
         self.right = False
-        self.image = pygame.image.load("Graphics/Marble.png")
-        self.image = pygame.transform.scale(self.image, (50,50))
+        self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (50/game_scale,50/game_scale))
         self.rect = self.image.get_rect()
 
     def update(self):
@@ -2055,10 +2052,10 @@ class Player(Sprite):
 
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
-        self.rect.x += self.movement[0]
+        self.rect.x += self.movement[0]/game_scale
         if pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False):
-            self.rect.x -= self.movement[0]
-        self.rect.y += self.movement[1]
+            self.rect.x -= self.movement[0]/game_scale
+        self.rect.y += self.movement[1]/game_scale
         collide = pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False)
         if collide:
             for brick in self.loom.bricks:
@@ -2080,14 +2077,14 @@ class Foe(Sprite):
         super().__init__()
         self.loom = loom
         self.screen = self.loom.screen
-        self.image = pygame.image.load("Graphics/MappedCompassBack.png")
-        self.image = pygame.transform.scale(self.image, (40,40))
+        self.image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (40/game_scale,40/game_scale))
         self.rect = self.image.get_rect()
         self.right = False
         self.left = True
-        self.life = 100
-        self.rect.x = 200
-        self.rect.y = -50
+        self.life = 20
+        self.rect.x = 200/game_scale
+        self.rect.y = -50/game_scale
     
     def update(self):
         if pygame.sprite.groupcollide(self.loom.evils, self.loom.bricks, False, False):
