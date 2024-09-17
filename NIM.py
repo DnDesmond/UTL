@@ -143,7 +143,7 @@ class Ivan:
         elif self.player == 1:
             self.cursor_image = self.cursor_blue
         self.cursorect.rect.x = pygame.mouse.get_pos()[0]
-        self.cursorect.rect.y = pygame.mouse.get_pos()[1]
+        self.cursorect.rect.y = pygame.mouse.get_pos()[1]-28
         self.screen.blit(self.cursor_image, self.cursorect.rect)
 
 
