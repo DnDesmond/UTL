@@ -60,6 +60,13 @@ class Ivan:
                 self.times += 1
             else:
                 self.times = 0
+            if len(self.bricks_1)+len(self.bricks_2)+len(self.bricks_3) == 0:
+                for cat in range(0,12):
+                    brick = Brick(self, 20, 100)
+                    brick.rect.x = self.x_list[cat]+240
+                    brick.rect.y = self.y_list[cat]
+                    getattr(self, f"bricks_{self.level_list[cat]}").add(brick)
+
     
     def update_screen(self):
         self.screen.fill((43,76,192))
