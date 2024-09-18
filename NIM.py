@@ -2,6 +2,7 @@ import pygame
 from pygame import *
 import sys
 import os
+import time
 os.chdir("C:/Users/isaac/Graphics")
 from UnderTheLine import Brick
 
@@ -56,16 +57,15 @@ class Ivan:
             self.update_screen()
             self.check_events()
             self.clock.tick(60)
-            if self.can_break == True:
-                self.times += 1
-            else:
-                self.times = 0
+            self.times += 1
             if len(self.bricks_1)+len(self.bricks_2)+len(self.bricks_3) == 0:
+                pygame.mouse.set_pos(self.screen_width/2,50)
                 for cat in range(0,12):
                     brick = Brick(self, 20, 100)
                     brick.rect.x = self.x_list[cat]+240
                     brick.rect.y = self.y_list[cat]
                     getattr(self, f"bricks_{self.level_list[cat]}").add(brick)
+                self.can_break = False
 
     
     def update_screen(self):
