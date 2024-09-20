@@ -6,9 +6,9 @@ import random
 pygame.init()
 clock = pygame.time.Clock()
 pyautogui.press("win")
-time.sleep(0.1)
 pyautogui.click(693,876)
 pyautogui.PAUSE = 0
+time.sleep(1)
 while True:
     if tim % 60 == 0:
         pyautogui.click(33,99)
