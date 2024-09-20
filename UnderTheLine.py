@@ -116,7 +116,7 @@ class Bouncing:
         self.swift = True
         self.rumbles = False
         self.dev = False
-        self.easy_start = False
+        self.easy_start = True
         self.imige = pygame.image.load("Graphics/Outline.png")
         self.track_mouse = False
         self.track_mouse_pos = pygame.mouse.get_pos()
@@ -1536,32 +1536,16 @@ class Brick(Sprite):
         self.los = []
         for cat in range(0,50):
             self.los.append(cat*width)
-        for cat in range(70,19,-1):
+        for cat in range(50,19,-1):
             self.leest.append(cat)
-        for cat in range(19,70):
+        for cat in range(19,50):
             self.leest.append(cat)
-        self.xount = 1
-        self.bouncer.brick_list.append(self)
     
     def update(self):
         """Updates the bricks."""
-        self.timer = self.bouncer.timer
-        # self.timer = 100
-        self.timer = round(self.timer/2)
-        # self.x = self.rect.x
-        # self.access_x = [self.los[self.xount-1], self.los[self.xount], self.los[self.xount+1]]
-        # emp = []
-        # for ind in self.access_x:
-        #     emp.append((ind-(256)*2))
-        # for em in range(len(emp)):
-            # self.access_x.append(emp[em-1])
-        #     pass
-        # if self.x in self.access_x:
-        #     self.image.fill((0, self.leest[self.timer%len(self.leest)]+self.access_x.index(self.x)%5*30, self.leest[self.timer%len(self.leest)]+self.access_x.index(self.x)%5*30))
-        #     print(self.x)
-        # else:
-        self.image.fill((0, self.leest[self.timer%len(self.leest)], self.leest[self.timer%len(self.leest)]))
-
+        # self.timer = self.bouncer.timer
+        # self.timer = round(self.timer/(len(self.bouncer.bricks)/5))
+        # self.image.fill((0, self.leest[self.timer%len(self.leest)], self.leest[self.timer%len(self.leest)]))
         self.screen.blit(self.image, self.rect)
         # if self.timer % 6 == 0:
         #     if self.xount < 20:
@@ -1809,6 +1793,7 @@ class Yarn:
 
     def __init__(self, bouncer):
         self.bouncer = bouncer
+        self.undamaged = []
         self.cat = 0
 
     def real_init(self):
@@ -1816,9 +1801,12 @@ class Yarn:
         self.up_timer = 0
         self.down_timer = 0
         self.leap = 0
-        self.gravity = 7
+        self.gravity = 0
+        self.brick_width = 50
+        self.brick_height = 25
         self.quick_fall = True
         self.attack = False
+        self.clickage = False
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.display.quit()
@@ -1874,13 +1862,11 @@ class Yarn:
             self.bricks.add(brick)
             self.brick_x_plus += 0
             self.brick_y_plus += 0
-        for cat in range(1,101):
-            setattr(self, f"platform_{cat}", Brick(self, 50, 25))
-            getattr(self, f"platform_{cat}").rect.x = (cat*200)/game_scale
-            getattr(self, f"platform_{cat}").rect.y = (-cat*200)/game_scale
-            self.bricks.add(getattr(self, f"platform_{cat}"))
-                
-                
+        # for cat in range(1,101):
+        #     setattr(self, f"platform_{cat}", Brick(self, 50/game_scale, 25/game_scale))
+        #     getattr(self, f"platform_{cat}").rect.x = (cat*200)/game_scale
+        #     getattr(self, f"platform_{cat}").rect.y = (-cat*200)/game_scale
+        #     self.bricks.add(getattr(self, f"platform_{cat}"))
 
         self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
         self.players.add(self.player)
@@ -1934,6 +1920,7 @@ class Yarn:
                 self.sword_swipe.y = 0
         self.times += 1
         self.leap += 0.25
+        self.placey()
 
         pygame.display.flip()
     
@@ -1968,7 +1955,7 @@ class Yarn:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-                if event.key == pygame.K_UP and self.player.in_air == False:
+                if event.key == pygame.K_UP:# and self.player.in_air == False:
                     self.parab()
                     self.player.up = True
                     self.player.in_air = True
@@ -1976,8 +1963,7 @@ class Yarn:
                     self.player.up_timer = 0
                     self.leap = 0
                 if event.key == pygame.K_DOWN:
-                    # self.player.down = False
-                    pass
+                    self.player.down = True
                 if event.key == pygame.K_LEFT:
                     self.player.left = True
                 if event.key == pygame.K_RIGHT:
@@ -1991,6 +1977,26 @@ class Yarn:
                     self.player.left = False
                 if event.key == pygame.K_RIGHT:
                     self.player.right = False
+                if event.key == pygame.K_UP:
+                    self.player.up = False
+                if event.key == pygame.K_DOWN:
+                    self.player.down = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.clickage = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.clickage = False
+            
+    def placey(self):
+        if self.clickage:
+            platform = Brick(self, self.brick_width/game_scale, 25/game_scale)
+            platform.rect.x = self.player.rect.x
+            platform.rect.y = self.player.rect.y+self.player.rect.height
+            platform.update()
+            if pygame.sprite.spritecollide(platform, self.bricks, False):
+                platform.kill()
+            else:
+                self.bricks.add(platform)
+                
 
 class Player(Sprite):
     """Makes the player for game 2"""
@@ -2080,13 +2086,17 @@ class Player(Sprite):
     def calculate_motion(self):
         """Does the calculation for motion"""
         if self.right:
-            self.movement[0] += 3
+            self.movement[0] += (self.loom.brick_width-1)/game_scale
+            self.right = False
         if self.left:
-            self.movement[0] -= 3
+            self.movement[0] -= (self.loom.brick_width-1)/game_scale
+            self.left = False
         if self.up:
-            self.jump()
+            self.movement[1] -= self.loom.brick_height/game_scale
+            self.up = False
         if self.down:
-            self.fall()
+            self.movement[1] += self.loom.brick_height/game_scale
+            self.down = False
 
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
