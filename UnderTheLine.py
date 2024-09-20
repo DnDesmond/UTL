@@ -73,6 +73,7 @@ class Bouncing:
         self.main_spins = True
         self.brick_height = 25
         self.brick_width = 64
+        self.brick_list = []
         self.frame_rate = 85
         self.Dict1 = Level1()
         self.Dict2 = Level2()
@@ -115,7 +116,8 @@ class Bouncing:
         self.swift = True
         self.rumbles = False
         self.dev = False
-        self.easy_start = True
+        self.easy_start = False
+        self.imige = pygame.image.load("Graphics/Outline.png")
         self.track_mouse = False
         self.track_mouse_pos = pygame.mouse.get_pos()
         self.left_mouse = False
@@ -290,6 +292,8 @@ class Bouncing:
                 for cat in range(0,self.trail_length):
                     self.trail()
         self.left_bricks = len(self.bricks)
+        for brick in self.bricks:
+            self.screen.blit(self.imige, brick.rect)
         pygame.display.flip()
     
     def levels(self):
@@ -738,6 +742,7 @@ class Bouncing:
                 new_brick = self.brick_base(width, height, inner, x_position, y_position)
                 if grad:
                     new_brick.gradient(f"{grad}", int(self.grad))
+                    pass
                 if not self.easy_start:
                     new_brick.rect.x = x_position
                     new_brick.rect.y = y_position
@@ -1513,7 +1518,7 @@ class Star(Sprite):
 class Brick(Sprite):
     """Creates the bricks out of which one must break."""
     
-    def __init__(self, bouncer, width, height, inner=False):
+    def __init__(self, bouncer=Bouncing, width=10, height=10, inner=False):
         """Initialise the basic attributes of the bricks."""
         super().__init__()
         self.inner = inner
@@ -1527,10 +1532,42 @@ class Brick(Sprite):
             self.image = pygame.image.load("Graphics/Seafoam.png").convert_alpha()
             self.image = pygame.transform.scale(self.image, self.scaled)
         self.rect = self.image.get_rect()
+        self.leest = []
+        self.los = []
+        for cat in range(0,50):
+            self.los.append(cat*width)
+        for cat in range(70,19,-1):
+            self.leest.append(cat)
+        for cat in range(19,70):
+            self.leest.append(cat)
+        self.xount = 1
+        self.bouncer.brick_list.append(self)
     
     def update(self):
         """Updates the bricks."""
+        self.timer = self.bouncer.timer
+        # self.timer = 100
+        self.timer = round(self.timer/2)
+        # self.x = self.rect.x
+        # self.access_x = [self.los[self.xount-1], self.los[self.xount], self.los[self.xount+1]]
+        # emp = []
+        # for ind in self.access_x:
+        #     emp.append((ind-(256)*2))
+        # for em in range(len(emp)):
+            # self.access_x.append(emp[em-1])
+        #     pass
+        # if self.x in self.access_x:
+        #     self.image.fill((0, self.leest[self.timer%len(self.leest)]+self.access_x.index(self.x)%5*30, self.leest[self.timer%len(self.leest)]+self.access_x.index(self.x)%5*30))
+        #     print(self.x)
+        # else:
+        self.image.fill((0, self.leest[self.timer%len(self.leest)], self.leest[self.timer%len(self.leest)]))
+
         self.screen.blit(self.image, self.rect)
+        # if self.timer % 6 == 0:
+        #     if self.xount < 20:
+        #         self.xount += 1
+        #     else:
+        #         self.xount = 0
     
     # Brick sprite changes and list appends for special bricks.
 
@@ -1681,6 +1718,7 @@ class Brick(Sprite):
             self.image = pygame.image.load(f"Graphics/{colour}1.png").convert_alpha()
             print("GraphicsFileError")
             self.bouncer.grad = self.bouncer.base_grad
+        self.image.fill((0,shade,shade))
         self.innervate()
     
     def up_outer(self):
