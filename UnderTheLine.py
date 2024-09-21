@@ -1909,7 +1909,6 @@ class Yarn:
                 self.sword_swipe.y = 0
         self.times += 1
         self.leap += 0.25
-        self.placey()
 
         pygame.display.flip()
     
@@ -1974,21 +1973,6 @@ class Yarn:
                     self.player.right = True
                 if event.key == pygame.K_w:
                     self.attack = True
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_DOWN:
-                    pass
-                if event.key == pygame.K_LEFT:
-                    self.player.left = False
-                if event.key == pygame.K_RIGHT:
-                    self.player.right = False
-                # if event.key == pygame.K_UP:
-                #     self.player.up = False
-                # if event.key == pygame.K_DOWN:
-                #     self.player.down = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.clickage = True
-            if event.type == pygame.MOUSEBUTTONUP:
-                self.clickage = False
             
     def placey(self):
         if self.clickage:
@@ -2090,9 +2074,9 @@ class Player(Sprite):
     def calculate_motion(self):
         """Does the calculation for motion"""
         if self.right:
-            self.movement[0] += (self.loom.brick_width)/game_scale
+            self.movement[0] += 3
         if self.left:
-            self.movement[0] -= (self.loom.brick_width)/game_scale
+            self.movement[0] -= 3
         if self.up:
             self.jump()
         if self.down:
