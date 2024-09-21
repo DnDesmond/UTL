@@ -4,6 +4,7 @@ import sys
 import os
 import random
 import ctypes
+import csv
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
 import pyautogui
 pyautogui.PAUSE = 0
@@ -587,7 +588,7 @@ class Bouncing:
             self.current_y += self.brick_height
             self.reinforce += 1
     
-    def borders(self):
+    def borders(self): 
         """So think france"""
         self.bordered = 0
         self.cant_update.clear()
@@ -1801,9 +1802,9 @@ class Yarn:
         self.up_timer = 0
         self.down_timer = 0
         self.leap = 0
-        self.gravity = 0
-        self.brick_width = 50
-        self.brick_height = 25
+        self.gravity = 7
+        self.brick_width = 64
+        self.brick_height = 64
         self.quick_fall = True
         self.attack = False
         self.clickage = False
@@ -1821,6 +1822,8 @@ class Yarn:
 
         self.player = Player(self)
         self.parab()
+        self.toil = Toim_Chart("alien_invasion/UTL/Chared.csv")
+        self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
         self.catch_plat = Brick(self, 72/game_scale,22/game_scale)
@@ -1853,20 +1856,7 @@ class Yarn:
             brick.rect.x = (0 + bg*brick.rect.width - bg*2)/game_scale
             brick.rect.y -= (brick.rect.height/3)/game_scale
             self.beejeesus.add(brick)
-        for brisk in range(1,200):
-            brick = Brick(self, 82, 60)
-            brick.image = pygame.image.load("Graphics/SnowQuestionMark.png").convert_alpha()
-            brick.image = pygame.transform.scale(brick.image, brick.scaled)
-            brick.rect.x = (70 + brick.rect.width*brisk + self.brick_x_plus)
-            brick.rect.y = 0
-            self.bricks.add(brick)
-            self.brick_x_plus += 0
-            self.brick_y_plus += 0
-        # for cat in range(1,101):
-        #     setattr(self, f"platform_{cat}", Brick(self, 50/game_scale, 25/game_scale))
-        #     getattr(self, f"platform_{cat}").rect.x = (cat*200)/game_scale
-        #     getattr(self, f"platform_{cat}").rect.y = (-cat*200)/game_scale
-        #     self.bricks.add(getattr(self, f"platform_{cat}"))
+        self.cant_update = []
 
         self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
         self.players.add(self.player)
@@ -1887,18 +1877,22 @@ class Yarn:
         for brick in self.beejees:
             scroll_block = brick.rect.copy()
             scroll_block.x -= (self.player.scroll[0]/2)
-            scroll_block.y -= (self.player.scroll[1]/2)
+            scroll_block.y = 0
             self.screen.blit(brick.image, scroll_block)
         for brick in self.beejees:
             scroll_block = brick.rect.copy()
             scroll_block.x -= (self.player.scroll[0]/1.5)
-            scroll_block.y -= (self.player.scroll[1]/1.5)
+            scroll_block.y = 0
             self.screen.blit(brick.image, scroll_block)
         for brick in self.bricks:
             scroll_block = brick.rect.copy()
             scroll_block.x -= self.player.scroll[0]
             scroll_block.y -= self.player.scroll[1]
             self.screen.blit(brick.image, scroll_block)
+        scroll_block = self.toil.map_surface.get_rect().copy()
+        scroll_block.x -= self.player.scroll[0]
+        scroll_block.y -= self.player.scroll[1]
+        self.screen.blit(self.toil.map_surface, scroll_block)
         if self.sword_swipe.colliderect(self.enemy.rect):
             self.enemy.life -= 10
             self.sword_swipe.x = 0
@@ -1923,6 +1917,21 @@ class Yarn:
         self.placey()
 
         pygame.display.flip()
+    
+    def borders(self):
+        self.cant_update.clear()
+        self.can_update = pygame.sprite.Group()
+        for key, value in self.brick_dict.items():
+            temp = [value[0] + self.brick_width, value[1]]
+            temps = [value[0] - self.brick_width, value[1]]
+            tem = [value[0], value[1] + self.brick_height]
+            tmp = [value[0], value[1] - self.brick_height]
+            if temp in self.brick_dict.values() and temps in self.brick_dict.values() and tem in self.brick_dict.values() and tmp in self.brick_dict.values():
+                self.bordered += 1
+                self.cant_update.append(key)
+        for tile in self.toil.tile_list:
+            if tile not in self.cant_update:
+                    self.can_update.add(tile)
     
     def parab(self):
         self.player.points = []
@@ -1955,15 +1964,15 @@ class Yarn:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-                if event.key == pygame.K_UP:# and self.player.in_air == False:
+                if event.key == pygame.K_UP and self.player.in_air == False:
                     self.parab()
                     self.player.up = True
                     self.player.in_air = True
                     self.player.jump_x = 0
                     self.player.up_timer = 0
                     self.leap = 0
-                if event.key == pygame.K_DOWN:
-                    self.player.down = True
+                # if event.key == pygame.K_DOWN:
+                #     self.player.down = True
                 if event.key == pygame.K_LEFT:
                     self.player.left = True
                 if event.key == pygame.K_RIGHT:
@@ -1977,10 +1986,10 @@ class Yarn:
                     self.player.left = False
                 if event.key == pygame.K_RIGHT:
                     self.player.right = False
-                if event.key == pygame.K_UP:
-                    self.player.up = False
-                if event.key == pygame.K_DOWN:
-                    self.player.down = False
+                # if event.key == pygame.K_UP:
+                #     self.player.up = False
+                # if event.key == pygame.K_DOWN:
+                #     self.player.down = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.clickage = True
             if event.type == pygame.MOUSEBUTTONUP:
@@ -1988,7 +1997,7 @@ class Yarn:
             
     def placey(self):
         if self.clickage:
-            platform = Brick(self, self.brick_width/game_scale, 25/game_scale)
+            platform = Brick(self, self.brick_width/game_scale, self.brick_height/game_scale)
             platform.rect.x = self.player.rect.x
             platform.rect.y = self.player.rect.y+self.player.rect.height
             platform.update()
@@ -2032,8 +2041,8 @@ class Player(Sprite):
         self.movement = [0,0]
         self.movement[1] += self.loom.gravity
         self.motion()
-        if self.rect.y > 100:
-            self.recenters()
+        # if self.rect.y > 100:
+        #     self.recenters()
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]        
@@ -2086,29 +2095,25 @@ class Player(Sprite):
     def calculate_motion(self):
         """Does the calculation for motion"""
         if self.right:
-            self.movement[0] += (self.loom.brick_width-1)/game_scale
-            self.right = False
+            self.movement[0] += (self.loom.brick_width)/game_scale
         if self.left:
-            self.movement[0] -= (self.loom.brick_width-1)/game_scale
-            self.left = False
+            self.movement[0] -= (self.loom.brick_width)/game_scale
         if self.up:
-            self.movement[1] -= self.loom.brick_height/game_scale
-            self.up = False
+            self.jump()
         if self.down:
-            self.movement[1] += self.loom.brick_height/game_scale
-            self.down = False
+            self.fall()
 
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
         self.rect.x += self.movement[0]/game_scale
-        if pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False):
+        if pygame.sprite.groupcollide(self.loom.tiles, self.loom.players, False, False):
             self.rect.x -= self.movement[0]/game_scale
         self.rect.y += self.movement[1]/game_scale
-        collide = pygame.sprite.groupcollide(self.loom.bricks, self.loom.players, False, False)
+        collide = pygame.sprite.groupcollide(self.loom.tiles, self.loom.players, False, False)
         if collide:
-            for brick in self.loom.bricks:
-                if brick.rect.colliderect(self.rect) and self.rect.y < brick.rect.y:
-                    self.rect.bottom = brick.rect.top
+            for tile in self.loom.tiles:
+                if tile.rect.colliderect(self.rect) and self.rect.y < tile.rect.y:
+                    self.rect.bottom = tile.rect.top
             self.down_timer = 0
             self.down = False
             self.up = False
@@ -2157,6 +2162,75 @@ class Foe(Sprite):
         if self.life < 1:
             self.kill()
         self.screen.blit(self.image, scroll_block)
+
+class Toil(Sprite):
+    """Tries to make a tile."""
+
+    def __init__(self, image, x, y, loom=Yarn):
+        """Initialises everything"""
+        super().__init__()
+        self.loom = loom
+        self.imig = image
+        self.image = pygame.image.load(f"Graphics/{image}")
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x,y
+    
+    def draw(self, surface, num=0):
+        self.image.fill((0, (num%100)+1, (num%100)+1))
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+        self.image = pygame.image.load(f"Graphics/{self.imig}")
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
+class Toim_Chart:
+    """Makes the tile map"""
+
+    def __init__(self, filename):
+        """Initialises everything"""
+        self.tile_size = 64
+        self.start_x = 0
+        self.start_y = 0
+        self.tiles = self.load_tiles(filename)
+        self.tile_list = self.tiles
+        self.map_surface = pygame.Surface((self.map_w, self.map_h))
+        self.map_surface.set_colorkey((0,0,0))
+        for toil in self.tiles:
+            toil.draw(self.map_surface, self.tiles.index(toil))
+        self.tile = pygame.sprite.Group()
+        for cat in self.tiles:
+            self.tile.add(cat)
+        self.tiles = self.tile
+    
+    def update(self, screen):
+        screen.blit(self.map_surface, (0,0))
+    
+    def read_csv(self, filename):
+        map = []
+        with open(os.path.join(filename)) as data:
+            data = csv.reader(data, delimiter=',')
+            for row in data:
+                map.append(list(row))
+        return map
+
+    def load_tiles(self, filename):
+        tiles = []
+        map = self.read_csv(filename)
+        x,y = 0,0
+        for row in map:
+            x = 0
+            for tile in row:
+                if tile == '0':
+                    self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
+                    tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size))
+                elif tile == '1':
+                    tiles.append(Toil('Rote.png', x * self.tile_size, y * self.tile_size))
+                elif tile == '2':
+                    tiles.append(Toil('Rote.png', x * self.tile_size, y * self.tile_size))
+                else:
+                    print(tile)
+                x += 1
+            y += 1
+        self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
+        return tiles
 
 
 if __name__ == "__main__":
