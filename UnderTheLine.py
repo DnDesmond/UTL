@@ -8,7 +8,7 @@ import csv
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
 import pyautogui
 pyautogui.PAUSE = 0
-game_scale = 1
+game_scale = 2
   
 from Breakers import *
 if __name__ == "__main__":
@@ -1806,6 +1806,7 @@ class Yarn:
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.display.quit()
+        self.current_level = [0,0]
 
         self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
         self.screen_width = self.screen.get_rect().width
@@ -1817,7 +1818,7 @@ class Yarn:
 
         self.player = Player(self)
         self.parab()
-        self.toil = Toim_Chart("alien_invasion/UTL/Chared.csv")
+        self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv")
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
@@ -1858,7 +1859,8 @@ class Yarn:
         self.bricks.add(self.catch_plat)
 
         self.times = 0
-
+        self.player.rect.y, self.player.rect.x = self.toil.start_y, self.toil.start_x
+        self.borders()
         self.run_game()
     
     def run_game(self):
@@ -1909,21 +1911,50 @@ class Yarn:
                 self.sword_swipe.y = 0
         self.times += 1
         self.leap += 0.25
+        self.collides()
 
         pygame.display.flip()
+    
+    def collides(self):
+        if pygame.sprite.spritecollide(self.player, self.toil.rgates, False):
+            self.current_level[0] += 1
+            self.collodes('r')
+        elif pygame.sprite.spritecollide(self.player, self.toil.lgates, False):
+            self.current_level[0] -= 1
+            self.collodes('l')
+        elif pygame.sprite.spritecollide(self.player, self.toil.ldgates, False):
+            self.current_level[1] += 1
+            self.collodes('ld')
+        elif pygame.sprite.spritecollide(self.player, self.toil.lugates, False):
+            self.current_level[1] -= 1
+            self.collodes('lu')
+        elif pygame.sprite.spritecollide(self.player, self.toil.rdgates, False):
+            self.current_level[1] += 1
+            self.collodes('rd')
+        elif pygame.sprite.spritecollide(self.player, self.toil.rugates, False):
+            self.current_level[1] -= 1
+            self.collodes('ru')
+    
+    def collodes(self, dir):
+        self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv')
+        self.tiles = self.toil.tiles
+        self.toil.start_x = getattr(self.toil, f"{dir}start_x")
+        self.toil.start_y = getattr(self.toil, f"{dir}start_y")
+        self.player.recenters(dir)
+        self.player.update(dir)
+        self.borders()
     
     def borders(self):
         self.cant_update.clear()
         self.can_update = pygame.sprite.Group()
-        for key, value in self.brick_dict.items():
-            temp = [value[0] + self.brick_width, value[1]]
-            temps = [value[0] - self.brick_width, value[1]]
-            tem = [value[0], value[1] + self.brick_height]
-            tmp = [value[0], value[1] - self.brick_height]
-            if temp in self.brick_dict.values() and temps in self.brick_dict.values() and tem in self.brick_dict.values() and tmp in self.brick_dict.values():
-                self.bordered += 1
+        for key, value in self.toil.tile_dict.items():
+            temp = [value[0] + 32, value[1]]
+            temps = [value[0] - 32, value[1]]
+            tem = [value[0], value[1] + 32]
+            tmp = [value[0], value[1] - 32]
+            if temp in self.toil.tile_dict.values() and temps in self.toil.tile_dict.values() and tem in self.toil.tile_dict.values() and tmp in self.toil.tile_dict.values():
                 self.cant_update.append(key)
-        for tile in self.toil.tile_list:
+        for tile in self.toil.tile_dict.keys():
             if tile not in self.cant_update:
                     self.can_update.add(tile)
     
@@ -1973,6 +2004,13 @@ class Yarn:
                     self.player.right = True
                 if event.key == pygame.K_w:
                     self.attack = True
+                if event.key == pygame.K_r:
+                    self.player.recenters()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    self.player.left = False
+                if event.key == pygame.K_RIGHT:
+                    self.player.right = False
             
     def placey(self):
         if self.clickage:
@@ -2000,6 +2038,7 @@ class Player(Sprite):
         self.jump_x = 0
         self.in_air = False
         self.recenter = False
+        self.coll = False
 
         self.scroll = [0, 0]
         self.movement = []
@@ -2010,26 +2049,49 @@ class Player(Sprite):
         self.down = False
         self.left = False
         self.right = False
+
+        self.scales = 50/game_scale
         self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (50/game_scale,50/game_scale))
+        self.image = pygame.transform.scale(self.image, (self.scales,self.scales))
         self.rect = self.image.get_rect()
 
-    def update(self):
-        self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
-        self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
+    def update(self, level=''):
+        if pygame.sprite.spritecollide(self, self.loom.toil.tractors, False):
+            self.loom.gravity = -7
+            self.down = False
+        else:
+            self.loom.gravity = 7
+        if self.rect.centerx - (self.screen_width/2) > self.screen.get_rect().left and self.rect.right + (self.screen_width/2) < self.loom.toil.map_surface.get_rect().right:
+            self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
+        if self.rect.centery - (self.screen_height/2) > self.screen.get_rect().top and self.rect.bottom - 32 + (self.screen_height/2) < self.loom.toil.map_surface.get_rect().bottom:
+            self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
         self.movement = [0,0]
         self.movement[1] += self.loom.gravity
         self.motion()
-        # if self.rect.y > 100:
-        #     self.recenters()
+        if level == 'r':
+            self.scroll[0] = 0
+        elif level == 'l':
+            self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width
+        elif level == 'ld':
+            self.scroll[1] = 0
+        elif level == 'rd':
+            self.scroll[1] = 0
+            self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width
+        elif level == 'lu':
+            self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height
+        elif level == 'ru':
+            self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height
+            self.scroll[0] = 0
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
-        player_scroll_rect.y -= self.scroll[1]        
+        player_scroll_rect.y -= self.scroll[1]
         self.screen.blit(self.image, player_scroll_rect)
     
-    def recenters(self):
-        self.rect.x = 0
-        self.rect.y = 0
+    def recenters(self, dir=''):
+        self.rect.x = getattr(self.loom.toil, f'{dir}start_x')
+        self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
+        self.down_timer = 0
+        self.up, self.down, self.right, self.left = False, False, False, False
     
     def jump(self):
         """Conducts the full parabola for the jump"""
@@ -2042,7 +2104,7 @@ class Player(Sprite):
             self.up = False
             self.jump_x = 0
             self.up_timer = 0
-            collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
+            collision = pygame.sprite.groupcollide(self.loom.players, self.loom.can_update, False, False)
             if not collision:
                 self.down = True
         if self.loom.leap % 5 == 0:
@@ -2055,7 +2117,7 @@ class Player(Sprite):
             self.movement[1] += self.down_timer + self.points[-1]/4
         elif self.loom.quick_fall:
             self.movement[1] += self.down_timer + self.points[-1]
-        collision = pygame.sprite.groupcollide(self.loom.players, self.loom.bricks, False, False)
+        collision = pygame.sprite.groupcollide(self.loom.players, self.loom.can_update, False, False)
         if not collision:
             self.down_timer += 0.3
         else:
@@ -2084,15 +2146,27 @@ class Player(Sprite):
 
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
-        self.rect.x += self.movement[0]/game_scale
-        if pygame.sprite.groupcollide(self.loom.tiles, self.loom.players, False, False):
-            self.rect.x -= self.movement[0]/game_scale
-        self.rect.y += self.movement[1]/game_scale
-        collide = pygame.sprite.groupcollide(self.loom.tiles, self.loom.players, False, False)
+        self.rect.x += self.movement[0]
+        if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+            self.rect.x -= self.movement[0]
+        self.rect.y += self.movement[1]//game_scale
+        collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
+            self.coll = False
             for tile in self.loom.tiles:
                 if tile.rect.colliderect(self.rect) and self.rect.y < tile.rect.y:
                     self.rect.bottom = tile.rect.top
+                    self.coll = True
+            if not self.coll:
+                self.rect.y -= self.movement[1]/2
+                if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y -= self.movement[1]/4
+                    if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                        self.rect.y -= self.movement[1]/8
+                        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                            self.rect.y -= self.movement[1]/16
+                            if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                                self.rect.y -= self.movement[1]/32
             self.down_timer = 0
             self.down = False
             self.up = False
@@ -2165,19 +2239,43 @@ class Toim_Chart:
 
     def __init__(self, filename):
         """Initialises everything"""
-        self.tile_size = 64
+        self.tile_size = 64/game_scale
         self.start_x = 0
         self.start_y = 0
+        self.lstart_x = 0
+        self.lstart_y = 0
+        self.rstart_x = 0
+        self.rstart_y = 0
+        self.lustart_x = 0
+        self.rustart_y = 0
+        self.ldstart_x = 0
+        self.rdstart_y = 0
+        self.rgates = pygame.sprite.Group()
+        self.lgates = pygame.sprite.Group()
+        self.lugates = pygame.sprite.Group()
+        self.ldgates = pygame.sprite.Group()
+        self.rugates = pygame.sprite.Group()
+        self.rdgates = pygame.sprite.Group()
+        self.gates = pygame.sprite.Group()
+        self.tractors = []
         self.tiles = self.load_tiles(filename)
-        self.tile_list = self.tiles
+        self.tile_dict = {}
+        for tile in self.tiles:
+            self.tile_dict[tile] = [tile.rect.x, tile.rect.y]
         self.map_surface = pygame.Surface((self.map_w, self.map_h))
         self.map_surface.set_colorkey((0,0,0))
         for toil in self.tiles:
             toil.draw(self.map_surface, self.tiles.index(toil))
+        for beam in self.tractors:
+            beam.draw(self.map_surface, self.tractors.index(beam))
         self.tile = pygame.sprite.Group()
+        self.beams = pygame.sprite.Group()
         for cat in self.tiles:
             self.tile.add(cat)
+        for beam in self.tractors:
+            self.beams.add(beam)
         self.tiles = self.tile
+        self.tractors = self.beams
     
     def update(self, screen):
         screen.blit(self.map_surface, (0,0))
@@ -2190,6 +2288,14 @@ class Toim_Chart:
                 map.append(list(row))
         return map
 
+# 7 = Up
+# 10 = Left
+# 5 = Left Down
+# 6 = Left Right
+# 17 = Right Up
+# 18 = Right Down
+
+
     def load_tiles(self, filename):
         tiles = []
         map = self.read_csv(filename)
@@ -2198,14 +2304,43 @@ class Toim_Chart:
             x = 0
             for tile in row:
                 if tile == '0':
-                    self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
                     tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size))
-                elif tile == '1':
-                    tiles.append(Toil('Rote.png', x * self.tile_size, y * self.tile_size))
                 elif tile == '2':
-                    tiles.append(Toil('Rote.png', x * self.tile_size, y * self.tile_size))
-                else:
-                    print(tile)
+                    self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
+                elif tile == '5':
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    self.ldgates.add(new_tile)
+                elif tile == '6':
+                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size)
+                    self.rgates.add(new_tile)
+                elif tile == '7':
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    self.lugates.add(new_tile)
+                elif tile == '10':
+                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size)
+                    self.lgates.add(new_tile)
+                elif tile == '11':
+                    self.lstart_x, self.lstart_y = x * self.tile_size, y * self.tile_size
+                elif tile == '12':
+                    self.rstart_x, self.rstart_y = x * self.tile_size, y * self.tile_size
+                elif tile == '13':
+                    self.lustart_x, self.lustart_y = x * self.tile_size, y * self.tile_size
+                elif tile == '14':
+                    self.ldstart_x, self.ldstart_y = x * self.tile_size, y * self.tile_size
+                elif tile == '15':
+                    self.rustart_x, self.rustart_y = x * self.tile_size, y * self.tile_size
+                elif tile == '16':
+                    self.rdstart_x, self.rdstart_y = x * self.tile_size, y * self.tile_size
+                elif tile == '17':
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    self.rdgates.add(new_tile)
+                elif tile == '18':
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    self.rugates.add(new_tile)
+                elif tile == '19':
+                    new_tile = Toil('Half_Blue.png', x * self.tile_size, y * self.tile_size)
+                    self.tractors.append(new_tile)
+                    print(new_tile)
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
