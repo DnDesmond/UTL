@@ -1803,6 +1803,7 @@ class Yarn:
         self.down_timer = 0
         self.leap = 0
         self.gravity = 7
+        self.base_gravity = self.gravity
         self.brick_width = 64
         self.brick_height = 64
         self.quick_fall = True
@@ -2065,28 +2066,32 @@ class Player(Sprite):
             self.loom.gravity = -7
             self.down = False
         else:
-            self.loom.gravity = 7
-        if self.rect.centerx - (self.screen_width/2) > self.screen.get_rect().left and self.rect.right + (self.screen_width/2) < self.loom.toil.map_surface.get_rect().right:
+            self.loom.gravity = self.loom.base_gravity
+        if (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
             self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
-        if self.rect.centery - (self.screen_height/2) > self.screen.get_rect().top and self.rect.bottom - 32 + (self.screen_height/2) < self.loom.toil.map_surface.get_rect().bottom:
+        else:
+            pass
+        if (self.rect.centery - 32) - (self.screen_height/2) > self.screen.get_rect().top and (self.rect.bottom + 32) - 32 + (self.screen_height/2) < self.loom.toil.map_surface.get_rect().bottom:
             self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
         self.movement = [0,0]
         self.movement[1] += self.loom.gravity
         self.motion()
         if level == 'r':
-            self.scroll[0] = 0
+            self.scroll[0] = 0 + 32
         elif level == 'l':
-            self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width
+            self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width - 32
         elif level == 'ld':
-            self.scroll[1] = 0
+            self.scroll[1] = 0 + 32
+            self.scroll[0] = 0 + 32
         elif level == 'rd':
-            self.scroll[1] = 0
-            self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width
+            self.scroll[1] = 0 + 32
+            self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width - 32
         elif level == 'lu':
-            self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height
+            self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height - 32
+            self.scroll[0] = 0 + 32
         elif level == 'ru':
-            self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height
-            self.scroll[0] = 0
+            self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height - 32
+            self.scroll[0] = 0 - 32
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]
