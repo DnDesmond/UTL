@@ -1806,9 +1806,10 @@ class Yarn:
         self.base_gravity = self.gravity
         self.brick_width = 64
         self.brick_height = 64
-        self.quick_fall = True
+        self.quick_fall = False
         self.attack = False
         self.clickage = False
+        self.x_pressed = False
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.display.quit()
@@ -1819,6 +1820,9 @@ class Yarn:
         self.screen_height = self.screen.get_rect().height
         self.screen_rect = self.screen.get_rect()
         pygame.display.set_caption("Bouncing Gimmick")
+        pygame.joystick.init()
+        self.joystick = pygame.joystick.Joystick(0)
+        self.joystick.init()
         self.sword_swipe = pygame.rect.Rect(0, 0, 50, 35)
         self.swipe_time = 0
 
@@ -1896,11 +1900,13 @@ class Yarn:
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
         self.screen.blit(self.toil.map_surface, scroll_block)
-        if self.sword_swipe.colliderect(self.enemy.rect):
-            self.enemy.life -= 10
-            self.sword_swipe.x = 0
-            self.sword_swipe.y = 0
-            self.attack = False
+        for tile in self.can_update:
+            if self.sword_swipe.colliderect(tile.rect):
+                self.enemy.life -= 10
+                self.sword_swipe.x = 0
+                self.sword_swipe.y = 0
+                self.attack = False
+                tile.kill()
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
             self.player.recenters()
         for enemy in self.evils:
@@ -1971,10 +1977,11 @@ class Yarn:
             self.player.points.append(y)
         for num in range(0, 8):
             self.player.points[num] = -abs(self.player.points[num])
-        print(self.player.points)
         self.player.points.remove(1.25)
         self.player.points.remove(2.5)
         self.player.points.remove(-2.5)
+        self.player.points.remove(6.25)
+        self.player.points.remove(-6.25)
     
     def swipe(self):
         if self.player.right:
@@ -2002,8 +2009,8 @@ class Yarn:
                     self.player.jump_x = 0
                     self.player.up_timer = 0
                     self.leap = 0
-                # if event.key == pygame.K_DOWN:
-                #     self.player.down = True
+                if event.key == pygame.K_DOWN:
+                    self.player.gravitate = True
                 if event.key == pygame.K_LEFT:
                     self.player.left = True
                 if event.key == pygame.K_RIGHT:
@@ -2017,6 +2024,29 @@ class Yarn:
                     self.player.left = False
                 if event.key == pygame.K_RIGHT:
                     self.player.right = False
+                if event.key == pygame.K_DOWN:
+                    self.player.gravitate = False
+            if self.joystick.get_axis(0) < -0.6:
+                self.player.left = True
+                self.player.right = False
+            elif self.joystick.get_axis(0) > 0.6:
+                self.player.right = True
+                self.player.left = False
+            else:
+                self.player.left = False
+                self.player.right = False
+            if self.joystick.get_button(0) and self.player.in_air == False and not self.x_pressed:
+                self.parab()
+                self.player.up = True
+                self.player.in_air = True
+                self.player.jump_x = 0
+                self.player.up_timer = 0
+                self.leap = 0
+                self.x_pressed = True
+            if not self.joystick.get_button(0):
+                self.x_pressed = False
+            if self.joystick.get_button(2):
+                self.attack = True
             
     def placey(self):
         if self.clickage:
@@ -2042,6 +2072,8 @@ class Player(Sprite):
         self.up_timer = 0
         self.down_timer = 0
         self.jump_x = 0
+        self.collie = 0
+        self.gravitate = True
         self.in_air = False
         self.recenter = False
         self.coll = False
@@ -2091,7 +2123,7 @@ class Player(Sprite):
             self.scroll[0] = 0 + 32
         elif level == 'ru':
             self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height - 32
-            self.scroll[0] = 0 - 32
+            self.scroll[0] = 0 + 32
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]
@@ -2102,13 +2134,14 @@ class Player(Sprite):
         self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
         self.down_timer = 0
         self.up, self.down, self.right, self.left = False, False, False, False
+        self.loom.sword_swipe.height = self.rect.height
     
     def jump(self):
         """Conducts the full parabola for the jump"""
         try:
-            self.movement[1] += round(self.points[self.jump_x]/4)
+            self.movement[1] += round((self.points[self.jump_x]/6))
         except IndexError:
-            self.movement[1] += round(self.points[-1]/3)
+            pass
         if self.up_timer > len(self.points)-1:
             self.jump_x -= 1
             self.up = False
@@ -2117,26 +2150,29 @@ class Player(Sprite):
             collision = pygame.sprite.groupcollide(self.loom.players, self.loom.can_update, False, False)
             if not collision:
                 self.down = True
-        if self.loom.leap % 5 == 0:
+        if self.loom.leap % 3 == 0:
             self.up_timer += 1
             self.jump_x += 1
+        if self.up:
+            self.movement[1] -= 7
         
     def fall(self):
         """Adds any extra post-jump falling that needs to be done"""
         if not self.loom.quick_fall:
-            self.movement[1] += self.down_timer + self.points[-1]/4
+            self.movement[1] += (self.down_timer + self.points[-3])/20
         elif self.loom.quick_fall:
-            self.movement[1] += self.down_timer + self.points[-1]
+            self.movement[1] += self.down_timer + self.points[-1]/4
         collision = pygame.sprite.groupcollide(self.loom.players, self.loom.can_update, False, False)
         if not collision:
-            self.down_timer += 0.3
+            self.down_timer += 3
         else:
             self.down_timer = 0
-        try:
-            pyautogui.press("up")
-            pass
-        except pyautogui.FailSafeException:
-            pass
+        if self.down_timer > 240:
+            try:
+                pyautogui.press("up")
+                pass
+            except pyautogui.FailSafeException:
+                pass
 
     def motion(self):
         """Runs both motion commands for ease of reading"""
@@ -2146,9 +2182,9 @@ class Player(Sprite):
     def calculate_motion(self):
         """Does the calculation for motion"""
         if self.right:
-            self.movement[0] += 3
+            self.movement[0] += 3.5
         if self.left:
-            self.movement[0] -= 3
+            self.movement[0] -= 3.5
         if self.up:
             self.jump()
         if self.down:
@@ -2158,12 +2194,22 @@ class Player(Sprite):
         """Conducts actual motion and primarily corrects for brick intersection"""
         self.rect.x += self.movement[0]
         if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
-            self.rect.x -= self.movement[0]
+            self.rect.x -= self.movement[0]/3
+            if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+                self.rect.x -= self.movement[0]/3
+                if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+                    self.rect.x -= self.movement[0]/3
+                    if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+                        self.rect.x -= self.movement[0]/3
+                        if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+                            self.rect.x -= self.movement[0]/3
+                            if pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+                                self.rect.x -= self.movement[0]/3
         self.rect.y += self.movement[1]//game_scale
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
             self.coll = False
-            for tile in self.loom.tiles:
+            for tile in self.loom.can_update:
                 if tile.rect.colliderect(self.rect) and self.rect.y < tile.rect.y:
                     self.rect.bottom = tile.rect.top
                     self.coll = True
@@ -2183,8 +2229,14 @@ class Player(Sprite):
             self.in_air = False
         if not collide:
             self.in_air = True
-            if not self.up and not self.in_air:
-                self.down = True
+            if not self.up:
+                if self.collie > len(collide.keys()):
+                    self.down = True
+                    self.collie = len(collide.keys())
+                elif self.collie < len(collide.keys()):
+                    self.down = False
+                    self.collie = len(collide.keys())
+        self.collie = len(collide.keys())
 
 class Foe(Sprite):
     """Attempts to make a basic foe"""
