@@ -1883,6 +1883,7 @@ class Yarn:
         self.times = 0
         self.player.rect.y, self.player.rect.x = self.toil.start_y, self.toil.start_x
         self.borders()
+        self.listerine()
         self.run_game()
     
     def run_game(self):
@@ -2079,6 +2080,19 @@ class Yarn:
                 platform.kill()
             else:
                 self.bricks.add(platform)
+    
+    def listerine(self):
+        self.lost = []
+        rect = pygame.rect.Rect(0,0,32,32)
+        imoge = pygame.image.load("Graphics/Dude.png")
+        for cat in range(imoge.get_height()//32):
+            for fish in range(imoge.get_width()//32):
+                rect.x = fish*32
+                rect.y = cat*32
+                sub = imoge.subsurface(rect)
+                new_image = pygame.Surface((32,32))
+                new_image.blit(sub, (0,0))
+                self.lost.append(new_image)
                 
 
 class Player(Sprite):
@@ -2146,6 +2160,10 @@ class Player(Sprite):
         elif level == 'ru':
             self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height - 32
             self.scroll[0] = 0 + 32
+        if self.right:
+            self.image = self.loom.lost[self.loom.times // 8 % 7]
+            self.image = pygame.transform.scale(self.image, (25,25))
+            self.image.set_colorkey((0,0,0))
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]
