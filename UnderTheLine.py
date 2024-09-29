@@ -1533,7 +1533,7 @@ class Brick(Sprite):
         self.bouncer = bouncer
         self.screen = bouncer.screen
         self.screen_rect = self.screen.get_rect()
-        self.scaled = (width/game_scale,height/game_scale)
+        self.scaled = (width,height)
         self.image = pygame.image.load("Graphics/RedBrickWide.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, self.scaled)
         if self.inner:
@@ -1834,7 +1834,8 @@ class Yarn:
 
         self.player = Player(self)
         self.parab()
-        self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv")
+        self.evils = pygame.sprite.Group()
+        self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv", self)
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
@@ -1845,8 +1846,6 @@ class Yarn:
         self.right_pole = Brick(self, 20/game_scale,20/game_scale)
         self.right_pole.rect.x = 300/game_scale
         self.right_pole.rect.y = -20/game_scale
-        self.enemy = Foe(self)
-        self.evils = pygame.sprite.Group()
         self.players = pygame.sprite.Group()
         self.bricks = pygame.sprite.Group()
         self.beejees = pygame.sprite.Group()
@@ -1854,7 +1853,6 @@ class Yarn:
         self.trails = pygame.sprite.Group()
         self.bricks.add(self.left_pole)
         self.bricks.add(self.right_pole)
-        self.evils.add(self.enemy)
         for bg in range(0,20):
             brick = Brick(self, 1,1)
             brick.image = pygame.image.load("Graphics/MappedCompassbackBluck.png").convert_alpha()
@@ -1908,13 +1906,18 @@ class Yarn:
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
         self.screen.blit(self.toil.map_surface, scroll_block)
-        for tile in self.can_update:
+        for tile in self.evils:
             if self.sword_swipe.colliderect(tile.rect):
-                self.enemy.life -= 10
+                tile.life -= 5
                 self.sword_swipe.x = 0
                 self.sword_swipe.y = 0
                 self.attack = False
-                tile.kill()
+                if tile.rect.x > self.player.rect.x:
+                    tile.rect.x += 50
+                elif tile.rect.x < self.player.rect.x:
+                    tile.rect.x -= 50
+                break
+                # tile.kill()
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
             self.player.recenters()
         for enemy in self.evils:
@@ -1923,12 +1926,12 @@ class Yarn:
             player.update()
         if self.attack:
             self.swipe()
-            self.swipe_time += 1
-            if self.swipe_time > 90:
-                self.swipe_time = 0
+            if self.swipe_time > 10:
                 self.attack = False
+                self.swipe_time = 0
                 self.sword_swipe.x = 0
                 self.sword_swipe.y = 0
+        self.swipe_time += 1
         if self.traline:
             bal = Bal(self, loom=True)
             self.trails.add(bal)
@@ -1961,12 +1964,12 @@ class Yarn:
             self.collodes('ru')
     
     def collodes(self, dir):
-        self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv')
+        self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
         self.tiles = self.toil.tiles
         self.toil.start_x = getattr(self.toil, f"{dir}start_x")
         self.toil.start_y = getattr(self.toil, f"{dir}start_y")
-        self.player.recenters(dir)
         self.player.update(dir)
+        self.player.recenters(dir)
         self.borders()
     
     def borders(self):
@@ -1997,9 +2000,9 @@ class Yarn:
         self.player.points.remove(-6.25)
     
     def swipe(self):
-        if self.player.right:
+        if self.player.dir:
             self.sword_swipe.centerx = self.player.rect.right
-        elif self.player.left:
+        elif not self.player.dir:
             self.sword_swipe.centerx = self.player.rect.left
         else:
             self.sword_swipe.centerx = self.player.rect.right
@@ -2062,8 +2065,9 @@ class Yarn:
                     self.x_pressed = True
                 if not self.joystick.get_button(0):
                     self.x_pressed = False
-                if self.joystick.get_button(2):
+                if self.joystick.get_button(2) and self.swipe_time > 30:
                     self.attack = True
+                    self.swipe_time = 0
             
     def placey(self):
         if self.clickage:
@@ -2108,6 +2112,7 @@ class Player(Sprite):
         self.recenter = False
         self.coll = False
         self.screct = False
+        self.dir = False
 
         self.scroll = [0, 0]
         self.movement = []
@@ -2119,9 +2124,9 @@ class Player(Sprite):
         self.left = False
         self.right = False
 
-        self.scales = 50/game_scale
+        self.scales = 32
         self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (self.scales,self.scales))
+        self.image = pygame.transform.scale(self.image, (self.scales,48))
         self.rect = self.image.get_rect()
 
     def update(self, level=''):
@@ -2134,7 +2139,7 @@ class Player(Sprite):
             self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
         else:
             pass
-        if (self.rect.centery - 32) - (self.screen_height/2) > self.screen.get_rect().top and (self.rect.bottom + 32) - 32 + (self.screen_height/2) < self.loom.toil.map_surface.get_rect().bottom:
+        if (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2) and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
             self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
         self.movement = [0,0]
         self.movement[1] += self.loom.gravity
@@ -2155,22 +2160,22 @@ class Player(Sprite):
         elif level == 'ru':
             self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height - 32
             self.scroll[0] = 0 + 32
-        if self.right:
-            self.image = self.loom.lost[self.loom.times // 8 % 7]
-            self.image = pygame.transform.scale(self.image, (25,25))
-            self.image.set_colorkey((0,0,0))
         player_scroll_rect = self.rect.copy()
         player_scroll_rect.x -= self.scroll[0]
         player_scroll_rect.y -= self.scroll[1]
         self.screct = player_scroll_rect
         self.screen.blit(self.image, player_scroll_rect)
+        if self.right:
+            self.dir = True
+        elif self.left:
+            self.dir = False
     
     def recenters(self, dir=''):
         self.rect.x = getattr(self.loom.toil, f'{dir}start_x')
         self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
         self.down_timer = 0
         self.up, self.down, self.right, self.left = False, False, False, False
-        self.loom.sword_swipe.height = self.rect.height
+        # self.loom.sword_swipe.height = self.rect.height
     
     def jump(self):
         """Conducts the full parabola for the jump"""
@@ -2276,21 +2281,28 @@ class Player(Sprite):
 class Foe(Sprite):
     """Attempts to make a basic foe"""
 
-    def __init__(self, loom=Yarn):
+    def __init__(self, loom=Yarn, x=0, y=0):
         super().__init__()
         self.loom = loom
         self.screen = self.loom.screen
-        self.image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (40/game_scale,40/game_scale))
+        self.image = pygame.image.load("Graphics/FOE.pnh.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (32,32))
         self.rect = self.image.get_rect()
         self.right = False
         self.left = True
         self.life = 20
-        self.rect.x = 200/game_scale
-        self.rect.y = -50/game_scale
+        self.rect.x = x
+        self.rect.y = y
     
     def update(self):
-        if pygame.sprite.groupcollide(self.loom.evils, self.loom.bricks, False, False):
+        if self.loom.times % random.randint(20,25) == 0:
+            if self.rect.centerx < self.loom.player.rect.centerx:
+                self.right = True
+                self.left = False
+            else:
+                self.left = True
+                self.right = False
+        if pygame.sprite.groupcollide(self.loom.evils, self.loom.can_update, False, False):
             if self.left:
                 self.left = False
                 self.right = True
@@ -2298,11 +2310,12 @@ class Foe(Sprite):
                 self.right = False
                 self.left = True
         if self.left:
-            self.rect.x -= 1
+            self.rect.x -= 2
         elif self.right:
-            self.rect.x += 1
+            self.rect.x += 2
         try:
-            # pyautogui.press("up")
+            if self.loom.times % 2 == 0:
+                pyautogui.press("up")
             pass
         except pyautogui.FailSafeException:
             pass
@@ -2334,9 +2347,12 @@ class Toil(Sprite):
 class Toim_Chart:
     """Makes the tile map"""
 
-    def __init__(self, filename):
+    def __init__(self, filename, loom=Yarn):
         """Initialises everything"""
         self.tile_size = 64/game_scale
+        self.loom = loom
+        for tile in self.loom.evils:
+            tile.kill()
         self.start_x = 0
         self.start_y = 0
         self.lstart_x = 0
@@ -2354,6 +2370,7 @@ class Toim_Chart:
         self.rugates = pygame.sprite.Group()
         self.rdgates = pygame.sprite.Group()
         self.gates = pygame.sprite.Group()
+        self.evils = pygame.sprite.Group()
         self.tractors = []
         self.tiles = self.load_tiles(filename)
         self.tile_dict = {}
@@ -2438,6 +2455,10 @@ class Toim_Chart:
                     new_tile = Toil('Half_Blue.png', x * self.tile_size, y * self.tile_size)
                     self.tractors.append(new_tile)
                     print(new_tile)
+                elif tile == '20':
+                    foe = Foe(self.loom, x*self.tile_size, y*self.tile_size)
+                    self.loom.evils.add(foe)
+                    print(foe)
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
