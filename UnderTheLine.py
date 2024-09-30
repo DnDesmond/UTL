@@ -14,7 +14,7 @@ from Breakers import *
 if __name__ == "__main__":
     from Brick_coordinates import *
 
-os.chdir("C:/Users/isaac")
+os.chdir("C:/Users/Computer Science 8/Desktop/Isaac Desmond/UTL")
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
 
@@ -107,7 +107,7 @@ class Bouncing:
         self.backgrund_image = pygame.image.load("Graphics/Shield.png").convert_alpha()
         self.background_image = pygame.image.load("Graphics/MappedCompassBack.png").convert_alpha()
         self.overlay_image = pygame.image.load("Graphics/Screenshot (11).png").convert_alpha()
-        self.dev_list = open("alien_invasion/UTL/Brick_coordinates.py", 'a')
+        self.dev_list = open("Brick_coordinates.py", 'a')
         self.started = False
         self.inner = True
         self.alter = False
@@ -118,7 +118,7 @@ class Bouncing:
         self.rumbles = False
         self.dev = False
         self.easy_start = True
-        self.imige = pygame.image.load("Graphics/Outline.png")
+        self.imige = pygame.image.load("Graphics/See_Through.png")
         self.track_mouse = False
         self.track_mouse_pos = pygame.mouse.get_pos()
         self.left_mouse = False
@@ -742,7 +742,7 @@ class Bouncing:
             while x_position < run:
                 new_brick = self.brick_base(width, height, inner, x_position, y_position)
                 if grad:
-                    new_brick.gradient(f"{grad}", int(self.grad))
+                    # new_brick.gradient(f"{grad}", int(self.grad))
                     pass
                 if not self.easy_start:
                     new_brick.rect.x = x_position
@@ -1835,7 +1835,7 @@ class Yarn:
         self.player = Player(self)
         self.parab()
         self.evils = pygame.sprite.Group()
-        self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv", self)
+        self.toil = Toim_Chart("Chared0_0.csv", self)
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
@@ -1964,7 +1964,7 @@ class Yarn:
             self.collodes('ru')
     
     def collodes(self, dir):
-        self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
+        self.toil = Toim_Chart(f'Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
         self.tiles = self.toil.tiles
         self.toil.start_x = getattr(self.toil, f"{dir}start_x")
         self.toil.start_y = getattr(self.toil, f"{dir}start_y")
@@ -2018,7 +2018,7 @@ class Yarn:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-                if event.key == pygame.K_UP and self.player.in_air == False:
+                if event.key == pygame.K_UP and self.player.in_air == False or event.key == pygame.K_w and self.player.in_air == False:
                     self.parab()
                     self.player.up = True
                     self.player.in_air = True
@@ -2027,21 +2027,22 @@ class Yarn:
                     self.leap = 0
                 if event.key == pygame.K_DOWN:
                     self.player.gravitate = True
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     self.player.left = True
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     self.player.right = True
-                if event.key == pygame.K_w:
+                if event.key == pygame.K_SPACE and self.swipe_time > 30:
                     self.attack = True
+                    self.swipe_time = 0
                 if event.key == pygame.K_r:
                     self.player.recenters()
                 if event.key == pygame.K_t:
                     self.traline = True
                     self.trails = pygame.sprite.Group()
             elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     self.player.left = False
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     self.player.right = False
                 if event.key == pygame.K_DOWN:
                     self.player.gravitate = False
@@ -2083,7 +2084,7 @@ class Yarn:
     def listerine(self):
         self.lost = []
         rect = pygame.rect.Rect(0,0,32,32)
-        imoge = pygame.image.load("Graphics/Dude.png")
+        imoge = pygame.image.load("Graphics/See_Through.png")
         for cat in range(imoge.get_height()//32):
             for fish in range(imoge.get_width()//32):
                 rect.x = fish*32
@@ -2285,7 +2286,7 @@ class Foe(Sprite):
         super().__init__()
         self.loom = loom
         self.screen = self.loom.screen
-        self.image = pygame.image.load("Graphics/FOE.pnh.png").convert_alpha()
+        self.image = pygame.image.load("Graphics/See_Through.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (32,32))
         self.rect = self.image.get_rect()
         self.right = False
@@ -2315,8 +2316,8 @@ class Foe(Sprite):
             self.rect.x += 2
         try:
             if self.loom.times % 2 == 0:
-                pyautogui.press("up")
-            pass
+                # pyautogui.press("up")
+                pass
         except pyautogui.FailSafeException:
             pass
         scroll_block = self.rect.copy()
