@@ -3,6 +3,7 @@ from pygame.sprite import Group, Sprite
 import sys
 import os
 import random
+import time
 import ctypes
 import csv
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
@@ -1929,6 +1930,7 @@ class Yarn:
                     tile.rect.x += 50
                 elif tile.rect.x < self.player.rect.x:
                     tile.rect.x -= 50
+                self.clock.tick(57)
                 break
                 # tile.kill()
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
@@ -2153,11 +2155,13 @@ class Player(Sprite):
         else:
             self.loom.gravity = self.loom.base_gravity
         if (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
-            self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
-        else:
-            pass
+            self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2))//3
+        elif self.rect.centerx + (self.screen_width/2) > self.loom.toil.map_surface.get_rect().right and (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left:
+            self.scroll[0] = self.loom.toil.map_surface.get_rect().right - (self.screen_width+32)
+        elif self.rect.centerx - (self.screen_width/2) < self.loom.toil.map_surface.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
+            self.scroll[0] = 32
         if (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2) and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
-            self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
+            self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2))//3
         self.movement = [0,0]
         # self.movement[1] += self.loom.gravity
 
@@ -2219,9 +2223,9 @@ class Player(Sprite):
                 self.movement[0] -= 7
         else:
             if self.right:
-                self.movement[0] += round((self.loom.joystick.get_axis(0))*6)
+                self.movement[0] += round((self.loom.joystick.get_axis(0))*7)
             elif self.left:
-                self.movement[0] += round((self.loom.joystick.get_axis(0))*6)
+                self.movement[0] += round((self.loom.joystick.get_axis(0))*7)
         if self.up:
             # self.jump()
             self.down_vel = -18
@@ -2242,7 +2246,7 @@ class Player(Sprite):
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
             self.down_vel = 0
-            # self.in_air = False
+            self.in_air = False
             while pygame.sprite.spritecollide(self, self.loom.can_update, False):
                     cat = pygame.sprite.spritecollide(self, self.loom.can_update, False)
                     if self.rect.y < cat[0].rect.y:
@@ -2250,6 +2254,8 @@ class Player(Sprite):
                         self.in_air = False
                     else:
                         self.rect.y += 1
+        else:
+            self.in_air = True
         self.collie = len(collide.keys())
 
 class Foe(Sprite):
