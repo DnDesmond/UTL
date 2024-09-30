@@ -14,7 +14,7 @@ from Breakers import *
 if __name__ == "__main__":
     from Brick_coordinates import *
 
-os.chdir("C:/Users/Computer Science 8/Desktop/Isaac Desmond/UTL")
+os.chdir("C:/Users/isaac")
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
 
@@ -1843,7 +1843,7 @@ class Yarn:
         self.player = Player(self)
         self.parab()
         self.evils = pygame.sprite.Group()
-        self.toil = Toim_Chart("Chared0_0.csv", self)
+        self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv", self)
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
@@ -1972,7 +1972,7 @@ class Yarn:
             self.collodes('ru')
     
     def collodes(self, dir):
-        self.toil = Toim_Chart(f'Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
+        self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
         self.tiles = self.toil.tiles
         self.toil.start_x = getattr(self.toil, f"{dir}start_x")
         self.toil.start_y = getattr(self.toil, f"{dir}start_y")
@@ -2142,11 +2142,11 @@ class Player(Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, level=''):
-        # if pygame.sprite.spritecollide(self, self.loom.toil.tractors, False):
-        #     self.loom.gravity = -7
-        #     self.down = False
-        # else:
-        #     self.loom.gravity = self.loom.base_gravity
+        if pygame.sprite.spritecollide(self, self.loom.toil.tractors, False):
+            self.loom.gravity = -0.1
+            self.down = False
+        else:
+            self.loom.gravity = self.loom.base_gravity
         if (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
             self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
         else:
