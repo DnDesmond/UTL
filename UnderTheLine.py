@@ -297,6 +297,14 @@ class Bouncing:
             self.screen.blit(self.imige, brick.rect)
         pygame.display.flip()
     
+    def auto(self):
+        if self.middlebreaker.rect.centerx < self.mball.x:
+            self.moving_right = True
+            self.moving_left = False
+        elif self.middlebreaker.rect.centerx > self.mball.x:
+            self.moving_left = True
+            self.moving_right = False
+    
     def levels(self):
         if len(self.lockaged) == len(self.bricks) + len(self.brickes):
             for brick in self.bricks:
@@ -1809,7 +1817,7 @@ class Yarn:
         self.up_timer = 0
         self.down_timer = 0
         self.leap = 0
-        self.gravity = 7
+        self.gravity = 1
         self.base_gravity = self.gravity
         self.brick_width = 64
         self.brick_height = 64
@@ -1888,7 +1896,7 @@ class Yarn:
         while True:
             self.update_screen()
             self.check_events()
-            self.clock.tick(85)
+            self.clock.tick(60)
         
     def update_screen(self):
         self.screen.fill((0, 60, 0))
@@ -2123,6 +2131,9 @@ class Player(Sprite):
         self.movement = []
         self.points = []
 
+        # New
+        self.down_vel = 0
+
         # Movement flags
         self.up = False
         self.down = False
@@ -2135,11 +2146,11 @@ class Player(Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, level=''):
-        if pygame.sprite.spritecollide(self, self.loom.toil.tractors, False):
-            self.loom.gravity = -7
-            self.down = False
-        else:
-            self.loom.gravity = self.loom.base_gravity
+        # if pygame.sprite.spritecollide(self, self.loom.toil.tractors, False):
+        #     self.loom.gravity = -7
+        #     self.down = False
+        # else:
+        #     self.loom.gravity = self.loom.base_gravity
         if (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
             self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2)) // 3
         else:
@@ -2147,7 +2158,10 @@ class Player(Sprite):
         if (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2) and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
             self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2)) // 3
         self.movement = [0,0]
-        self.movement[1] += self.loom.gravity
+        # self.movement[1] += self.loom.gravity
+
+        self.down_vel += self.loom.gravity
+
         self.motion()
         if level == 'r':
             self.scroll[0] = 0 + 32
@@ -2184,41 +2198,11 @@ class Player(Sprite):
     
     def jump(self):
         """Conducts the full parabola for the jump"""
-        try:
-            self.movement[1] += round((self.points[self.jump_x]/6))
-        except IndexError:
-            pass
-        if self.up_timer > len(self.points)-1:
-            self.jump_x -= 1
-            self.up = False
-            self.jump_x = 0
-            self.up_timer = 0
-            collision = pygame.sprite.groupcollide(self.loom.players, self.loom.can_update, False, False)
-            if not collision:
-                self.down = True
-        if self.loom.leap % 3 == 0:
-            self.up_timer += 1
-            self.jump_x += 1
-        if self.up:
-            self.movement[1] -= 7
+        pass
         
     def fall(self):
         """Adds any extra post-jump falling that needs to be done"""
-        if not self.loom.quick_fall:
-            self.movement[1] += (self.down_timer + self.points[-3])/20
-        elif self.loom.quick_fall:
-            self.movement[1] += self.down_timer + self.points[-1]/4
-        collision = pygame.sprite.groupcollide(self.loom.players, self.loom.can_update, False, False)
-        if not collision:
-            self.down_timer += 3
-        else:
-            self.down_timer = 0
-        if self.down_timer > 240:
-            try:
-                pyautogui.press("up")
-                pass
-            except pyautogui.FailSafeException:
-                pass
+        pass
 
     def motion(self):
         """Runs both motion commands for ease of reading"""
@@ -2229,18 +2213,21 @@ class Player(Sprite):
         """Does the calculation for motion"""
         if not self.loom.joystick:
             if self.right:
-                self.movement[0] += 4
+                self.movement[0] += 7
             if self.left:
-                self.movement[0] -= 4
+                self.movement[0] -= 7
         else:
             if self.right:
                 self.movement[0] += round((self.loom.joystick.get_axis(0))*6)
             elif self.left:
                 self.movement[0] += round((self.loom.joystick.get_axis(0))*6)
         if self.up:
-            self.jump()
+            # self.jump()
+            self.down_vel = -18
+            self.up = False
         if self.down:
-            self.fall()
+            # self.fall()
+            pass
 
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
@@ -2250,37 +2237,18 @@ class Player(Sprite):
                 self.rect.x -= 1
             else:
                 self.rect.x += 1
-        self.rect.y += self.movement[1]//game_scale
+        self.rect.y += self.down_vel
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
-            self.coll = False
-            for tile in self.loom.can_update:
-                if tile.rect.colliderect(self.rect) and self.rect.y < tile.rect.y:
-                    self.rect.bottom = tile.rect.top
-                    self.coll = True
-            if not self.coll:
-                self.rect.y -= self.movement[1]/2
-                if pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                    self.rect.y -= self.movement[1]/4
-                    if pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                        self.rect.y -= self.movement[1]/8
-                        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                            self.rect.y -= self.movement[1]/16
-                            if pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                                self.rect.y -= self.movement[1]/32
-            self.down_timer = 0
-            self.down = False
-            self.up = False
-            self.in_air = False
-        if not collide:
-            self.in_air = True
-            if not self.up:
-                if self.collie > len(collide.keys()):
-                    self.down = True
-                    self.collie = len(collide.keys())
-                elif self.collie < len(collide.keys()):
-                    self.down = False
-                    self.collie = len(collide.keys())
+            self.down_vel = 0
+            # self.in_air = False
+            while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    cat = pygame.sprite.spritecollide(self, self.loom.can_update, False)
+                    if self.rect.y < cat[0].rect.y:
+                        self.rect.y -= 1
+                        self.in_air = False
+                    else:
+                        self.rect.y += 1
         self.collie = len(collide.keys())
 
 class Foe(Sprite):
