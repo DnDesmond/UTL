@@ -15,7 +15,10 @@ from Breakers import *
 if __name__ == "__main__":
     from Brick_coordinates import *
 
-os.chdir("C:/Users/isaac")
+try:
+    os.chdir("C:/Users/isaac")
+except FileNotFoundError:
+    os.chdir("C:/Users/Computer Science 8/Desktop/Isaac Desmond")
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
 
@@ -1849,7 +1852,10 @@ class Yarn:
         self.player = Player(self)
         self.parab()
         self.evils = pygame.sprite.Group()
-        self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv", self)
+        try:
+            self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv", self)
+        except FileNotFoundError:
+            self.toil = Toim_Chart(f'UTL/UTL/Chared0_0.csv', self)
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
@@ -1979,7 +1985,10 @@ class Yarn:
             self.collodes('ru')
     
     def collodes(self, dir):
-        self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
+        try:
+            self.toil = Toim_Chart(f'alien_invasion/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
+        except FileNotFoundError:
+            self.toil = Toim_Chart(f'UTL/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
         self.tiles = self.toil.tiles
         self.toil.start_x = getattr(self.toil, f"{dir}start_x")
         self.toil.start_y = getattr(self.toil, f"{dir}start_y")
@@ -2162,8 +2171,11 @@ class Player(Sprite):
             self.scroll[0] = 32
         if (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2) and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
             self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2))//3
+        elif self.rect.centery + (self.screen_height/2) > self.loom.toil.map_surface.get_rect().bottom and (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2):
+            self.scroll[1] = self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32)
+        elif self.rect.centery - (self.screen_height/2) < self.loom.toil.map_surface.get_rect().top and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
+            self.scroll[1] = 32
         self.movement = [0,0]
-        # self.movement[1] += self.loom.gravity
 
         self.down_vel += self.loom.gravity
 
