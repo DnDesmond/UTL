@@ -1818,7 +1818,6 @@ class Yarn:
 
     def real_init(self):
         self.bouncer.frame_rate = 0
-        self.up_timer = 0
         self.down_timer = 0
         self.leap = 0
         self.gravity = 1
@@ -1830,6 +1829,8 @@ class Yarn:
         self.clickage = False
         self.x_pressed = False
         self.traline = False
+        self.jump_hold = False
+        self.timer = '0'
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.display.quit()
@@ -1960,6 +1961,7 @@ class Yarn:
                 bal.update()
         self.times += 1
         self.leap += 0.25
+        self.frame_count()
         self.collides()
 
         pygame.display.flip()
@@ -2042,13 +2044,16 @@ class Yarn:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-                if event.key == pygame.K_UP and self.player.in_air == False or event.key == pygame.K_w and self.player.in_air == False:
-                    self.parab()
-                    self.player.up = True
-                    self.player.in_air = True
-                    self.player.jump_x = 0
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if not self.player.in_air:
+                        self.parab()
+                        self.player.up = True
+                        self.player.in_air = True
+                        self.player.jump_x = 0
+                        self.leap = 0
+                    else:
+                        self.jump_hold = True
                     self.player.up_timer = 0
-                    self.leap = 0
                 if event.key == pygame.K_DOWN:
                     self.player.gravitate = True
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
@@ -2080,19 +2085,30 @@ class Yarn:
                 else:
                     self.player.right = False
                     self.player.left = False
-                if self.joystick.get_button(0) and self.player.in_air == False and not self.x_pressed:
-                    self.parab()
-                    self.player.up = True
-                    self.player.in_air = True
-                    self.player.jump_x = 0
-                    self.player.up_timer = 0
-                    self.leap = 0
+                if self.joystick.get_button(0) and not self.x_pressed:
+                    if not self.player.in_air:
+                        self.parab()
+                        self.player.up = True
+                        self.player.in_air = True
+                        self.player.jump_x = 0
+                        self.leap = 0
+                    else:
+                        self.jump_hold = True
                     self.x_pressed = True
+                    self.player.up_timer = 0
                 if not self.joystick.get_button(0):
                     self.x_pressed = False
                 if self.joystick.get_button(2) and self.swipe_time > 30:
                     self.attack = True
                     self.swipe_time = 0
+        if self.player.up_timer > 10:
+            self.jump_hold = False 
+        if self.jump_hold: 
+            if not self.player.in_air:
+                self.player.up = True
+            else:
+                self.player.up = False
+                
             
     def placey(self):
         if self.clickage:
@@ -2117,6 +2133,15 @@ class Yarn:
                 new_image = pygame.Surface((32,32))
                 new_image.blit(sub, (0,0))
                 self.lost.append(new_image)
+    
+            
+    def frame_count(self):
+        self.colourWHITE = (250,250,250)
+        self.timer = str(self.player.down_vel)
+        myFont = pygame.font.SysFont('none', 40)
+        self.counter = myFont.render(self.timer, False, self.colourWHITE, (0,0,0))
+        self.counterect = self.counter.get_rect()
+        self.screen.blit(self.counter, (0,0))
                 
 
 class Player(Sprite):
@@ -2139,7 +2164,7 @@ class Player(Sprite):
         self.screct = False
         self.dir = False
 
-        self.scroll = [0, 0]
+        self.scroll = [32, 0]
         self.movement = []
         self.points = []
 
@@ -2163,23 +2188,68 @@ class Player(Sprite):
             self.down = False
         else:
             self.loom.gravity = self.loom.base_gravity
-        if (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
-            self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2))//3
-        elif self.rect.centerx + (self.screen_width/2) > self.loom.toil.map_surface.get_rect().right and (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left:
-            self.scroll[0] = self.loom.toil.map_surface.get_rect().right - (self.screen_width+32)
-        elif self.rect.centerx - (self.screen_width/2) < self.loom.toil.map_surface.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
-            self.scroll[0] = 32
-        if (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2) and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
-            self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2))//3
-        elif self.rect.centery + (self.screen_height/2) > self.loom.toil.map_surface.get_rect().bottom and (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2):
-            self.scroll[1] = self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32)
-        elif self.rect.centery - (self.screen_height/2) < self.loom.toil.map_surface.get_rect().top and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
-            self.scroll[1] = 32
+        self.scroll_stops()
         self.movement = [0,0]
 
         self.down_vel += self.loom.gravity
 
         self.motion()
+
+        self.level_scroll(level)
+
+        player_scroll_rect = self.rect.copy()
+        player_scroll_rect.x -= self.scroll[0]
+        player_scroll_rect.y -= self.scroll[1]
+        self.screct = player_scroll_rect
+        self.screen.blit(self.image, player_scroll_rect)
+        
+        self.up_timer += 1
+        if self.right:
+            self.dir = True
+        elif self.left:
+            self.dir = False
+    
+    def recenters(self, dir=''):
+        self.rect.x = getattr(self.loom.toil, f'{dir}start_x')
+        self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
+        self.down_timer = 0
+        self.up, self.down, self.right, self.left = False, False, False, False
+    
+    def scroll_stops(self):
+        """Does both the scroll stopping and the slow snap to the sides of the map."""
+        # Stops for x adjustments
+        if (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
+            self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2))//3
+        # Snaps to the right
+        elif self.rect.centerx + (self.screen_width/2) > self.loom.toil.map_surface.get_rect().right and (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left:
+            if self.scroll[0] != self.loom.toil.map_surface.get_rect().right - (self.screen_width+32):
+                self.scroll[0] += 1
+            elif self.scroll[0] < self.loom.toil.map_surface.get_rect().right - (self.screen_width+32):
+                self.scroll[0] -= 1
+        # Snaps to the left
+        elif self.rect.centerx - (self.screen_width/2) < self.loom.toil.map_surface.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
+            if self.scroll[0] != 32:
+                self.scroll[0] -= 1
+            elif self.scroll[0] < 32:
+                self.scroll[0] += 1
+        # Stops for y adjustments
+        if (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2) and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
+            self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2))//3
+        # Snaps to the bottom
+        elif self.rect.centery + (self.screen_height/2) > self.loom.toil.map_surface.get_rect().bottom and (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2):
+            if self.scroll[1] != self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32):
+                self.scroll[1] += 1
+            elif self.scroll[1] < self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32):
+                self.scroll[1] -= 1
+        # Snaps to the top
+        elif self.rect.centery - (self.screen_height/2) < self.loom.toil.map_surface.get_rect().top and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
+            if self.scroll[1] != 32:
+                self.scroll[1] -= 1
+            elif self.scroll[1] < 32:
+                self.scroll[1] += 1
+    
+    def level_scroll(self, level: str):
+        """Enacts appropriate scroll adjustments for level changes."""
         if level == 'r':
             self.scroll[0] = 0 + 32
         elif level == 'l':
@@ -2196,30 +2266,6 @@ class Player(Sprite):
         elif level == 'ru':
             self.scroll[1] = self.loom.toil.map_surface.get_rect().height - self.screen_height - 32
             self.scroll[0] = 0 + 32
-        player_scroll_rect = self.rect.copy()
-        player_scroll_rect.x -= self.scroll[0]
-        player_scroll_rect.y -= self.scroll[1]
-        self.screct = player_scroll_rect
-        self.screen.blit(self.image, player_scroll_rect)
-        if self.right:
-            self.dir = True
-        elif self.left:
-            self.dir = False
-    
-    def recenters(self, dir=''):
-        self.rect.x = getattr(self.loom.toil, f'{dir}start_x')
-        self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
-        self.down_timer = 0
-        self.up, self.down, self.right, self.left = False, False, False, False
-        # self.loom.sword_swipe.height = self.rect.height
-    
-    def jump(self):
-        """Conducts the full parabola for the jump"""
-        pass
-        
-    def fall(self):
-        """Adds any extra post-jump falling that needs to be done"""
-        pass
 
     def motion(self):
         """Runs both motion commands for ease of reading"""
@@ -2239,12 +2285,8 @@ class Player(Sprite):
             elif self.left:
                 self.movement[0] += round((self.loom.joystick.get_axis(0))*7)
         if self.up:
-            # self.jump()
             self.down_vel = -18
             self.up = False
-        if self.down:
-            # self.fall()
-            pass
 
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
@@ -2258,7 +2300,6 @@ class Player(Sprite):
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
             self.down_vel = 0
-            self.in_air = False
             while pygame.sprite.spritecollide(self, self.loom.can_update, False):
                     cat = pygame.sprite.spritecollide(self, self.loom.can_update, False)
                     if self.rect.y < cat[0].rect.y:
