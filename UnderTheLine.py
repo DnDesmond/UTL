@@ -1854,9 +1854,17 @@ class Yarn:
         self.parab()
         self.evils = pygame.sprite.Group()
         try:
-            self.toil = Toim_Chart("alien_invasion/UTL/Chared0_0.csv", self)
+            self.level = open("alien_invasion/UTL/LEVEL.txt", 'r')
+        except FileNotFoundError:
+            self.level = open("UTL/UTL/LEVEL.txt", 'r')
+        home_1 = self.level.readline(-1).rstrip("\n")
+        home_2 = self.level.readline(-2).rstrip("\n")
+        self.current_level[0], self.current_level[1] = int(home_1), int(home_2)
+        try:
+            self.toil = Toim_Chart(f"alien_invasion/UTL/Chared{home_1}_{home_2}.csv", self)
         except FileNotFoundError:
             self.toil = Toim_Chart(f'UTL/UTL/Chared0_0.csv', self)
+        self.level.close()
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
         self.brick_y_plus = 0
@@ -2042,6 +2050,13 @@ class Yarn:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
+                    try:
+                        self.level = open("alien_invasion/UTL/LEVEL.txt", 'w')
+                    except FileNotFoundError:
+                        self.level = open("UTL/UTL/LEVEL.txt", 'w')
+                    self.level.write(f"{self.current_level[0]}\n")
+                    self.level.write(f"{self.current_level[1]}")
+                    self.level.close()
                     pygame.quit()
                     sys.exit()
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -2213,6 +2228,7 @@ class Player(Sprite):
         self.rect.x = getattr(self.loom.toil, f'{dir}start_x')
         self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
         self.down_timer = 0
+        self.down_vel = 0
         self.up, self.down, self.right, self.left = False, False, False, False
     
     def scroll_stops(self):
@@ -2446,6 +2462,8 @@ class Toim_Chart:
     def load_tiles(self, filename):
         tiles = []
         map = self.read_csv(filename)
+        x_count = 0
+        y_count = 0
         x,y = 0,0
         for row in map:
             x = 0
@@ -2454,6 +2472,7 @@ class Toim_Chart:
                     tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size))
                 elif tile == '2':
                     self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
+                    x_count, y_count = x * self.tile_size, y * self.tile_size
                 elif tile == '5':
                     new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
                     self.ldgates.add(new_tile)
