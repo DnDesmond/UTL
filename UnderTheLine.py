@@ -122,7 +122,7 @@ class Bouncing:
         self.rumbles = False
         self.dev = False
         self.easy_start = True
-        self.imige = pygame.image.load("Graphics/See_Through.png")
+        self.imige = pygame.image.load("Graphics/See_Through_Wide.png")
         self.track_mouse = False
         self.track_mouse_pos = pygame.mouse.get_pos()
         self.left_mouse = False
@@ -1436,6 +1436,7 @@ class Ball(Sprite):
             self.bouncer.brick_dict.pop(shard)
             self.bouncer.borders()
             self.bouncer.borderes()
+            self.bouncer.next = True
     
     def magnet(self, shard):
         directions = ['Never', 'Never', 'Eat', 'Eat', 'Eat', 'Eat', 'Shredded', 'Wheat', 'Wheat', 'Wheat', 'Wheat']
@@ -1753,7 +1754,7 @@ class Brick(Sprite):
     
     def fancekey(self, colour):
         try:
-            self.image = pygame.image.load(f"Graphics/KeyWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/KeyWide.png").convert_alpha()
         except FileNotFoundError:
             pass
         self.innervate()
@@ -1761,7 +1762,7 @@ class Brick(Sprite):
     
     def coulock(self, colour):
         try:
-            self.image = pygame.image.load(f"Graphics/HardBrickWide.png").convert_alpha()
+            self.image = pygame.image.load("Graphics/HardBrickWide.png").convert_alpha()
         except FileNotFoundError:
             print("DASD")
         self.innervate()
@@ -1841,10 +1842,13 @@ class Yarn:
         self.screen_height = self.screen.get_rect().height
         self.screen_rect = self.screen.get_rect()
         pygame.display.set_caption("Bouncing Gimmick")
+        iconic = pygame.image.load("Graphics/MonsterBrick.png")
+        pygame.display.set_icon(iconic)
         pygame.joystick.init()
         if pygame.joystick.get_count() > 0:
             self.joystick = pygame.joystick.Joystick(0)
             self.joystick.init()
+            print(self.joystick.get_power_level())
         else:
             self.joystick = False
         self.sword_swipe = pygame.rect.Rect(0, 0, 50, 35)
@@ -1857,8 +1861,14 @@ class Yarn:
             self.level = open("alien_invasion/UTL/LEVEL.txt", 'r')
         except FileNotFoundError:
             self.level = open("UTL/UTL/LEVEL.txt", 'r')
-        home_1 = self.level.readline(-1).rstrip("\n")
-        home_2 = self.level.readline(-2).rstrip("\n")
+        home_1 = self.level.readline(-4).rstrip("\n")
+        home_2 = self.level.readline(-3).rstrip("\n")
+        home_dirp = self.level.readline(-2).rstrip("\n")
+        home_derp = self.level.readline(-1).rstrip("\n")
+        home_dir = [0,0]
+        home_dir[0] = int(home_dirp)
+        home_dir[1] = int(home_derp)
+        print(home_dir)
         self.current_level[0], self.current_level[1] = int(home_1), int(home_2)
         try:
             self.toil = Toim_Chart(f"alien_invasion/UTL/Chared{home_1}_{home_2}.csv", self)
@@ -1904,6 +1914,7 @@ class Yarn:
 
         self.times = 0
         self.player.rect.y, self.player.rect.x = self.toil.start_y, self.toil.start_x
+        self.player.rect.y, self.player.rect.x = home_dir[1], home_dir[0]
         self.borders()
         self.listerine()
         self.run_game()
@@ -2055,12 +2066,13 @@ class Yarn:
                     except FileNotFoundError:
                         self.level = open("UTL/UTL/LEVEL.txt", 'w')
                     self.level.write(f"{self.current_level[0]}\n")
-                    self.level.write(f"{self.current_level[1]}")
+                    self.level.write(f"{self.current_level[1]}\n")
+                    self.level.write(f"{int(self.toil.start_x)}\n{int(self.toil.start_y)}")
                     self.level.close()
                     pygame.quit()
                     sys.exit()
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    if not self.player.in_air:
+                    if self.player.air_time < 5:
                         self.parab()
                         self.player.up = True
                         self.player.in_air = True
@@ -2101,7 +2113,7 @@ class Yarn:
                     self.player.right = False
                     self.player.left = False
                 if self.joystick.get_button(0) and not self.x_pressed:
-                    if not self.player.in_air:
+                    if self.player.air_time < 5:
                         self.parab()
                         self.player.up = True
                         self.player.in_air = True
@@ -2152,7 +2164,8 @@ class Yarn:
             
     def frame_count(self):
         self.colourWHITE = (250,250,250)
-        self.timer = str(self.player.down_vel)
+        if float(self.timer) < self.player.down_vel:
+            self.timer = str(self.player.down_vel)
         myFont = pygame.font.SysFont('none', 40)
         self.counter = myFont.render(self.timer, False, self.colourWHITE, (0,0,0))
         self.counterect = self.counter.get_rect()
@@ -2172,6 +2185,7 @@ class Player(Sprite):
         self.down_timer = 0
         self.jump_x = 0
         self.collie = 0
+        self.air_time = 0
         self.gravitate = True
         self.in_air = False
         self.recenter = False
@@ -2195,6 +2209,10 @@ class Player(Sprite):
         self.scales = 32
         self.image = pygame.image.load("Graphics/Marble.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.scales,48))
+        self.imag = pygame.image.load("Graphics/Foe.pnh.png").convert_alpha()
+        self.imag = pygame.transform.scale(self.imag, (self.scales,48))
+        self.ima = pygame.image.load("Graphics/Marble.png").convert_alpha()
+        self.ima = pygame.transform.scale(self.ima, (self.scales,48))
         self.rect = self.image.get_rect()
 
     def update(self, level=''):
@@ -2206,7 +2224,8 @@ class Player(Sprite):
         self.scroll_stops()
         self.movement = [0,0]
 
-        self.down_vel += self.loom.gravity
+        if self.down_vel+self.loom.gravity < 61:
+            self.down_vel += self.loom.gravity
 
         self.motion()
 
@@ -2219,6 +2238,7 @@ class Player(Sprite):
         self.screen.blit(self.image, player_scroll_rect)
         
         self.up_timer += 1
+        self.air_time += 1
         if self.right:
             self.dir = True
         elif self.left:
@@ -2227,6 +2247,14 @@ class Player(Sprite):
     def recenters(self, dir=''):
         self.rect.x = getattr(self.loom.toil, f'{dir}start_x')
         self.rect.y = getattr(self.loom.toil, f'{dir}start_y')
+        try:
+            self.level = open(f"alien_invasion/UTL/LEVEL.txt", 'w')
+        except FileNotFoundError:
+            self.level = open("UTL/UTL/LEVEL.txt", 'w')
+        self.level.write(f"{self.loom.current_level[0]}\n")
+        self.level.write(f"{self.loom.current_level[1]}\n")
+        self.level.write(f"{int(self.loom.toil.start_x)}\n{int(self.loom.toil.start_y)}")
+        self.level.close()
         self.down_timer = 0
         self.down_vel = 0
         self.up, self.down, self.right, self.left = False, False, False, False
@@ -2238,13 +2266,13 @@ class Player(Sprite):
             self.scroll[0] += (self.rect.x - self.scroll[0] - (self.screen_width/2))//3
         # Snaps to the right
         elif self.rect.centerx + (self.screen_width/2) > self.loom.toil.map_surface.get_rect().right and (self.rect.left - 32) - (self.screen_width/2) > self.screen.get_rect().left:
-            if self.scroll[0] != self.loom.toil.map_surface.get_rect().right - (self.screen_width+32):
+            if self.scroll[0] < self.loom.toil.map_surface.get_rect().right - (self.screen_width+32):
                 self.scroll[0] += 1
-            elif self.scroll[0] < self.loom.toil.map_surface.get_rect().right - (self.screen_width+32):
+            elif self.scroll[0] > self.loom.toil.map_surface.get_rect().right - (self.screen_width+32):
                 self.scroll[0] -= 1
         # Snaps to the left
         elif self.rect.centerx - (self.screen_width/2) < self.loom.toil.map_surface.get_rect().left and (self.rect.centerx + 32) + (self.screen_width/2) - 16 < self.loom.toil.map_surface.get_rect().right:
-            if self.scroll[0] != 32:
+            if self.scroll[0] > 32:
                 self.scroll[0] -= 1
             elif self.scroll[0] < 32:
                 self.scroll[0] += 1
@@ -2253,13 +2281,13 @@ class Player(Sprite):
             self.scroll[1] += (self.rect.y - self.scroll[1] - (self.screen_height/2))//3
         # Snaps to the bottom
         elif self.rect.centery + (self.screen_height/2) > self.loom.toil.map_surface.get_rect().bottom and (self.rect.y) > self.screen.get_rect().top+24+(self.screen_height/2):
-            if self.scroll[1] != self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32):
+            if self.scroll[1] < self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32):
                 self.scroll[1] += 1
-            elif self.scroll[1] < self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32):
+            elif self.scroll[1] > self.loom.toil.map_surface.get_rect().bottom - (self.screen_height+32):
                 self.scroll[1] -= 1
         # Snaps to the top
         elif self.rect.centery - (self.screen_height/2) < self.loom.toil.map_surface.get_rect().top and self.rect.bottom < self.loom.toil.map_surface.get_rect().bottom+20-(self.screen_height/2):
-            if self.scroll[1] != 32:
+            if self.scroll[1] > 32:
                 self.scroll[1] -= 1
             elif self.scroll[1] < 32:
                 self.scroll[1] += 1
@@ -2321,10 +2349,13 @@ class Player(Sprite):
                     if self.rect.y < cat[0].rect.y:
                         self.rect.y -= 1
                         self.in_air = False
+                        self.air_time = 0
+                        # self.image = self.ima
                     else:
                         self.rect.y += 1
         else:
             self.in_air = True
+            # self.image = self.imag
         self.collie = len(collide.keys())
 
 class Foe(Sprite):
@@ -2383,7 +2414,7 @@ class Toil(Sprite):
         super().__init__()
         self.loom = loom
         self.imig = image
-        self.image = pygame.image.load(f"Graphics/{image}")
+        self.image = pygame.image.load(f"{image}")
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x,y
     
