@@ -370,137 +370,140 @@ class Bouncing:
 
     def check_events(self):
         """Check keyboard events."""
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:# or event.key == pygame.K_ESCAPE:
-                    if self.alter == True:
-                        pygame.quit()
-                        nombre = 0
-                        self.dev_list.write("\nclass Spec4:\n\tdef __init__(self):\n\t\tself.dict = {\n")
-                        for shade in self.dev_bricks:
-                            self.dev_list.write(f"\t\t\t{nombre}:({shade.rect.x},{shade.rect.y}),\n")
-                            nombre += 1
-                        self.dev_list.write("\t\t}")
-                        self.dev_list.close()
-                        sys.exit()
-                    else:
-                        pygame.quit()
-                        sys.exit()
-                elif event.key == pygame.K_ESCAPE:
-                    if self.paused == True:
-                        self.paused = False
-                        self.buttons = pygame.sprite.Group()
-                    else:
-                        self.paused = True
-                elif event.key == pygame.K_p and self.started == False:
-                    for sphere in self.spherage:
-                        sphere.moving_right = True
-                        #sphere.fmoving_right = True
-                        sphere.moving_up = True
-                        self.started = True
-                        for cat in range(self.extras):
-                            self.spring_ball()
-                elif event.key == pygame.K_LEFT:
-                    self.moving_left = True
-                elif event.key == pygame.K_RIGHT:
-                    self.moving_right = True
-                elif event.key == pygame.K_s:
-                    self.star_up()
-                elif event.key == pygame.K_k:
-                    for brick in self.bricks:
-                        if brick not in self.lockaged:
-                            brick.kill()
-                    for brick in self.brickes:
-                        brick.kill()
-                elif event.key == pygame.K_c:
-                    for ball in self.spherage:
-                        ball.y = 25
-                elif event.key == pygame.K_f:
-                    for ball in self.spherage:
-                        ball.recenters()
-                elif event.key == pygame.K_e:
-                    self.mball.spin_inator(self.ball_sprite_index)
-                    self.ball_sprite_index += 1
-                elif event.key == pygame.K_RALT:
-                    self.alter = True
-                elif event.key == pygame.K_LALT:
-                    self.lalter = True
-                elif event.key == pygame.K_a:
-                    if self.alter:
+        try:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:# or event.key == pygame.K_ESCAPE:
+                        if self.alter == True:
+                            pygame.quit()
+                            nombre = 0
+                            self.dev_list.write("\nclass Spec4:\n\tdef __init__(self):\n\t\tself.dict = {\n")
+                            for shade in self.dev_bricks:
+                                self.dev_list.write(f"\t\t\t{nombre}:({shade.rect.x},{shade.rect.y}),\n")
+                                nombre += 1
+                            self.dev_list.write("\t\t}")
+                            self.dev_list.close()
+                            sys.exit()
+                        else:
+                            pygame.quit()
+                            sys.exit()
+                    elif event.key == pygame.K_ESCAPE:
+                        if self.paused == True:
+                            self.paused = False
+                            self.buttons = pygame.sprite.Group()
+                        else:
+                            self.paused = True
+                    elif event.key == pygame.K_p and self.started == False:
+                        for sphere in self.spherage:
+                            sphere.moving_right = True
+                            #sphere.fmoving_right = True
+                            sphere.moving_up = True
+                            self.started = True
+                            for cat in range(self.extras):
+                                self.spring_ball()
+                    elif event.key == pygame.K_LEFT:
+                        self.moving_left = True
+                    elif event.key == pygame.K_RIGHT:
+                        self.moving_right = True
+                    elif event.key == pygame.K_s:
+                        self.star_up()
+                    elif event.key == pygame.K_k:
                         for brick in self.bricks:
-                            brick.kill()
+                            if brick not in self.lockaged:
+                                brick.kill()
                         for brick in self.brickes:
                             brick.kill()
-                        self.grad = self.base_grad
-                        self.create_wall(0)
-                        self.grad = self.base_grad
-                        self.dev = True
-                elif event.key == pygame.K_DOWN and self.shined > 10000:
-                    if len(self.stars) > 0:
-                        self.shined = 0
-                        self.shore = self.stars.sprites()[-1]
-                        self.shore.kill()
-                    else:
-                        pass
-                elif event.key == pygame.K_o:
-                    self.overlay = True
-                elif event.key == pygame.K_F4 and self.lalter:
-                    pygame.quit()
-                    sys.exit()
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
-                    self.moving_left = False
-                elif event.key == pygame.K_RIGHT:
-                    self.moving_right = False
-                elif event.key == pygame.K_RALT:
-                    self.alter = False
-                elif event.key == pygame.K_LALT:
-                    self.lalter = False
-                elif event.key == pygame.K_o:
-                    self.overlay = False
-            if event.type == pygame.JOYBUTTONDOWN:
-                if self.joystick.get_button(6) and not self.option_pressed:
-                    if not self.paused and not self.option_pressed:
-                        self.paused = True
-                    elif self.paused and not self.option_pressed:
-                        self.paused = False
-                    self.option_pressed = True
-            if event.type == pygame.JOYBUTTONUP:
-                if not self.joystick.get_button(6) and self.option_pressed:
-                    self.option_pressed= False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.track_mouse = True
-                self.track_mouse_pos = pygame.mouse.get_pos()
-                if pygame.mouse.get_pressed()[0]:
-                    self.left_mouse = True
-                elif pygame.mouse.get_pressed()[2]:
-                    self.right_mouse = True
-            if self.track_mouse:
-                mouse_pos = pygame.mouse.get_pos()
-                if self.left_mouse:
-                    if not self.paused:
+                    elif event.key == pygame.K_c:
+                        for ball in self.spherage:
+                            ball.y = 25
+                    elif event.key == pygame.K_f:
+                        for ball in self.spherage:
+                            ball.recenters()
+                    elif event.key == pygame.K_e:
+                        self.mball.spin_inator(self.ball_sprite_index)
+                        self.ball_sprite_index += 1
+                    elif event.key == pygame.K_RALT:
+                        self.alter = True
+                    elif event.key == pygame.K_LALT:
+                        self.lalter = True
+                    elif event.key == pygame.K_a:
+                        if self.alter:
+                            for brick in self.bricks:
+                                brick.kill()
+                            for brick in self.brickes:
+                                brick.kill()
+                            self.grad = self.base_grad
+                            self.create_wall(0)
+                            self.grad = self.base_grad
+                            self.dev = True
+                    elif event.key == pygame.K_DOWN and self.shined > 10000:
+                        if len(self.stars) > 0:
+                            self.shined = 0
+                            self.shore = self.stars.sprites()[-1]
+                            self.shore.kill()
+                        else:
+                            pass
+                    elif event.key == pygame.K_o:
+                        self.overlay = True
+                    elif event.key == pygame.K_F4 and self.lalter:
+                        pygame.quit()
+                        sys.exit()
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        self.moving_left = False
+                    elif event.key == pygame.K_RIGHT:
+                        self.moving_right = False
+                    elif event.key == pygame.K_RALT:
+                        self.alter = False
+                    elif event.key == pygame.K_LALT:
+                        self.lalter = False
+                    elif event.key == pygame.K_o:
+                        self.overlay = False
+                if event.type == pygame.JOYBUTTONDOWN:
+                    if self.joystick.get_button(6) and not self.option_pressed:
+                        if not self.paused and not self.option_pressed:
+                            self.paused = True
+                        elif self.paused and not self.option_pressed:
+                            self.paused = False
+                        self.option_pressed = True
+                if event.type == pygame.JOYBUTTONUP:
+                    if not self.joystick.get_button(6) and self.option_pressed:
+                        self.option_pressed= False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.track_mouse = True
+                    self.track_mouse_pos = pygame.mouse.get_pos()
+                    if pygame.mouse.get_pressed()[0]:
+                        self.left_mouse = True
+                    elif pygame.mouse.get_pressed()[2]:
+                        self.right_mouse = True
+                if self.track_mouse:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if self.left_mouse:
+                        if not self.paused:
+                            for brack in self.bricks:
+                                if brack.rect.collidepoint(mouse_pos):
+                                    self.dev_bricks.add(brack)
+                        else:
+                            if self.button_pause.rect.collidepoint(self.track_mouse_pos):
+                                self.paused = False
+                            elif self.button_option.rect.collidepoint(self.track_mouse_pos):
+                                if self.trail_view == self.trail_view_base:
+                                    self.trail_view = 0
+                                else:
+                                    self.trail_view = self.trail_view_base
+                    elif self.right_mouse:
                         for brack in self.bricks:
                             if brack.rect.collidepoint(mouse_pos):
-                                self.dev_bricks.add(brack)
-                    else:
-                        if self.button_pause.rect.collidepoint(self.track_mouse_pos):
-                            self.paused = False
-                        elif self.button_option.rect.collidepoint(self.track_mouse_pos):
-                            if self.trail_view == self.trail_view_base:
-                                self.trail_view = 0
-                            else:
-                                self.trail_view = self.trail_view_base
-                elif self.right_mouse:
-                    for brack in self.bricks:
-                        if brack.rect.collidepoint(mouse_pos):
-                            self.dev_bricks.remove(brack)
-                self.track_mouse_pos = (0,0)
-            if event.type == pygame.MOUSEBUTTONUP:
-                self.track_mouse = False
-                if not pygame.mouse.get_pressed()[0]:
-                    self.left_mouse = False
-                if not pygame.mouse.get_pressed()[2]:
-                    self.right_mouse = False
+                                self.dev_bricks.remove(brack)
+                    self.track_mouse_pos = (0,0)
+                if event.type == pygame.MOUSEBUTTONUP:
+                    self.track_mouse = False
+                    if not pygame.mouse.get_pressed()[0]:
+                        self.left_mouse = False
+                    if not pygame.mouse.get_pressed()[2]:
+                        self.right_mouse = False
+        except SystemError:
+            pass
         if self.joystick:
             if self.joystick.get_numbuttons() == 16:
                 if self.joystick.get_button(9):
@@ -1836,6 +1839,8 @@ class Yarn:
         self.x_pressed = False
         self.traline = False
         self.jump_hold = False
+        self.stick = False
+        self.paused = False
         self.timer = '0'
         pygame.init()
         self.clock = pygame.time.Clock()
@@ -1857,6 +1862,7 @@ class Yarn:
         else:
             self.joystick = False
         self.sword_swipe = pygame.rect.Rect(0, 0, 50, 35)
+        self.unpause = Button(self, 50, 50, self.screen_rect.centerx-25, self.screen_rect.centery-25, "Unpause")
         self.swipe_time = 0
 
         self.player = Player(self)
@@ -1880,10 +1886,11 @@ class Yarn:
         home_dir[1] = int(home_derp)
         print(home_dir)
         self.current_level[0], self.current_level[1] = int(home_1), int(home_2)
-        # try:
-        self.toil = Toim_Chart(r(f"Chared{home_1}_{home_2}.csv"), self)
-        # except FileNotFoundError:
-        #     self.toil = Toim_Chart(f'UTL/UTL/Chared0_0.csv', self)
+        self.walls = pygame.sprite.Group()
+        try:
+            self.toil = Toim_Chart(r(f"Chared{home_1}_{home_2}.csv"), self)
+        except FileNotFoundError:
+            self.toil = Toim_Chart(f'UTL/UTL/Chared0_0.csv', self)
         self.level.close()
         self.tiles = self.toil.tiles
         self.brick_x_plus = 0
@@ -1931,7 +1938,11 @@ class Yarn:
     
     def run_game(self):
         while True:
-            self.update_screen()
+            if not self.paused:
+                self.update_screen()
+            else:
+                self.unpause.update()
+                pygame.display.flip()
             self.check_events()
             self.clock.tick(60)
         
@@ -1952,6 +1963,8 @@ class Yarn:
             scroll_block.x -= self.player.scroll[0]
             scroll_block.y -= self.player.scroll[1]
             self.screen.blit(brick.image, scroll_block)
+        for wall in self.walls:
+            wall.update()
         scroll_block = self.toil.map_surface.get_rect().copy()
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
@@ -1969,6 +1982,14 @@ class Yarn:
                 self.clock.tick(57)
                 break
                 # tile.kill()
+        for wall in self.walls:
+            if self.sword_swipe.colliderect(wall.spare_rect):
+                wall.life -= 10
+                self.sword_swipe.x = 0
+                self.sword_swipe.y = 0
+                self.attack = False
+                self.clock.tick(57)
+                break
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
             self.player.recenters()
         for enemy in self.evils:
@@ -2016,10 +2037,10 @@ class Yarn:
             self.collodes('ru')
     
     def collodes(self, dir):
-        try:
-            self.toil = Toim_Chart(r(f'Chared{self.current_level[0]}_{self.current_level[1]}.csv'), self)
-        except FileNotFoundError:
-            self.toil = Toim_Chart(f'UTL/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
+        # try:
+        self.toil = Toim_Chart(r(f'Chared{self.current_level[0]}_{self.current_level[1]}.csv'), self)
+        # except FileNotFoundError:
+        #     self.toil = Toim_Chart(f'UTL/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
         self.tiles = self.toil.tiles
         self.toil.start_x = getattr(self.toil, f"{dir}start_x")
         self.toil.start_y = getattr(self.toil, f"{dir}start_y")
@@ -2069,80 +2090,118 @@ class Yarn:
     
     def check_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    try:
-                        self.level = open("LEVEL.txt", 'w')
-                    except FileNotFoundError:
-                        self.level = open("UTL/UTL/LEVEL.txt", 'w')
-                    self.level.write(f"{self.current_level[0]}\n")
-                    self.level.write(f"{self.current_level[1]}\n")
-                    self.level.write(f"{int(self.toil.start_x)}\n{int(self.toil.start_y)}")
-                    self.level.close()
-                    pygame.quit()
-                    sys.exit()
-                if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    if self.player.air_time < 5:
-                        self.parab()
-                        self.player.up = True
-                        self.player.in_air = True
-                        self.player.jump_x = 0
-                        self.leap = 0
+            if not self.paused:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        try:
+                            self.level = open("LEVEL.txt", 'w')
+                        except FileNotFoundError:
+                            self.level = open("UTL/UTL/LEVEL.txt", 'w')
+                        self.level.write(f"{self.current_level[0]}\n")
+                        self.level.write(f"{self.current_level[1]}\n")
+                        self.level.write(f"{int(self.toil.start_x)}\n{int(self.toil.start_y)}")
+                        self.level.close()
+                        pygame.quit()
+                        sys.exit()
+                    if event.key == pygame.K_UP or event.key == pygame.K_w:
+                        if self.player.air_time < 5:
+                            self.parab()
+                            self.player.up = True
+                            self.player.in_air = True
+                            self.player.jump_x = 0
+                            self.leap = 0
+                        else:
+                            self.jump_hold = True
+                        self.player.up_timer = 0
+                    if event.key == pygame.K_DOWN:
+                        self.player.gravitate = True
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                        self.player.left = True
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                        self.player.right = True
+                    if event.key == pygame.K_SPACE and self.swipe_time > 30:
+                        self.attack = True
+                        self.swipe_time = 0
+                    if event.key == pygame.K_r:
+                        self.player.recenters()
+                    if event.key == pygame.K_t:
+                        self.traline = True
+                        self.trails = pygame.sprite.Group()
+                    if event.key == pygame.K_n:
+                        self.red = open("Start_clause.txt.txt", 'w')
+                        self.red.close()
+                    if event.key == pygame.K_ESCAPE and not self.stick:
+                        if self.paused:
+                            self.paused = False
+                        elif not self.paused:
+                            self.paused = True
                     else:
-                        self.jump_hold = True
-                    self.player.up_timer = 0
-                if event.key == pygame.K_DOWN:
-                    self.player.gravitate = True
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    self.player.left = True
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    self.player.right = True
-                if event.key == pygame.K_SPACE and self.swipe_time > 30:
-                    self.attack = True
-                    self.swipe_time = 0
-                if event.key == pygame.K_r:
-                    self.player.recenters()
-                if event.key == pygame.K_t:
-                    self.traline = True
-                    self.trails = pygame.sprite.Group()
-                if event.key == pygame.K_n:
-                    self.red = open("Start_clause.txt.txt", 'w')
-                    self.red.close()
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    self.player.left = False
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    self.player.right = False
-                if event.key == pygame.K_DOWN:
-                    self.player.gravitate = False
-            elif self.joystick:
-                if self.joystick.get_axis(0) < -0.1:
-                    self.player.left = True
-                    self.player.right = False
-                elif self.joystick.get_axis(0) > 0.1:
-                    self.player.right = True
-                    self.player.left = False
-                else:
-                    self.player.right = False
-                    self.player.left = False
-                if self.joystick.get_button(0) and not self.x_pressed:
-                    if self.player.air_time < 5:
-                        self.parab()
-                        self.player.up = True
-                        self.player.in_air = True
-                        self.player.jump_x = 0
-                        self.leap = 0
+                        self.stick = False
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                        self.player.left = False
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                        self.player.right = False
+                    if event.key == pygame.K_DOWN:
+                        self.player.gravitate = False
+                elif self.joystick:
+                    if self.joystick.get_axis(0) < -0.1:
+                        self.player.left = True
+                        self.player.right = False
+                    elif self.joystick.get_axis(0) > 0.1:
+                        self.player.right = True
+                        self.player.left = False
                     else:
-                        self.jump_hold = True
-                    self.x_pressed = True
-                    self.player.up_timer = 0
-                if not self.joystick.get_button(0) and self.x_pressed != self.joystick.get_button(0):
-                    self.x_pressed = False
-                    if self.player.down_vel < -2 and self.gravity > 0:
-                        self.player.down_vel -= self.player.down_vel+2
-                if self.joystick.get_button(2) and self.swipe_time > 30:
-                    self.attack = True
-                    self.swipe_time = 0
+                        self.player.right = False
+                        self.player.left = False
+                    if self.joystick.get_button(0) and not self.x_pressed:
+                        if self.player.air_time < 5:
+                            self.parab()
+                            self.player.up = True
+                            self.player.in_air = True
+                            self.player.jump_x = 0
+                            self.leap = 0
+                        else:
+                            self.jump_hold = True
+                        self.x_pressed = True
+                        self.player.up_timer = 0
+                    if not self.joystick.get_button(0) and self.x_pressed != self.joystick.get_button(0):
+                        self.x_pressed = False
+                        if self.player.down_vel < -2 and self.gravity > 0:
+                            self.player.down_vel -= self.player.down_vel+2
+                    if self.joystick.get_button(2) and self.swipe_time > 30:
+                        self.attack = True
+                        self.swipe_time = 0
+                    if self.joystick.get_button(6) and not self.stick:
+                        if self.paused:
+                            self.paused = False
+                        elif not self.paused:
+                            self.paused = True
+                        self.stick = True
+                    if not self.joystick.get_button(6):
+                        self.stick = False
+            else:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE and not self.stick:
+                        if self.paused:
+                            self.paused = False
+                        elif not self.paused:
+                            self.paused = True
+                    else:
+                        self.stick = False
+                if self.joystick:
+                    if self.joystick.get_button(6) and not self.stick:
+                        if self.paused:
+                            self.paused = False
+                        elif not self.paused:
+                            self.paused = True
+                        self.stick = True
+                    if not self.joystick.get_button(6):
+                        self.stick = False
+                if pygame.mouse.get_pressed()[0]:
+                    if self.unpause.rect.collidepoint(pygame.mouse.get_pos()):
+                        self.paused = False
+
         if self.player.up_timer > 10:
             self.jump_hold = False 
         if self.jump_hold: 
@@ -2241,7 +2300,7 @@ class Player(Sprite):
         self.scroll_stops()
         self.movement = [0,0]
 
-        if self.down_vel+self.loom.gravity < 61:
+        if self.down_vel+self.loom.gravity < 43:
             self.down_vel += self.loom.gravity
 
         self.motion()
@@ -2349,7 +2408,7 @@ class Player(Sprite):
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
         self.rect.x += self.movement[0]
-        while pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False):
+        while pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False) or pygame.sprite.groupcollide(self.loom.walls, self.loom.players, False, False):
             if self.movement[0] > 0:
                 self.rect.x -= 1
             else:
@@ -2446,6 +2505,8 @@ class Toim_Chart:
         self.tile_size = 64/game_scale
         self.loom = loom
         for tile in self.loom.evils:
+            tile.kill()
+        for tile in self.loom.walls:
             tile.kill()
         self.start_x = 0
         self.start_y = 0
@@ -2551,16 +2612,66 @@ class Toim_Chart:
                 elif tile == '19':
                     new_tile = Toil('Half_Blue.png', x * self.tile_size, y * self.tile_size)
                     self.tractors.append(new_tile)
-                    print(new_tile)
                 elif tile == '20':
                     foe = Foe(self.loom, x*self.tile_size, y*self.tile_size)
                     self.loom.evils.add(foe)
                     print(foe)
+                elif tile == '21':
+                    wall = Wall(x*self.tile_size, y *self.tile_size, self.loom)
+                    self.loom.walls.add(wall)
+                elif tile == '22':
+                    wall = Wall(x*self.tile_size, y *self.tile_size, self.loom, True)
+                    self.loom.walls.add(wall)
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return tiles
 
+
+class Wall(Sprite):
+    """Creates a breakable wall."""
+
+    def __init__(self, x, y, loom=Yarn, rightward=False):
+        super().__init__()
+        self.loom = loom
+        self.screen = self.loom.screen
+        self.image = pygame.image.load(r("RightBreakable.png"))
+        if rightward:
+            self.image = pygame.transform.rotate(self.image, 180)
+        self.rect = self.image.get_rect()
+        self.spare_rect = pygame.rect.Rect(x,y,self.rect.width/2,self.rect.height)
+        self.rect.x = x
+        self.rect.y = y
+        self.life = 50
+        if not rightward:
+            self.spare_rect.x += self.rect.width/2
+    
+    def update(self):
+        if self.life < 1:
+            self.kill()
+            amp = []
+            with open(os.path.join(r(f"Chared{self.loom.current_level[0]}_{self.loom.current_level[1]}.csv"))) as cezve:
+                cezve = csv.reader(cezve, delimiter=',')
+                for row in cezve:
+                    amp.append(list(row))
+                for row in amp:
+                    for num in row:
+                        if num == '21' or num == '22':
+                            row[row.index(num)] = -1
+                        else:
+                            num = num
+                with open(r(f"Chared{self.loom.current_level[0]}_{self.loom.current_level[1]}.csv"), 'w') as csvfile:
+                    spamwriter = csv.writer(csvfile, delimiter=',', lineterminator='\n')
+                    for rowe in amp:
+                        spamwriter.writerow(rowe)
+
+        scroll_block = self.rect.copy()
+        scroll_block.x -= self.loom.player.scroll[0]
+        scroll_block.y -= self.loom.player.scroll[1]
+        scrill_block = self.spare_rect.copy()
+        scrill_block.x -= self.loom.player.scroll[0]
+        scrill_block.y -= self.loom.player.scroll[1]
+        self.screen.blit(self.image, scroll_block)
 
 if __name__ == "__main__":
     bounces = Bouncing()
