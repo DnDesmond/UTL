@@ -1,6 +1,7 @@
 import pygame
-
-
+import os
+import sys
+from RP import resource_path as r
 class MiddleBreaker:
     """Makes that bar thing that bounces the breaker spheres."""
     def __init__(self, bounce):
@@ -11,7 +12,7 @@ class MiddleBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (27,10)
 
-        self.image = pygame.image.load("Graphics/MiddleMudBar.png")
+        self.image = pygame.image.load(r("MiddleMudBar.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -43,7 +44,7 @@ class RightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (15,10)
 
-        self.image = pygame.image.load("Graphics/RightMudBar.png")
+        self.image = pygame.image.load(r("RightMudBar.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -76,7 +77,7 @@ class FarRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (8,10)
 
-        self.image = pygame.image.load("Graphics/FarRightMudBar.png")
+        self.image = pygame.image.load(r("FarRightMudBar.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -108,7 +109,7 @@ class LeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (15,10)
 
-        self.image = pygame.image.load("Graphics/LeftMudBar.png")
+        self.image = pygame.image.load(r("LeftMudBar.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -140,7 +141,7 @@ class FarLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (8,10)
 
-        self.image = pygame.image.load("Graphics/FarLeftMudBar.png")
+        self.image = pygame.image.load(r("FarLeftMudBar.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -172,7 +173,7 @@ class BigMiddleBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (54,10)
 
-        self.image = pygame.image.load("Graphics/MiddleMudBarMonsterDoppel.png")
+        self.image = pygame.image.load(r("MiddleMudBarMonsterDoppel.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -204,7 +205,7 @@ class BigRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (30,10)
 
-        self.image = pygame.image.load("Graphics/RightMudBarMonsterDoppel.png")
+        self.image = pygame.image.load(r("RightMudBarMonsterDoppel.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -237,7 +238,7 @@ class BigFarRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (16,10)
 
-        self.image = pygame.image.load("Graphics/FarRightMudBarMonsterDoppel.png")
+        self.image = pygame.image.load(r("FarRightMudBarMonsterDoppel.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -269,7 +270,7 @@ class BigLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (30,10)
 
-        self.image = pygame.image.load("Graphics/LeftMudBarMonsterDoppel.png")
+        self.image = pygame.image.load(r("LeftMudBarMonsterDoppel.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -301,7 +302,7 @@ class BigFarLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (16,10)
 
-        self.image = pygame.image.load("Graphics/FarLeftMudBarMonsterDoppel.png")
+        self.image = pygame.image.load(r("FarLeftMudBarMonsterDoppel.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -333,7 +334,7 @@ class SmallMiddleBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (54,10)
 
-        self.image = pygame.image.load("Graphics/Blue_Square.png")
+        self.image = pygame.image.load(r("Blue_Square.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -365,7 +366,7 @@ class SmallRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (30,10)
 
-        self.image = pygame.image.load("Graphics/Red_Square.png")
+        self.image = pygame.image.load(r("Red_Square.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -398,7 +399,7 @@ class SmallFarRightBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (16,10)
 
-        self.image = pygame.image.load("Graphics/Blue_Square.png")
+        self.image = pygame.image.load(r("Blue_Square.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -430,7 +431,7 @@ class SmallLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (30,10)
 
-        self.image = pygame.image.load("Graphics/Red_Square.png")
+        self.image = pygame.image.load(r("Red_Square.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
@@ -462,7 +463,7 @@ class SmallFarLeftBreaker:
         self.screen_rect = self.screen.get_rect()
         self.bar_scale = (16,10)
 
-        self.image = pygame.image.load("Graphics/Blue_Square.png")
+        self.image = pygame.image.load(r("Blue_Square.png"))
         self.image = pygame.transform.scale(self.image, self.bar_scale)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center

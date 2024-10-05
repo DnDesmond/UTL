@@ -1,5 +1,8 @@
 import pygame
 from UnderTheLine import Brick
+import os
+import sys
+from RP import resource_path as r
 class Dict1:
     def __init__(self):
         self.dict = {
@@ -1008,7 +1011,7 @@ class Spec5:
 		for brick in self.dict.values():
 			if x == brick[0] and y == brick[1]:
 				subject.bar_expand()
-				subject.image = pygame.image.load("Graphics/MonsterBrick.png").convert_alpha()
+				subject.image = pygame.image.load(r("MonsterBrick.png")).convert_alpha()
 				subject.image = pygame.transform.scale(subject.image, self.scaled)
 				subject.rect = subject.image.get_rect()
 				subject.rect.x = x
