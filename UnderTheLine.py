@@ -2437,17 +2437,25 @@ class Foe(Sprite):
     def __init__(self, loom=Yarn, x=0, y=0):
         super().__init__()
         self.loom = loom
+        self.up = False
+        self.motion = [0,0]
+        self.down_vel = 0
+        self.in_air = False
         self.screen = self.loom.screen
-        self.image = pygame.image.load(r("See_Through.png")).convert_alpha()
+        self.image = pygame.image.load(r("Enemy1.png")).convert_alpha()
         self.image = pygame.transform.scale(self.image, (32,32))
+        self.leftward = pygame.transform.flip(self.image, True, False)
+        self.rightward = self.image
         self.rect = self.image.get_rect()
         self.right = False
         self.left = True
         self.life = 20
         self.rect.x = x
         self.rect.y = y
+        self.listerine()
     
     def update(self):
+        self.motion = [0,0]
         if self.loom.times % random.randint(20,25) == 0:
             if self.rect.centerx < self.loom.player.rect.centerx:
                 self.right = True
@@ -2455,29 +2463,70 @@ class Foe(Sprite):
             else:
                 self.left = True
                 self.right = False
-        if pygame.sprite.groupcollide(self.loom.evils, self.loom.can_update, False, False):
+        self.down_vel += self.loom.gravity
+        if self.rect.y > self.loom.player.rect.y and self.in_air == False and self.loom.times % random.randint(1,30) == 0:
+            self.up = True
+        if self.loom.player.rect.x > self.rect.x - 640 and self.loom.player.rect.x < self.rect.x + 640:
+            self.motions()
+        self.rect.x += self.motion[0]
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
             if self.left:
                 self.left = False
                 self.right = True
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.x += 1
+                self.rect.x += 1
             elif self.right:
                 self.right = False
                 self.left = True
-        if self.left:
-            self.rect.x -= 2
-        elif self.right:
-            self.rect.x += 2
-        try:
-            if self.loom.times % 2 == 0:
-                # pyautogui.press("up")
-                pass
-        except pyautogui.FailSafeException:
-            pass
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.x -= 1
+                self.rect.x -= 1
+        self.rect.y += self.down_vel
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+            if self.down_vel < 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y += 1
+                self.rect.y += 1
+            elif self.down_vel > 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y -= 1
+                self.in_air = False
+            self.down_vel = 0
+        else:
+            self.in_air = True  
+        self.image = self.lost[round((self.loom.times / 8) % 7)]
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
         if self.life < 1:
             self.kill()
         self.screen.blit(self.image, scroll_block)
+
+    def motions(self):
+        if self.left:
+            self.motion[0] -= 2
+            # self.image = self.leftward
+        elif self.right:
+            self.motion[0] += 2
+            # self.image = self.rightward
+        if self.up:
+            self.down_vel = -18
+            self.up = False
+    
+    def listerine(self):
+        self.lost = []
+        rect = pygame.rect.Rect(0,0,32,32)
+        imoge = pygame.image.load(r("EnemySheet.png"))
+        for cat in range(imoge.get_height()//32):
+            for fish in range(imoge.get_width()//32):
+                rect.x = fish*32
+                rect.y = cat*32
+                sub = imoge.subsurface(rect)
+                new_image = pygame.Surface((32,32))
+                new_image.blit(sub, (0,0))
+                new_image.set_colorkey((0,0,0))
+                self.lost.append(new_image)
 
 class Toil(Sprite):
     """Tries to make a tile."""
