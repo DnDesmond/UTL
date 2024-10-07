@@ -2467,6 +2467,10 @@ class Foe(Sprite):
         self.down_vel += self.loom.gravity
         if self.rect.y > self.loom.player.rect.y and self.in_air == False and self.loom.times % random.randint(1,30) == 0:
             self.up = True
+            for tile in self.loom.can_update:
+                if tile.rect.collidepoint(self.rect.x, self.rect.y-50) or tile.rect.collidepoint(self.rect.right, self.rect.y-50):
+                    self.up = False
+                    break
         if self.loom.player.rect.x > self.rect.x - 640 and self.loom.player.rect.x < self.rect.x + 640:
             self.motions()
         self.rect.x += self.motion[0]
@@ -2496,7 +2500,7 @@ class Foe(Sprite):
             self.down_vel = 0
         else:
             self.in_air = True  
-        self.image = self.lost[round((self.loom.times / 8) % 7)]
+        self.image = self.lost[round((self.loom.times / 8) % 6)]
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
