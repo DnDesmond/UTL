@@ -2444,6 +2444,7 @@ class Foe(Sprite):
         self.screen = self.loom.screen
         self.image = pygame.image.load(r("Enemy1.png")).convert_alpha()
         self.image = pygame.transform.scale(self.image, (32,32))
+        self.blit_image = self.image
         self.leftward = pygame.transform.flip(self.image, True, False)
         self.rightward = self.image
         self.rect = self.image.get_rect()
@@ -2499,6 +2500,10 @@ class Foe(Sprite):
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
+        if self.motion[0] < 0:
+            self.blit_image = pygame.transform.flip(self.image, True, False)
+        else:
+            self.blit_image = self.image
         if self.life < 1:
             self.kill()
         self.screen.blit(self.image, scroll_block)
