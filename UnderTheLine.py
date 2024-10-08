@@ -1837,6 +1837,7 @@ class Yarn:
         self.attack = False
         self.clickage = False
         self.x_pressed = False
+        self.Φ = False
         self.traline = False
         self.jump_hold = False
         self.stick = False
@@ -1998,7 +1999,7 @@ class Yarn:
             player.update()
         if self.attack:
             self.swipe()
-            if self.swipe_time > 10:
+            if self.swipe_time > 5:
                 self.attack = False
                 self.swipe_time = 0
                 self.sword_swipe.x = 0
@@ -2169,9 +2170,12 @@ class Yarn:
                         self.x_pressed = False
                         if self.player.down_vel < -2 and self.gravity > 0:
                             self.player.down_vel -= self.player.down_vel+2
-                    if self.joystick.get_button(2) and self.swipe_time > 30:
+                    if self.joystick.get_button(2) and self.swipe_time > 15 and not self.Φ:
                         self.attack = True
                         self.swipe_time = 0
+                        self.Φ = True
+                    elif not self.joystick.get_button(2):
+                        self.Φ = False
                     if self.joystick.get_button(6) and not self.stick:
                         if self.paused:
                             self.paused = False
@@ -2510,7 +2514,7 @@ class Foe(Sprite):
             self.blit_image = self.image
         if self.life < 1:
             self.kill()
-        self.screen.blit(self.image, scroll_block)
+        self.screen.blit(self.blit_image, scroll_block)
 
     def motions(self):
         if self.left:
@@ -2520,7 +2524,7 @@ class Foe(Sprite):
             self.motion[0] += 2
             # self.image = self.rightward
         if self.up:
-            self.down_vel = -18
+            # self.down_vel = -18
             self.up = False
     
     def listerine(self):
