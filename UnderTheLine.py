@@ -1509,7 +1509,6 @@ class Bal(Sprite):
             self.rect = self.bouncer.player.screct
     
     def update(self, opacity=1):
-        # self.screen.blit(self.image, self.rect)
         if not self.loom:
             if self.spins:
                 self.image = self.bouncer.mball.rotated_image.convert_alpha()
@@ -1966,6 +1965,8 @@ class Yarn:
             self.screen.blit(brick.image, scroll_block)
         for wall in self.walls:
             wall.update()
+        for tractor in self.toil.tractors:
+            tractor.update()
         scroll_block = self.toil.map_surface.get_rect().copy()
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
@@ -2078,9 +2079,9 @@ class Yarn:
     
     def swipe(self):
         if self.player.dir:
-            self.sword_swipe.centerx = self.player.rect.right
+            self.sword_swipe.left = self.player.rect.right-10
         elif not self.player.dir:
-            self.sword_swipe.centerx = self.player.rect.left
+            self.sword_swipe.right = self.player.rect.left+10
         else:
             self.sword_swipe.centerx = self.player.rect.right
         self.sword_swipe.centery = self.player.rect.centery
@@ -2549,12 +2550,14 @@ class Toil(Sprite):
         super().__init__()
         self.loom = loom
         self.imig = image
+        self.type = image
         self.image = pygame.image.load(r(f"{image}"))
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x,y
     
     def draw(self, surface, num=0):
-        self.image.fill((0, (num%100)+1, (num%100)+1))
+        if not self.type == "Half_Blue.png":
+            self.image.fill((0, (num%100)+1, (num%100)+1))
         surface.blit(self.image, (self.rect.x, self.rect.y))
         self.image = pygame.image.load(r(f"{self.imig}"))
         surface.blit(self.image, (self.rect.x, self.rect.y))
@@ -2570,6 +2573,9 @@ class Toim_Chart:
             tile.kill()
         for tile in self.loom.walls:
             tile.kill()
+        self.tractors = []
+        for tractor in self.tractors:
+            tractor.kill()
         self.start_x = 0
         self.start_y = 0
         self.lstart_x = 0
@@ -2588,7 +2594,6 @@ class Toim_Chart:
         self.rdgates = pygame.sprite.Group()
         self.gates = pygame.sprite.Group()
         self.evils = pygame.sprite.Group()
-        self.tractors = []
         self.tiles = self.load_tiles(filename)
         self.tile_dict = {}
         for tile in self.tiles:
@@ -2597,8 +2602,6 @@ class Toim_Chart:
         self.map_surface.set_colorkey((0,0,0))
         for toil in self.tiles:
             toil.draw(self.map_surface, self.tiles.index(toil))
-        for beam in self.tractors:
-            beam.draw(self.map_surface, self.tractors.index(beam))
         self.tile = pygame.sprite.Group()
         self.beams = pygame.sprite.Group()
         for cat in self.tiles:
@@ -2672,8 +2675,8 @@ class Toim_Chart:
                     new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
                     self.rugates.add(new_tile)
                 elif tile == '19':
-                    new_tile = Toil('Half_Blue.png', x * self.tile_size, y * self.tile_size)
-                    self.tractors.append(new_tile)
+                    tractor = Tractor(96, (len(map))*32, x*self.tile_size, y*self.tile_size, self.loom)#41
+                    self.tractors.append(tractor)
                 elif tile == '20':
                     foe = Foe(self.loom, x*self.tile_size, y*self.tile_size)
                     self.loom.evils.add(foe)
@@ -2688,7 +2691,6 @@ class Toim_Chart:
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return tiles
-
 
 class Wall(Sprite):
     """Creates a breakable wall."""
@@ -2733,6 +2735,28 @@ class Wall(Sprite):
         scrill_block = self.spare_rect.copy()
         scrill_block.x -= self.loom.player.scroll[0]
         scrill_block.y -= self.loom.player.scroll[1]
+        self.screen.blit(self.image, scroll_block)
+
+class Tractor(Sprite):
+    """Creates the tractor beams."""
+
+    def __init__(self, width, height, x, y, loom=Yarn):
+        super().__init__()
+        self.loom = loom
+        self.screen = self.loom.screen
+        self.screen_rect = self.screen.get_rect()
+        self.image = pygame.image.load(r("Half_Blue.png"))
+        self.image = pygame.transform.scale(self.image, (width,height)).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+    
+    def update(self):
+        scroll_block = self.rect.copy()
+        scroll_block.x -= self.loom.player.scroll[0]
+        scroll_block.y -= self.loom.player.scroll[1]
+        self.screen.blit(self.image, scroll_block)
+        self.screen.blit(self.image, scroll_block)
         self.screen.blit(self.image, scroll_block)
 
 if __name__ == "__main__":
