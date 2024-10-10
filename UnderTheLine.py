@@ -16,16 +16,18 @@ from Breakers import *
 if __name__ == "__main__":
     from Brick_coordinates import *
 
+pygame.init()
+screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+
 class Bouncing:
     """Attempts to make one of those bouncing square in a square things."""
 
     def __init__(self):
         """Initialise what needs it"""
-        pygame.init()
         pygame.joystick.init()
         self.clock = pygame.time.Clock()
 
-        self.screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+        self.screen = screen
         self.screen_width = self.screen.get_rect().width
         self.screen_height = self.screen.get_rect().height
         self.screen_rect = self.screen.get_rect()
@@ -1842,12 +1844,12 @@ class Yarn:
         self.stick = False
         self.paused = False
         self.timer = '0'
-        pygame.init()
+        self.hides = []
         self.clock = pygame.time.Clock()
-        pygame.display.quit()
         self.current_level = [0,0]
-
-        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        self.screen = screen
+        self.screen.blit(pygame.transform.scale(pygame.image.load(r("MonsterBrickKind.png")), (1280,720)), self.screen.get_rect())
+        pygame.display.flip()
         self.screen_width = self.screen.get_rect().width
         self.screen_height = self.screen.get_rect().height
         self.screen_rect = self.screen.get_rect()
@@ -1888,7 +1890,7 @@ class Yarn:
         self.current_level[0], self.current_level[1] = int(home_1), int(home_2)
         self.walls = pygame.sprite.Group()
         try:
-            self.toil = Toim_Chart(r(f"Chared{home_1}_{home_2}.csv"), self)
+            self.toil = Toim_Chart(r(f"Chared{home_1}_{home_2}.csv"), loom=self, started=False)
         except FileNotFoundError:
             self.toil = Toim_Chart(f'UTL/UTL/Chared0_0.csv', self)
         self.level.close()
@@ -1971,6 +1973,8 @@ class Yarn:
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
         self.screen.blit(self.toil.map_surface, scroll_block)
+        for tile in self.hides:
+            tile.update()
         for tile in self.evils:
             if self.sword_swipe.colliderect(tile.rect):
                 tile.life -= 5
@@ -2005,6 +2009,7 @@ class Yarn:
                 self.swipe_time = 0
                 self.sword_swipe.x = 0
                 self.sword_swipe.y = 0
+        self.unhide()
         self.swipe_time += 1
         if self.traline:
             bal = Bal(self, loom=True)
@@ -2249,7 +2254,14 @@ class Yarn:
         self.counter = myFont.render(self.timer, False, self.colourWHITE, (0,0,0))
         self.counterect = self.counter.get_rect()
         self.screen.blit(self.counter, (0,0))
-                
+
+    def unhide(self):
+        for boo in self.hides:
+            if self.player.rect.colliderect(boo):
+                for boo in self.hides:
+                    boo.kill()
+                self.hides = []
+                break
 
 class Player(Sprite):
     """Makes the player for game 2"""
@@ -2545,30 +2557,42 @@ class Foe(Sprite):
 class Toil(Sprite):
     """Tries to make a tile."""
 
-    def __init__(self, image, x, y, loom=Yarn):
+    def __init__(self, image, x, y, dex, ful, loom=Yarn, started=True):
         """Initialises everything"""
         super().__init__()
         self.loom = loom
-        self.imig = image
         self.type = image
         self.image = pygame.image.load(r(f"{image}"))
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x,y
+        if not started:
+            percente = dex/ful
+            percente = percente*100
+            screen.fill((0,percente*2,percente))
+            screen.blit(pygame.transform.scale(pygame.image.load(r("MonsterBrickKindLoad.png")), (1280,720)).convert_alpha(), screen.get_rect())
+            pygame.display.flip()
     
     def draw(self, surface, num=0):
         if not self.type == "Half_Blue.png":
             self.image.fill((0, (num%100)+1, (num%100)+1))
+        self.image.blit(pygame.image.load(r(f"{self.type}")), self.image.get_rect())
+        self.image = self.image
         surface.blit(self.image, (self.rect.x, self.rect.y))
-        self.image = pygame.image.load(r(f"{self.imig}"))
-        surface.blit(self.image, (self.rect.x, self.rect.y))
+ 
+    def update(self):
+        scroll_block = self.rect.copy()
+        scroll_block.x -= self.loom.player.scroll[0]
+        scroll_block.y -= self.loom.player.scroll[1]
+        self.loom.screen.blit(self.image, scroll_block)
 
 class Toim_Chart:
     """Makes the tile map"""
 
-    def __init__(self, filename, loom=Yarn):
+    def __init__(self, filename, loom=Yarn, started=True):
         """Initialises everything"""
         self.tile_size = 64/game_scale
         self.loom = loom
+        self.started = started
         for tile in self.loom.evils:
             tile.kill()
         for tile in self.loom.walls:
@@ -2631,7 +2655,7 @@ class Toim_Chart:
 
 
     def load_tiles(self, filename):
-        tiles = []
+        self.tiles = []
         map = self.read_csv(filename)
         x_count = 0
         y_count = 0
@@ -2640,21 +2664,21 @@ class Toim_Chart:
             x = 0
             for tile in row:
                 if tile == '0':
-                    tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size))
+                    self.tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started))
                 elif tile == '2':
                     self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
                     x_count, y_count = x * self.tile_size, y * self.tile_size
                 elif tile == '5':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
                     self.ldgates.add(new_tile)
                 elif tile == '6':
-                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size)
+                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
                     self.rgates.add(new_tile)
                 elif tile == '7':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
                     self.lugates.add(new_tile)
                 elif tile == '10':
-                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size)
+                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
                     self.lgates.add(new_tile)
                 elif tile == '11':
                     self.lstart_x, self.lstart_y = x * self.tile_size, y * self.tile_size
@@ -2669,10 +2693,10 @@ class Toim_Chart:
                 elif tile == '16':
                     self.rdstart_x, self.rdstart_y = x * self.tile_size, y * self.tile_size
                 elif tile == '17':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
                     self.rdgates.add(new_tile)
                 elif tile == '18':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
                     self.rugates.add(new_tile)
                 elif tile == '19':
                     tractor = Tractor(96, (len(map))*32, x*self.tile_size, y*self.tile_size, self.loom)#41
@@ -2687,10 +2711,12 @@ class Toim_Chart:
                 elif tile == '22':
                     wall = Wall(x*self.tile_size, y *self.tile_size, self.loom, True)
                     self.loom.walls.add(wall)
+                elif tile == '23':
+                    self.loom.hides.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size, loom=self.loom, dex=y, ful=len(map)+1, started=self.started))
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
-        return tiles
+        return self.tiles
 
 class Wall(Sprite):
     """Creates a breakable wall."""
