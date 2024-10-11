@@ -1864,12 +1864,14 @@ class Yarn:
         else:
             self.joystick = False
         self.sword_swipe = pygame.rect.Rect(0, 0, 50, 35)
+        self.sword = self.listerine("Sword_Sheet.png", 50, 50)
         self.unpause = Button(self, 50, 50, self.screen_rect.centerx-25, self.screen_rect.centery-25, "Unpause")
         self.swipe_time = 0
 
         self.player = Player(self)
         self.parab()
         self.evils = pygame.sprite.Group()
+        self.can_hit = pygame.sprite.Group()
         try:
             self.level = open("LEVEL.txt", 'r')
             home_1 = self.level.readline(-4).rstrip("\n")
@@ -1975,12 +1977,11 @@ class Yarn:
         self.screen.blit(self.toil.map_surface, scroll_block)
         for tile in self.hides:
             tile.update()
-        for tile in self.evils:
+        for tile in self.can_hit:
             if self.sword_swipe.colliderect(tile.rect):
+                self.can_hit.remove(tile)
                 tile.life -= 5
-                self.sword_swipe.x = 0
-                self.sword_swipe.y = 0
-                self.attack = False
+                # self.attack = False
                 if tile.rect.x > self.player.rect.x:
                     tile.rect.x += 50
                 elif tile.rect.x < self.player.rect.x:
@@ -2093,7 +2094,11 @@ class Yarn:
         scroll_block = self.sword_swipe.copy()
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
-        pygame.draw.rect(self.screen, (90,90,90), scroll_block, 2)
+        image = self.sword[self.swipe_time%len(self.sword)]
+        print(self.swipe_time%len(self.sword))
+        if not self.player.dir:
+            image = pygame.transform.flip(image, True, False)
+        self.screen.blit(image, scroll_block)
     
     def check_events(self):
         for event in pygame.event.get():
@@ -2178,6 +2183,7 @@ class Yarn:
                             self.player.down_vel -= self.player.down_vel+2
                     if self.joystick.get_button(2) and self.swipe_time > 15 and not self.Φ:
                         self.attack = True
+                        self.can_hit = self.evils.copy()
                         self.swipe_time = 0
                         self.Φ = True
                     elif not self.joystick.get_button(2):
@@ -2211,8 +2217,7 @@ class Yarn:
                 if pygame.mouse.get_pressed()[0]:
                     if self.unpause.rect.collidepoint(pygame.mouse.get_pos()):
                         self.paused = False
-
-        if self.player.up_timer > 10:
+        if self.player.up_timer > 7:
             self.jump_hold = False 
         if self.jump_hold: 
             if not self.player.in_air:
@@ -2232,18 +2237,20 @@ class Yarn:
             else:
                 self.bricks.add(platform)
     
-    def listerine(self):
-        self.lost = []
-        rect = pygame.rect.Rect(0,0,32,32)
-        imoge = pygame.image.load(r("See_Through.png"))
-        for cat in range(imoge.get_height()//32):
-            for fish in range(imoge.get_width()//32):
-                rect.x = fish*32
-                rect.y = cat*32
+    def listerine(self,image="See_Through.png", scalx=32, scaly=32):
+        lost = []
+        rect = pygame.rect.Rect(0,0,scalx,scaly)
+        imoge = pygame.image.load(r(image))
+        for cat in range(imoge.get_height()//scaly):
+            for fish in range(imoge.get_width()//scalx):
+                rect.x = fish*scalx
+                rect.y = cat*scaly
                 sub = imoge.subsurface(rect)
-                new_image = pygame.Surface((32,32))
+                new_image = pygame.Surface((scalx,scaly))
                 new_image.blit(sub, (0,0))
-                self.lost.append(new_image)
+                new_image.set_colorkey((0,0,0))
+                lost.append(new_image)
+        return(lost)
     
             
     def frame_count(self):
