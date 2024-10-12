@@ -1830,7 +1830,7 @@ class Yarn:
         self.bouncer.frame_rate = 0
         self.down_timer = 0
         self.leap = 0
-        self.gravity = 1
+        self.gravity = 0.5
         self.base_gravity = self.gravity
         self.brick_width = 64
         self.brick_height = 64
