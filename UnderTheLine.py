@@ -1834,6 +1834,7 @@ class Yarn:
         self.base_gravity = self.gravity
         self.brick_width = 64
         self.brick_height = 64
+        self.apparence = 1000
         self.quick_fall = False
         self.attack = False
         self.clickage = False
@@ -1843,6 +1844,7 @@ class Yarn:
         self.jump_hold = False
         self.stick = False
         self.paused = False
+        self.fade = False
         self.timer = '0'
         self.hides = []
         self.clock = pygame.time.Clock()
@@ -1949,6 +1951,15 @@ class Yarn:
                 pygame.display.flip()
             self.check_events()
             self.clock.tick(60)
+    
+    def blit_alpha(self, target, source, location, opacity):
+        x = location[0]
+        y = location[1]
+        temp = pygame.Surface((source.get_width(), source.get_height())).convert()
+        temp.blit(target, (-x, -y))
+        temp.blit(source, (0, 0))
+        temp.set_alpha(opacity)        
+        target.blit(temp, location)
         
     def update_screen(self):
         self.screen.fill((0, 60, 0))
@@ -1976,7 +1987,8 @@ class Yarn:
         scroll_block.y -= self.player.scroll[1]
         self.screen.blit(self.toil.map_surface, scroll_block)
         for tile in self.hides:
-            tile.update()
+            tile.image.fill((0,3,0))
+            tile.update(self.apparence)
         for tile in self.can_hit:
             if self.sword_swipe.colliderect(tile.rect):
                 self.can_hit.remove(tile)
@@ -2011,6 +2023,8 @@ class Yarn:
                 self.sword_swipe.x = 0
                 self.sword_swipe.y = 0
         self.unhide()
+        if self.fade:
+            self.apparence -= 20
         self.swipe_time += 1
         if self.traline:
             bal = Bal(self, loom=True)
@@ -2180,7 +2194,7 @@ class Yarn:
                     if not self.joystick.get_button(0) and self.x_pressed != self.joystick.get_button(0):
                         self.x_pressed = False
                         if self.player.down_vel < -2 and self.gravity > 0:
-                            self.player.down_vel -= self.player.down_vel+2
+                            self.player.down_vel = 0
                     if self.joystick.get_button(2) and self.swipe_time > 15 and not self.Φ:
                         self.attack = True
                         self.can_hit = self.evils.copy()
@@ -2265,9 +2279,7 @@ class Yarn:
     def unhide(self):
         for boo in self.hides:
             if self.player.rect.colliderect(boo):
-                for boo in self.hides:
-                    boo.kill()
-                self.hides = []
+                self.fade = True
                 break
 
 class Player(Sprite):
@@ -2284,6 +2296,7 @@ class Player(Sprite):
         self.jump_x = 0
         self.collie = 0
         self.air_time = 0
+        self.max_speed = 6
         self.gravitate = True
         self.in_air = False
         self.recenter = False
@@ -2417,16 +2430,16 @@ class Player(Sprite):
         """Does the calculation for motion"""
         if not self.loom.joystick:
             if self.right:
-                self.movement[0] += 7
+                self.movement[0] += self.max_speed
             if self.left:
-                self.movement[0] -= 7
+                self.movement[0] -= self.max_speed
         else:
             if self.right:
-                self.movement[0] += round((self.loom.joystick.get_axis(0))*7)
+                self.movement[0] += round((self.loom.joystick.get_axis(0))*self.max_speed)
             elif self.left:
-                self.movement[0] += round((self.loom.joystick.get_axis(0))*7)
+                self.movement[0] += round((self.loom.joystick.get_axis(0))*self.max_speed)
         if self.up:
-            self.down_vel = -18
+            self.down_vel = -13
             self.up = False
 
     def do_motion(self):
@@ -2586,11 +2599,20 @@ class Toil(Sprite):
         self.image = self.image
         surface.blit(self.image, (self.rect.x, self.rect.y))
  
-    def update(self):
+    def update(self, opacity=100):
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
-        self.loom.screen.blit(self.image, scroll_block)
+        self.blit_alpha(self.loom.screen, self.image, scroll_block, opacity)
+        
+    def blit_alpha(self, target, source, location, opacity):
+        x = location[0]
+        y = location[1]
+        temp = pygame.Surface((source.get_width(), source.get_height())).convert()
+        temp.blit(target, (-x, -y))
+        temp.blit(source, (0, 0))
+        temp.set_alpha(opacity)        
+        target.blit(temp, location)
 
 class Toim_Chart:
     """Makes the tile map"""
@@ -2607,6 +2629,9 @@ class Toim_Chart:
         self.tractors = []
         for tractor in self.tractors:
             tractor.kill()
+        for hide in self.loom.hides:
+            hide.kill()
+            self.loom.hides = []
         self.start_x = 0
         self.start_y = 0
         self.lstart_x = 0
