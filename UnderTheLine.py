@@ -6,6 +6,7 @@ import random
 import time
 import ctypes
 import csv
+import pickle
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
 import pyautogui
 pyautogui.PAUSE = 0
@@ -1845,6 +1846,9 @@ class Yarn:
         self.stick = False
         self.paused = False
         self.fade = False
+        file = open(r("Relevents.pickle"), 'rb')
+        self.full_run = pickle.load(file)
+        print(self.full_run)
         self.timer = '0'
         self.hides = []
         self.clock = pygame.time.Clock()
@@ -1940,6 +1944,13 @@ class Yarn:
         self.player.rect.y, self.player.rect.x = home_dir[1], home_dir[0]
         self.borders()
         self.listerine()
+        self.kings = self.hides.copy()
+        cat = 0
+        self.hidden_areas = []
+        for fresh in self.kings:
+            setattr(self, f"hidden_area{cat}", fresh.spread(True))
+            self.hidden_areas.append(getattr(self, f"hidden_area{cat}"))
+            cat += 1
         self.run_game()
     
     def run_game(self):
@@ -1987,8 +1998,7 @@ class Yarn:
         scroll_block.y -= self.player.scroll[1]
         self.screen.blit(self.toil.map_surface, scroll_block)
         for tile in self.hides:
-            tile.image.fill((0,3,0))
-            tile.update(self.apparence)
+            tile.update()
         for tile in self.can_hit:
             if self.sword_swipe.colliderect(tile.rect):
                 self.can_hit.remove(tile)
@@ -2028,9 +2038,14 @@ class Yarn:
         self.swipe_time += 1
         if self.traline:
             bal = Bal(self, loom=True)
+            bal.rect.x = self.player.rect.x
+            bal.rect.y = self.player.rect.y
             self.trails.add(bal)
             for bal in self.trails:
-                bal.update()
+                scroll_block = bal.rect.copy()
+                scroll_block.x -= self.player.scroll[0]
+                scroll_block.y -= self.player.scroll[1]
+                self.screen.blit(bal.image, scroll_block)
         self.times += 1
         self.leap += 0.25
         self.frame_count()
@@ -2068,6 +2083,13 @@ class Yarn:
         self.toil.start_y = getattr(self.toil, f"{dir}start_y")
         self.player.update(dir)
         self.player.recenters(dir)
+        self.kings = self.hides.copy()
+        cat = 0
+        self.hidden_areas = []
+        for fresh in self.kings:
+            setattr(self, f"hidden_area{cat}", fresh.spread(True))
+            self.hidden_areas.append(getattr(self, f"hidden_area{cat}"))
+            cat += 1
         self.borders()
     
     def borders(self):
@@ -2109,7 +2131,6 @@ class Yarn:
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
         image = self.sword[self.swipe_time%len(self.sword)]
-        print(self.swipe_time%len(self.sword))
         if not self.player.dir:
             image = pygame.transform.flip(image, True, False)
         self.screen.blit(image, scroll_block)
@@ -2127,8 +2148,12 @@ class Yarn:
                         self.level.write(f"{self.current_level[1]}\n")
                         self.level.write(f"{int(self.toil.start_x)}\n{int(self.toil.start_y)}")
                         self.level.close()
+                        with open(r("Relevents.pickle"), 'wb') as file:
+                            pickle.dump(self.full_run, file)
                         pygame.quit()
                         sys.exit()
+                    if event.key == pygame.K_j:
+                        self.foe_reset()
                     if event.key == pygame.K_UP or event.key == pygame.K_w:
                         if self.player.air_time < 5:
                             self.parab()
@@ -2145,13 +2170,18 @@ class Yarn:
                         self.player.left = True
                     if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                         self.player.right = True
-                    if event.key == pygame.K_SPACE and self.swipe_time > 30:
+                    if event.key == pygame.K_SPACE and self.swipe_time > 15 and not self.Φ:
                         self.attack = True
+                        self.can_hit = self.evils.copy()
                         self.swipe_time = 0
+                        self.Φ = True
                     if event.key == pygame.K_r:
                         self.player.recenters()
                     if event.key == pygame.K_t:
                         self.traline = True
+                        self.trails = pygame.sprite.Group()
+                    if event.key == pygame.K_y:
+                        self.traline = False
                         self.trails = pygame.sprite.Group()
                     if event.key == pygame.K_n:
                         self.red = open("Start_clause.txt.txt", 'w')
@@ -2170,6 +2200,11 @@ class Yarn:
                         self.player.right = False
                     if event.key == pygame.K_DOWN:
                         self.player.gravitate = False
+                    if event.key == pygame.K_UP:
+                        if self.player.down_vel < -2 and self.gravity > 0:
+                            self.player.down_vel = 0
+                    if event.key == pygame.K_SPACE:
+                        self.Φ = False
                 elif self.joystick:
                     if self.joystick.get_axis(0) < -0.1:
                         self.player.left = True
@@ -2277,10 +2312,19 @@ class Yarn:
         self.screen.blit(self.counter, (0,0))
 
     def unhide(self):
-        for boo in self.hides:
-            if self.player.rect.colliderect(boo):
-                self.fade = True
-                break
+        if len(self.hidden_areas) > 0:
+            for area in self.hidden_areas:
+                for boo in area:
+                    if self.player.rect.colliderect(boo):
+                        for boo in area:
+                            boo.fading = True
+    
+    def foe_reset(self):
+        for key in self.full_run.keys():
+            if "foe" in key:
+                self.full_run[key] = True
+                print(key)
+
 
 class Player(Sprite):
     """Makes the player for game 2"""
@@ -2468,32 +2512,99 @@ class Player(Sprite):
             # self.image = self.imag
         self.collie = len(collide.keys())
 
-class Foe(Sprite):
-    """Attempts to make a basic foe"""
+class Base_Foe(Sprite):
+    """Attempts to create a basic template for an enemy"""
 
-    def __init__(self, loom=Yarn, x=0, y=0):
+    def __init__(self, loom=Yarn, x=0, y=0, level_point=0, width=32, height=32, image="Enemy1.png"):
         super().__init__()
         self.loom = loom
+        self.level_point = level_point
         self.up = False
         self.motion = [0,0]
         self.down_vel = 0
         self.in_air = False
         self.screen = self.loom.screen
-        self.image = pygame.image.load(r("Enemy1.png")).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (32,32))
+        self.image = pygame.image.load(r(image)).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (width,height))
         self.blit_image = self.image
-        self.leftward = pygame.transform.flip(self.image, True, False)
-        self.rightward = self.image
         self.rect = self.image.get_rect()
         self.right = False
         self.left = True
+        self.horizontal = 2
+        self.can_jump = False
+        self.jump_height = 18
         self.life = 20
         self.rect.x = x
         self.rect.y = y
-        self.listerine()
-    
-    def update(self):
+
+    def basics(self):
         self.motion = [0,0]
+        self.down_vel += self.loom.gravity
+        if self.loom.player.rect.x > self.rect.x - 640 and self.loom.player.rect.x < self.rect.x + 640:
+            self.motions()
+        self.x_move()
+        if self.can_jump:
+            self.y_move_up()
+        else:
+            self.y_move()
+        if self.life < 1:
+            self.kill()
+            self.loom.full_run[self.level_point] = False
+        self.show()
+
+    def motions(self):
+        if self.left:
+            self.motion[0] -= 2
+        elif self.right:
+            self.motion[0] += 2
+        if self.up:
+            if self.can_jump:
+                self.down_vel = -self.jump_height
+            self.up = False
+    
+    def show(self):
+        scroll_block = self.rect.copy()
+        scroll_block.x -= self.loom.player.scroll[0]
+        scroll_block.y -= self.loom.player.scroll[1]
+        if self.motion[0] < 0:
+            self.blit_image = pygame.transform.flip(self.image, True, False)
+        else:
+            self.blit_image = self.image
+        self.screen.blit(self.blit_image, scroll_block)
+
+    
+    def y_move_up(self):
+        if self.rect.top > self.loom.player.rect.bottom and self.in_air == False and self.loom.times % random.randint(1,30) == 0:
+            self.up = True
+            for tile in self.loom.can_update:
+                if tile.rect.collidepoint(self.rect.x, self.rect.y-50) or tile.rect.collidepoint(self.rect.right, self.rect.y-50):
+                    self.up = False
+                    break
+        self.rect.y += self.down_vel
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+            if self.down_vel < 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y += 1
+                self.rect.y += 1
+            elif self.down_vel > 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y -= 1
+                self.in_air = False
+            self.down_vel = 0
+        else:
+            self.in_air = True
+    
+    def y_move(self):
+        self.rect.y += self.down_vel
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+            while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                self.rect.y -= 1
+            self.in_air = False
+            self.down_vel = 0
+        else:
+            self.in_air = True
+    
+    def x_move(self):
         if self.loom.times % random.randint(20,25) == 0:
             if self.rect.centerx < self.loom.player.rect.centerx:
                 self.right = True
@@ -2501,15 +2612,6 @@ class Foe(Sprite):
             else:
                 self.left = True
                 self.right = False
-        self.down_vel += self.loom.gravity
-        if self.rect.y > self.loom.player.rect.y and self.in_air == False and self.loom.times % random.randint(1,30) == 0:
-            self.up = True
-            for tile in self.loom.can_update:
-                if tile.rect.collidepoint(self.rect.x, self.rect.y-50) or tile.rect.collidepoint(self.rect.right, self.rect.y-50):
-                    self.up = False
-                    break
-        if self.loom.player.rect.x > self.rect.x - 640 and self.loom.player.rect.x < self.rect.x + 640:
-            self.motions()
         self.rect.x += self.motion[0]
         if pygame.sprite.spritecollide(self, self.loom.can_update, False):
             if self.left:
@@ -2524,55 +2626,21 @@ class Foe(Sprite):
                 while pygame.sprite.spritecollide(self, self.loom.can_update, False):
                     self.rect.x -= 1
                 self.rect.x -= 1
-        self.rect.y += self.down_vel
-        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
-            if self.down_vel < 0:
-                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                    self.rect.y += 1
-                self.rect.y += 1
-            elif self.down_vel > 0:
-                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                    self.rect.y -= 1
-                self.in_air = False
-            self.down_vel = 0
-        else:
-            self.in_air = True  
-        self.image = self.lost[round((self.loom.times / 8) % 6)]
-        scroll_block = self.rect.copy()
-        scroll_block.x -= self.loom.player.scroll[0]
-        scroll_block.y -= self.loom.player.scroll[1]
-        if self.motion[0] < 0:
-            self.blit_image = pygame.transform.flip(self.image, True, False)
-        else:
-            self.blit_image = self.image
-        if self.life < 1:
-            self.kill()
-        self.screen.blit(self.blit_image, scroll_block)
 
-    def motions(self):
-        if self.left:
-            self.motion[0] -= 2
-            # self.image = self.leftward
-        elif self.right:
-            self.motion[0] += 2
-            # self.image = self.rightward
-        if self.up:
-            # self.down_vel = -18
-            self.up = False
-    
-    def listerine(self):
-        self.lost = []
-        rect = pygame.rect.Rect(0,0,32,32)
-        imoge = pygame.image.load(r("EnemySheet.png"))
-        for cat in range(imoge.get_height()//32):
-            for fish in range(imoge.get_width()//32):
+    def listerine(self, sheet="EnemySheet.png", width=32, height=32):
+        lost = []
+        rect = pygame.rect.Rect(0,0,width,height)
+        imoge = pygame.image.load(r(sheet))
+        for cat in range(imoge.get_height()//height):
+            for fish in range(imoge.get_width()//width):
                 rect.x = fish*32
                 rect.y = cat*32
                 sub = imoge.subsurface(rect)
-                new_image = pygame.Surface((32,32))
+                new_image = pygame.Surface((width,height))
                 new_image.blit(sub, (0,0))
                 new_image.set_colorkey((0,0,0))
-                self.lost.append(new_image)
+                lost.append(new_image)
+        return lost
 
 class Toil(Sprite):
     """Tries to make a tile."""
@@ -2598,12 +2666,6 @@ class Toil(Sprite):
         self.image.blit(pygame.image.load(r(f"{self.type}")), self.image.get_rect())
         self.image = self.image
         surface.blit(self.image, (self.rect.x, self.rect.y))
- 
-    def update(self, opacity=100):
-        scroll_block = self.rect.copy()
-        scroll_block.x -= self.loom.player.scroll[0]
-        scroll_block.y -= self.loom.player.scroll[1]
-        self.blit_alpha(self.loom.screen, self.image, scroll_block, opacity)
         
     def blit_alpha(self, target, source, location, opacity):
         x = location[0]
@@ -2689,13 +2751,19 @@ class Toim_Chart:
     def load_tiles(self, filename):
         self.tiles = []
         map = self.read_csv(filename)
+        foe_count = 1
+        wall_count = 1
+        hide_count = 1
+        self.points = []
         x_count = 0
         y_count = 0
         x,y = 0,0
         for row in map:
             x = 0
             for tile in row:
-                if tile == '0':
+                if tile == '-1':
+                    self.points.append((x*self.tile_size, y*self.tile_size))
+                elif tile == '0':
                     self.tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started))
                 elif tile == '2':
                     self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
@@ -2733,29 +2801,110 @@ class Toim_Chart:
                 elif tile == '19':
                     tractor = Tractor(96, (len(map))*32, x*self.tile_size, y*self.tile_size, self.loom)#41
                     self.tractors.append(tractor)
+                    self.points.append((x*self.tile_size, y*self.tile_size))
                 elif tile == '20':
-                    foe = Foe(self.loom, x*self.tile_size, y*self.tile_size)
-                    self.loom.evils.add(foe)
-                    print(foe)
+                    attimpt = f"foe{self.loom.current_level[0]}_{self.loom.current_level[1]}_{foe_count}"
+                    if attimpt in self.loom.full_run.keys():
+                        if self.loom.full_run[attimpt]:
+                            foe = Smart_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
+                            self.loom.evils.add(foe)
+                    foe_count += 1
                 elif tile == '21':
-                    wall = Wall(x*self.tile_size, y *self.tile_size, self.loom)
-                    self.loom.walls.add(wall)
+                    attimpt = f"wall{self.loom.current_level[0]}_{self.loom.current_level[1]}_{wall_count}"
+                    if attimpt in self.loom.full_run.keys():
+                        if self.loom.full_run[attimpt]:
+                            wall = Wall(x*self.tile_size, y *self.tile_size, self.loom, level_point=attimpt)
+                            self.loom.walls.add(wall)
+                    wall_count += 1
                 elif tile == '22':
-                    wall = Wall(x*self.tile_size, y *self.tile_size, self.loom, True)
-                    self.loom.walls.add(wall)
+                    attimpt = f"wall{self.loom.current_level[0]}_{self.loom.current_level[1]}_{wall_count}"
+                    if attimpt in self.loom.full_run.keys():
+                        if self.loom.full_run[attimpt]:
+                            wall = Wall(x*self.tile_size, y *self.tile_size, self.loom, True, level_point=attimpt)
+                            self.loom.walls.add(wall)
+                    wall_count += 1
                 elif tile == '23':
-                    self.loom.hides.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size, loom=self.loom, dex=y, ful=len(map)+1, started=self.started))
+                    attimpt = f"hide{self.loom.current_level[0]}_{self.loom.current_level[1]}_{hide_count}"
+                    if attimpt in self.loom.full_run.keys():
+                        if self.loom.full_run[attimpt]:
+                            self.loom.hides.append(Hidden(x * self.tile_size, y * self.tile_size, loom=self.loom, dex=y, ful=len(map)+1, started=self.started, level_point=attimpt))
+                    hide_count += 1
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
         return self.tiles
 
+class Hidden(Toil):
+    """Creates a hidden space."""
+
+    def __init__(self, x, y, dex, ful, loom=Yarn, started=True, level_point=0):
+        image = 'See_Through.png'
+        super().__init__(image, x, y, dex, ful, loom, started)
+        self.started = started
+        self.level_point = level_point
+        self.image.fill((0,3,0))
+        self.apparence = 1000
+        self.dex = 10
+        self.fading = False
+        self.loist = []
+    
+    def spread(self, hive_king=False):
+        pupae = 0
+        if hive_king:
+            others = self.loom.hides.copy()
+            hive = []
+        if (self.rect.x-32, self.rect.y) in self.loom.toil.points:
+            pupil = (Hidden(self.rect.x-32, self.rect.y, loom=self.loom, dex=self.dex, ful=10, started=self.started))
+            self.loom.hides.append(pupil)
+            self.loist.append(pupil)
+            self.loom.toil.points.remove((self.rect.x-32, self.rect.y))
+            pupae += 1
+        if (self.rect.x, self.rect.y-32) in self.loom.toil.points:
+            pupal = (Hidden(self.rect.x, self.rect.y-32, loom=self.loom, dex=self.dex, ful=10, started=self.started))
+            self.loom.hides.append(pupal)
+            self.loist.append(pupal)
+            self.loom.toil.points.remove((self.rect.x, self.rect.y-32))
+            pupae += 1
+        if (self.rect.x+32, self.rect.y) in self.loom.toil.points:
+            pupol = (Hidden(self.rect.x+32, self.rect.y, loom=self.loom, dex=self.dex, ful=10, started=self.started))
+            self.loom.hides.append(pupol)
+            self.loist.append(pupol)
+            self.loom.toil.points.remove((self.rect.x+32, self.rect.y))
+            pupae += 1
+        if (self.rect.x, self.rect.y+32) in self.loom.toil.points:
+            pupel = (Hidden(self.rect.x, self.rect.y+32, loom=self.loom, dex=self.dex, ful=10, started=self.started))
+            self.loom.hides.append(pupel)
+            self.loist.append(pupel)
+            self.loom.toil.points.remove((self.rect.x, self.rect.y+32))
+            pupae += 1
+        for grad in self.loist:
+            grad.spread()
+        if hive_king:
+            for new in self.loom.hides:
+                if new not in others:
+                    hive.append(new)
+            hive.append(self)
+        if hive_king:
+            return hive
+
+    def update(self):
+        if self.apparence > 0:
+            if self.fading:
+                self.apparence -= 20
+            scroll_block = self.rect.copy()
+            scroll_block.x -= self.loom.player.scroll[0]
+            scroll_block.y -= self.loom.player.scroll[1]
+            self.blit_alpha(self.loom.screen, self.image, scroll_block, self.apparence)
+        elif self.level_point != 0:
+            self.loom.full_run[self.level_point] = False
+
 class Wall(Sprite):
     """Creates a breakable wall."""
 
-    def __init__(self, x, y, loom=Yarn, rightward=False):
+    def __init__(self, x, y, loom=Yarn, rightward=False, level_point=0):
         super().__init__()
         self.loom = loom
+        self.level_point = level_point
         self.screen = self.loom.screen
         self.image = pygame.image.load(r("RightBreakable.png"))
         if rightward:
@@ -2771,22 +2920,7 @@ class Wall(Sprite):
     def update(self):
         if self.life < 1:
             self.kill()
-            amp = []
-            with open(os.path.join(r(f"Chared{self.loom.current_level[0]}_{self.loom.current_level[1]}.csv"))) as cezve:
-                cezve = csv.reader(cezve, delimiter=',')
-                for row in cezve:
-                    amp.append(list(row))
-                for row in amp:
-                    for num in row:
-                        if num == '21' or num == '22':
-                            row[row.index(num)] = -1
-                        else:
-                            num = num
-                with open(r(f"Chared{self.loom.current_level[0]}_{self.loom.current_level[1]}.csv"), 'w') as csvfile:
-                    spamwriter = csv.writer(csvfile, delimiter=',', lineterminator='\n')
-                    for rowe in amp:
-                        spamwriter.writerow(rowe)
-
+            self.loom.full_run.pop(self.level_point)
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
@@ -2816,6 +2950,95 @@ class Tractor(Sprite):
         self.screen.blit(self.image, scroll_block)
         self.screen.blit(self.image, scroll_block)
         self.screen.blit(self.image, scroll_block)
+
+class Goblin(Base_Foe):
+    """Creates those green chaps"""
+
+    def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
+        super().__init__(loom, x, y, level_point, 32, 32)
+        self.lost = self.listerine("EnemySheet.png", 32, 32)
+    
+    def update(self):
+        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        self.basics()
+
+class Jump_Goblin(Base_Foe):
+    """Creates jumping green chaps"""
+
+    def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
+        super().__init__(loom, x, y, level_point, 32, 32)
+        self.lost = self.listerine("EnemySheet.png", 32, 32)
+        self.can_jump = True
+        self.jump_height = 13
+    
+    def update(self):
+        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        self.basics()
+
+class Smart_Goblin(Base_Foe):
+    """Creates a green chap to jump a gap"""
+
+    def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
+        super().__init__(loom, x, y, level_point, 32, 32)
+        self.lost = self.listerine("EnemySheet.png", 32, 32)
+        self.can_jump = True
+        self.jump_height = 13
+    
+    def update(self):
+        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        self.basics()
+    
+    def y_move_up(self):
+        if self.loom.times%5 == 0:
+            colleftded = False
+            corrighted = False
+            turned = False
+            if not self.in_air:# and not self.up:
+                for tile in self.loom.can_update:
+                    if tile.rect.collidepoint(((self.rect.left),(self.rect.bottom+10))):
+                        colleftded = True
+                    if tile.rect.collidepoint(((self.rect.right),(self.rect.bottom+10))):
+                        corrighted = True
+                if not colleftded:
+                    for tile in self.loom.can_update:
+                        if self.rect.collidepoint(tile.rect.x, tile.rect.y-1):
+                            if [tile.rect.x-96,tile.rect.y] in self.loom.toil.tile_dict.values():
+                                self.up = True
+                                turned = True
+                                break
+                elif not corrighted:
+                    for tile in self.loom.can_update:
+                        if self.rect.collidepoint(tile.rect.right, tile.rect.y-1):
+                            if [tile.rect.x+96,tile.rect.y] in self.loom.toil.tile_dict.values():
+                                self.up = True
+                                turned = True
+                                break
+                if not turned and not corrighted or not turned and not colleftded:
+                    if self.left:
+                        self.left = False
+                        self.right = True
+                    elif self.right:
+                        self.left = True
+                        self.right = False
+            if self.up:
+                for tile in self.loom.can_update:
+                    if tile.rect.collidepoint(self.rect.x, self.rect.y-50) or tile.rect.collidepoint(self.rect.right, self.rect.y-50):
+                        self.up = False
+                        break
+
+        self.rect.y += self.down_vel
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+            if self.down_vel < 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y += 1
+                self.rect.y += 1
+            elif self.down_vel > 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y -= 1
+                self.in_air = False
+            self.down_vel = 0
+        else:
+            self.in_air = True
 
 if __name__ == "__main__":
     bounces = Bouncing()

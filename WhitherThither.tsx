@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.0" name="WhitherThither" tilewidth="32" tileheight="32" tilecount="19" columns="0">
+<tileset version="1.10" tiledversion="1.11.0" name="WhitherThither" tilewidth="32" tileheight="32" tilecount="20" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image source="../../Graphics/Rote.png" width="32" height="32"/>
@@ -57,5 +57,8 @@
  </tile>
  <tile id="23">
   <image source="../../Graphics/See_Through.png" width="32" height="32"/>
+ </tile>
+ <tile id="24">
+  <image source="Graphics/Blocker.png" width="32" height="32"/>
  </tile>
 </tileset>
