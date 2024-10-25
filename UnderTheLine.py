@@ -7,6 +7,7 @@ import time
 import ctypes
 import csv
 import pickle
+from Full_Run import premiere
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
 import pyautogui
 pyautogui.PAUSE = 0
@@ -1846,7 +1847,7 @@ class Yarn:
         self.stick = False
         self.paused = False
         self.fade = False
-        file = open(r("Relevents.pickle"), 'rb')
+        file = open(r("Relevents1.pickle"), 'rb')
         self.full_run = pickle.load(file)
         print(self.full_run)
         self.timer = '0'
@@ -1891,6 +1892,7 @@ class Yarn:
             home_2 = 0
             home_dirp = 32
             home_derp = 576
+            premiere(1)
         home_dir = [0,0]
         home_dir[0] = int(home_dirp)
         home_dir[1] = int(home_derp)
@@ -1974,16 +1976,16 @@ class Yarn:
         
     def update_screen(self):
         self.screen.fill((0, 60, 0))
-        for brick in self.beejees:
-            scroll_block = brick.rect.copy()
-            scroll_block.x -= (self.player.scroll[0]/2)
-            scroll_block.y = 0
-            self.screen.blit(brick.image, scroll_block)
-        for brick in self.beejees:
-            scroll_block = brick.rect.copy()
-            scroll_block.x -= (self.player.scroll[0]/1.5)
-            scroll_block.y = 0
-            self.screen.blit(brick.image, scroll_block)
+        # for brick in self.beejees:
+        #     scroll_block = brick.rect.copy()
+        #     scroll_block.x -= (self.player.scroll[0]/2)
+        #     scroll_block.y = 0
+        #     self.screen.blit(brick.image, scroll_block)
+        # for brick in self.beejees:
+        #     scroll_block = brick.rect.copy()
+        #     scroll_block.x -= (self.player.scroll[0]/1.5)
+        #     scroll_block.y = 0
+        #     self.screen.blit(brick.image, scroll_block)
         for brick in self.bricks:
             scroll_block = brick.rect.copy()
             scroll_block.x -= self.player.scroll[0]
@@ -2148,7 +2150,7 @@ class Yarn:
                         self.level.write(f"{self.current_level[1]}\n")
                         self.level.write(f"{int(self.toil.start_x)}\n{int(self.toil.start_y)}")
                         self.level.close()
-                        with open(r("Relevents.pickle"), 'wb') as file:
+                        with open(r("Relevents1.pickle"), 'wb') as file:
                             pickle.dump(self.full_run, file)
                         pygame.quit()
                         sys.exit()
@@ -2193,6 +2195,9 @@ class Yarn:
                             self.paused = True
                     else:
                         self.stick = False
+                    for cat in range(0,10):
+                        if event.key == getattr(pygame, f"K_{cat}"):
+                            self.player.max_speed = cat
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                         self.player.left = False
@@ -2532,7 +2537,10 @@ class Base_Foe(Sprite):
         self.left = True
         self.horizontal = 2
         self.can_jump = False
+        self.floor_turn = False
         self.jump_height = 18
+        self.switchx = [20,25] 
+        self.proximity = 640
         self.life = 20
         self.rect.x = x
         self.rect.y = y
@@ -2540,13 +2548,15 @@ class Base_Foe(Sprite):
     def basics(self):
         self.motion = [0,0]
         self.down_vel += self.loom.gravity
-        if self.loom.player.rect.x > self.rect.x - 640 and self.loom.player.rect.x < self.rect.x + 640:
+        if self.loom.player.rect.x > self.rect.x - self.proximity and self.loom.player.rect.x < self.rect.x + self.proximity:
             self.motions()
-        self.x_move()
-        if self.can_jump:
-            self.y_move_up()
-        else:
-            self.y_move()
+            self.x_move()
+            if self.can_jump:
+                self.y_move_up()
+            else:
+                self.y_move()
+            if self.floor_turn:
+                self.safe_turn()
         if self.life < 1:
             self.kill()
             self.loom.full_run[self.level_point] = False
@@ -2554,9 +2564,9 @@ class Base_Foe(Sprite):
 
     def motions(self):
         if self.left:
-            self.motion[0] -= 2
+            self.motion[0] -= self.horizontal
         elif self.right:
-            self.motion[0] += 2
+            self.motion[0] += self.horizontal
         if self.up:
             if self.can_jump:
                 self.down_vel = -self.jump_height
@@ -2605,7 +2615,7 @@ class Base_Foe(Sprite):
             self.in_air = True
     
     def x_move(self):
-        if self.loom.times % random.randint(20,25) == 0:
+        if self.loom.times % random.randint(self.switchx[0],self.switchx[1]) == 0:
             if self.rect.centerx < self.loom.player.rect.centerx:
                 self.right = True
                 self.left = False
@@ -2626,6 +2636,22 @@ class Base_Foe(Sprite):
                 while pygame.sprite.spritecollide(self, self.loom.can_update, False):
                     self.rect.x -= 1
                 self.rect.x -= 1
+    
+    def safe_turn(self):
+        colleftded = False
+        corrighted = False
+        for tile in self.loom.can_update:
+            if tile.rect.collidepoint(((self.rect.left),(self.rect.bottom+10))):
+                colleftded = True
+            if tile.rect.collidepoint(((self.rect.right),(self.rect.bottom+10))):
+                corrighted = True
+        if not colleftded or not corrighted:
+            if self.left:
+                self.left = False
+                self.right = True
+            elif self.right:
+                self.left = True
+                self.right = False
 
     def listerine(self, sheet="EnemySheet.png", width=32, height=32):
         lost = []
@@ -2806,7 +2832,7 @@ class Toim_Chart:
                     attimpt = f"foe{self.loom.current_level[0]}_{self.loom.current_level[1]}_{foe_count}"
                     if attimpt in self.loom.full_run.keys():
                         if self.loom.full_run[attimpt]:
-                            foe = Smart_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
+                            foe = Sky_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
                             self.loom.evils.add(foe)
                     foe_count += 1
                 elif tile == '21':
@@ -3039,6 +3065,75 @@ class Smart_Goblin(Base_Foe):
             self.down_vel = 0
         else:
             self.in_air = True
+
+class Fast_Goblin(Base_Foe):
+    """Creates a swift green chap"""
+
+    def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
+        super().__init__(loom, x, y, level_point, 32, 32)
+        self.horizontal = 4
+        self.switchx = [1,1]
+        self.floor_turn = True
+        self.lost = self.listerine("EnemySheet.png", 32, 32)
+    
+    def update(self):
+        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        self.basics()
+
+class Sky_Goblin(Base_Foe):
+    """Creates a green chap...of the sky"""
+    def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
+        super().__init__(loom, x, y, level_point, 32, 32)
+        self.down = False
+        self.lost = self.listerine("EnemySheet.png", 32, 32)
+        self.proximity = 320
+        self.horizontal = 4
+
+    def update(self):
+        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        if self.loom.player.rect.x > self.rect.x - self.proximity and self.loom.player.rect.x < self.rect.x + self.proximity:
+            self.proximity = 960
+        self.basics()
+
+    def y_move(self):
+        self.down_vel = 0
+        if self.rect.y > self.loom.player.rect.y+3:
+            self.down_vel -= 6
+        elif self.rect.y < self.loom.player.rect.y-3:
+            self.down_vel += 6
+        self.rect.y += self.down_vel
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+            if self.down_vel < 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y += 1
+                self.rect.y += 1
+            elif self.down_vel > 0:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.y -= 1
+                self.in_air = False
+            self.down_vel = 0
+        else:
+            self.in_air = True
+    
+    def x_move(self):
+        self.left = False
+        self.right = False
+        if self.rect.centerx < self.loom.player.rect.centerx-3:
+            self.right = True
+            self.left = False
+        elif self.rect.centerx > self.loom.player.rect.centerx+3:
+            self.left = True
+            self.right = False
+        self.rect.x += self.motion[0]
+        if pygame.sprite.spritecollide(self, self.loom.can_update, False):
+            if self.left:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.x += 1
+                self.rect.x += 1
+            elif self.right:
+                while pygame.sprite.spritecollide(self, self.loom.can_update, False):
+                    self.rect.x -= 1
+                self.rect.x -= 1
 
 if __name__ == "__main__":
     bounces = Bouncing()
