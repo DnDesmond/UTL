@@ -47,7 +47,7 @@
   <image source="../../Graphics/Half_Blue.png" width="32" height="32"/>
  </tile>
  <tile id="20">
-  <image source="../../Graphics/FOE.pnh.png" width="32" height="32"/>
+  <image source="../../Graphics/Enemy1.png" width="32" height="32"/>
  </tile>
  <tile id="21">
   <image source="../../Graphics/RightBreakableTile.png" width="32" height="32"/>

@@ -1917,7 +1917,6 @@ class Yarn:
         self.players = pygame.sprite.Group()
         self.bricks = pygame.sprite.Group()
         self.beejees = pygame.sprite.Group()
-        self.beejeesus = pygame.sprite.Group()
         self.trails = pygame.sprite.Group()
         self.bricks.add(self.left_pole)
         self.bricks.add(self.right_pole)
@@ -1928,13 +1927,6 @@ class Yarn:
             brick.rect.x = (0 + bg*brick.rect.width - bg*2)/game_scale
             brick.rect.y -= (brick.rect.height/2)/game_scale
             self.beejees.add(brick)
-        for bg in range(0,20):
-            brick = Brick(self, 1,1)
-            brick.image = pygame.image.load(r("MappedCompassbackBluck.png")).convert_alpha()
-            brick.rect = brick.image.get_rect()
-            brick.rect.x = (0 + bg*brick.rect.width - bg*2)/game_scale
-            brick.rect.y -= (brick.rect.height/3)/game_scale
-            self.beejeesus.add(brick)
         self.cant_update = []
 
         self.catch_plat.rect.x, self.catch_plat.rect.y = self.player.rect.x, self.player.rect.y + self.player.rect.height
@@ -1944,6 +1936,7 @@ class Yarn:
         self.times = 0
         self.player.rect.y, self.player.rect.x = self.toil.start_y, self.toil.start_x
         self.player.rect.y, self.player.rect.x = home_dir[1], home_dir[0]
+        self.toil.start_y, self.toil.start_x = home_dir[1], home_dir[0]
         self.borders()
         self.listerine()
         self.kings = self.hides.copy()
@@ -1976,16 +1969,16 @@ class Yarn:
         
     def update_screen(self):
         self.screen.fill((0, 60, 0))
-        # for brick in self.beejees:
-        #     scroll_block = brick.rect.copy()
-        #     scroll_block.x -= (self.player.scroll[0]/2)
-        #     scroll_block.y = 0
-        #     self.screen.blit(brick.image, scroll_block)
-        # for brick in self.beejees:
-        #     scroll_block = brick.rect.copy()
-        #     scroll_block.x -= (self.player.scroll[0]/1.5)
-        #     scroll_block.y = 0
-        #     self.screen.blit(brick.image, scroll_block)
+        for brick in self.beejees:
+            scroll_block = brick.rect.copy()
+            scroll_block.x -= (self.player.scroll[0]/2)
+            scroll_block.y = 0
+            self.screen.blit(brick.image, scroll_block)
+        for brick in self.beejees:
+            scroll_block = brick.rect.copy()
+            scroll_block.x -= (self.player.scroll[0]/1.5)
+            scroll_block.y = 0
+            self.screen.blit(brick.image, scroll_block)
         for brick in self.bricks:
             scroll_block = brick.rect.copy()
             scroll_block.x -= self.player.scroll[0]
@@ -2352,6 +2345,11 @@ class Player(Sprite):
         self.coll = False
         self.screct = False
         self.dir = False
+        self.cling = False
+        self.clinging = False
+        self.richtig = 10
+        self.left_cling = False
+        self.right_cling = False
 
         self.scroll = [32, 0]
         self.movement = []
@@ -2401,6 +2399,7 @@ class Player(Sprite):
         
         self.up_timer += 1
         self.air_time += 1
+        self.richtig += 1
         if self.right:
             self.dir = True
         elif self.left:
@@ -2487,6 +2486,15 @@ class Player(Sprite):
                 self.movement[0] += round((self.loom.joystick.get_axis(0))*self.max_speed)
             elif self.left:
                 self.movement[0] += round((self.loom.joystick.get_axis(0))*self.max_speed)
+        if self.richtig < 10:
+            self.movement[0] = 0
+            if self.left_cling:
+                self.movement[0] += 4
+            elif self.right_cling:
+                self.movement[0] -= 4
+        else:
+            self.left_cling = False
+            self.right_cling = False
         if self.up:
             self.down_vel = -13
             self.up = False
@@ -2494,22 +2502,26 @@ class Player(Sprite):
     def do_motion(self):
         """Conducts actual motion and primarily corrects for brick intersection"""
         self.rect.x += self.movement[0]
+        self.wall_hop = False
         while pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False) or pygame.sprite.groupcollide(self.loom.walls, self.loom.players, False, False):
             if self.movement[0] > 0:
                 self.rect.x -= 1
             else:
                 self.rect.x += 1
-            if self.down_vel > 4:
-                self.down_vel = 4
+            if self.in_air:
+                if self.down_vel > 4:
+                    self.down_vel = 4
+                    self.wall_hop = True
+                    self.cling = True
         self.rect.y += self.down_vel
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
-            self.down_vel = 0
             while pygame.sprite.spritecollide(self, self.loom.can_update, False):
                     cat = pygame.sprite.spritecollide(self, self.loom.can_update, False)
                     if self.rect.y < cat[0].rect.y:
                         self.rect.y -= 1
                         self.in_air = False
+                        self.cling = False
                         self.air_time = 0
                         # self.image = self.ima
                     else:
@@ -2517,7 +2529,31 @@ class Player(Sprite):
         else:
             self.in_air = True
             # self.image = self.imag
+        self.cling_calc()
+        if self.wall_hop == True:
+            self.in_air = False
+        if collide:
+            self.down_vel = 0
         self.collie = len(collide.keys())
+    
+    def cling_calc(self):
+        if self.cling:
+            self.clinging = False
+            for tile in self.loom.can_update:
+                if tile.rect.collidepoint((self.rect.left-2,self.rect.y)):
+                    self.left_cling = True
+                    self.clinging = True
+                elif tile.rect.collidepoint((self.rect.right+2, self.rect.y)):
+                    self.right_cling= True
+                    self.clinging = True
+            if not self.clinging:
+                self.cling = False
+            else:
+                if self.down_vel > 2:
+                    self.down_vel = 4
+                    self.wall_hop = True
+            if self.down_vel < 1:
+                self.richtig = 0
 
 class Base_Foe(Sprite):
     """Attempts to create a basic template for an enemy"""
