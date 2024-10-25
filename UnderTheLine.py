@@ -2499,6 +2499,8 @@ class Player(Sprite):
                 self.rect.x -= 1
             else:
                 self.rect.x += 1
+            if self.down_vel > 4:
+                self.down_vel = 4
         self.rect.y += self.down_vel
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
         if collide:
