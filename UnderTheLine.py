@@ -1495,7 +1495,7 @@ class Ball(Sprite):
 
 class Bal(Sprite):
     """Spoofs a ball for lives."""
-    def __init__(self, bounce, spins=False, loom=False):
+    def __init__(self, bounce, spins=False, loom=False, screct=True):
         """Does it all."""
         super().__init__()
         self.bouncer = bounce
@@ -1508,8 +1508,8 @@ class Bal(Sprite):
             if self.bouncer.started:
                 self.image = self.bouncer.mball.image
         self.image = pygame.transform.scale(self.image, is_scale)
-        self.rect = self.image.get_rect()
-        if self.loom:
+        self.rect: pygame.Rect = self.image.get_rect()
+        if self.loom and screct:
             self.rect = self.bouncer.player.screct
     
     def update(self, opacity=1):
@@ -1837,16 +1837,19 @@ class Yarn:
         self.brick_width = 64
         self.brick_height = 64
         self.apparence = 1000
+        self.predicts_length = 80
         self.quick_fall = False
         self.attack = False
         self.clickage = False
         self.x_pressed = False
         self.Φ = False
+        self.Φ_held = 0
         self.traline = False
         self.jump_hold = False
         self.stick = False
         self.paused = False
         self.fade = False
+        self.linear = False
         file = open(r("Relevents1.pickle"), 'rb')
         self.full_run = pickle.load(file)
         print(self.full_run)
@@ -1875,9 +1878,9 @@ class Yarn:
         self.unpause = Button(self, 50, 50, self.screen_rect.centerx-25, self.screen_rect.centery-25, "Unpause")
         self.swipe_time = 0
 
-        self.player = Player(self)
+        self.player: Player = Player(self)
         self.parab()
-        self.evils = pygame.sprite.Group()
+        self.evils: Group[Smart_Goblin] = pygame.sprite.Group()
         self.can_hit = pygame.sprite.Group()
         try:
             self.level = open("LEVEL.txt", 'r')
@@ -1939,6 +1942,12 @@ class Yarn:
         self.toil.start_y, self.toil.start_x = home_dir[1], home_dir[0]
         self.borders()
         self.listerine()
+        self.predicts: Group = pygame.sprite.Group()
+        for cat in range(0, self.predicts_length):
+            bal: Bal = Bal(self, loom=True, screct=False)
+            bal.rect.x = 0
+            bal.rect.y = 0
+            self.predicts.add(bal)
         self.kings = self.hides.copy()
         cat = 0
         self.hidden_areas = []
@@ -1988,6 +1997,20 @@ class Yarn:
             wall.update()
         for tractor in self.toil.tractors:
             tractor.update()
+        points = self.player.predictive()
+        loist = []
+        currnet = 0
+        for bal in self.predicts:
+            if currnet < len(points)-3:
+                point = points[currnet]
+                bal.rect.x = point[0]
+                bal.rect.y = point[1]
+                scroll_block = bal.rect.copy()
+                scroll_block.x -= self.player.scroll[0]
+                scroll_block.y -= self.player.scroll[1]
+                self.screen.blit(bal.image, scroll_block)
+                loist.append(scroll_block.center)
+            currnet += 1
         scroll_block = self.toil.map_surface.get_rect().copy()
         scroll_block.x -= self.player.scroll[0]
         scroll_block.y -= self.player.scroll[1]
@@ -2015,7 +2038,8 @@ class Yarn:
                 self.clock.tick(57)
                 break
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
-            self.player.recenters()
+            # self.player.recenters()
+            pass
         for enemy in self.evils:
             enemy.update()
         for player in self.players:
@@ -2031,16 +2055,36 @@ class Yarn:
         if self.fade:
             self.apparence -= 20
         self.swipe_time += 1
+        # scroll_rectangle_for_later_use = self.player.screct.copy()
         if self.traline:
-            bal = Bal(self, loom=True)
-            bal.rect.x = self.player.rect.x
-            bal.rect.y = self.player.rect.y
+            bal = Bal(self, loom=True, screct=False)
+            # bal.rect.x = self.player.rect.x
+            # bal.rect.y = self.player.rect.y
+            bal.rect.topleft = self.player.rect.copy().topleft
             self.trails.add(bal)
             for bal in self.trails:
                 scroll_block = bal.rect.copy()
                 scroll_block.x -= self.player.scroll[0]
                 scroll_block.y -= self.player.scroll[1]
                 self.screen.blit(bal.image, scroll_block)
+                loist.append(scroll_block.copy().center)
+        if self.Φ:
+            self.Φ_held += 1
+        else:
+            self.Φ_held = 0
+        if self.linear:
+            for foe in self.evils:
+                if foe.mobile:
+                    pygame.draw.line(self.screen, 'red', (self.player.screct.center), (foe.screct.center), 1)
+            for tile in self.can_update:
+                if tile.rect.centerx < self.player.rect.centerx + 128 and tile.rect.centerx > self.player.rect.centerx - 128:
+                    if tile.rect.centery < self.player.rect.centery + 128 and tile.rect.centery > self.player.rect.centery - 128:
+                        scroll_block = tile.rect.copy()
+                        scroll_block.x -= self.player.scroll[0]
+                        scroll_block.y -= self.player.scroll[1]
+                        pygame.draw.line(self.screen, 'blue', (self.player.screct.center), (scroll_block.center), 1)
+            for point in loist:
+                pygame.draw.line(self.screen, 'green', (self.player.screct.center), point, 1)
         self.times += 1
         self.leap += 0.25
         self.frame_count()
@@ -2181,6 +2225,11 @@ class Yarn:
                     if event.key == pygame.K_n:
                         self.red = open("Start_clause.txt.txt", 'w')
                         self.red.close()
+                    if event.key == pygame.K_l:
+                        if self.linear:
+                            self.linear = False
+                        else:
+                            self.linear = True
                     if event.key == pygame.K_ESCAPE and not self.stick:
                         if self.paused:
                             self.paused = False
@@ -2235,6 +2284,9 @@ class Yarn:
                         self.Φ = True
                     elif not self.joystick.get_button(2):
                         self.Φ = False
+                        if self.Φ_held > 200:
+                            for foe in self.evils:
+                                foe.life -= 100
                     if self.joystick.get_button(6) and not self.stick:
                         if self.paused:
                             self.paused = False
@@ -2329,8 +2381,8 @@ class Player(Sprite):
 
     def __init__(self, loom=Yarn):
         super().__init__()
-        self.loom = loom
-        self.screen = self.loom.screen
+        self.loom: Yarn = loom
+        self.screen: pygame.Surface = self.loom.screen
         self.screen_width = self.loom.screen_width
         self.screen_height = self.loom.screen_height
         self.up_timer = 0
@@ -2511,7 +2563,7 @@ class Player(Sprite):
             if self.in_air:
                 if self.down_vel > 4:
                     self.down_vel = 4
-                    self.wall_hop = True
+                    # self.wall_hop = True
                     self.cling = True
         self.rect.y += self.down_vel
         collide = pygame.sprite.groupcollide(self.loom.can_update, self.loom.players, False, False)
@@ -2543,7 +2595,19 @@ class Player(Sprite):
                 if tile.rect.collidepoint((self.rect.left-2,self.rect.y)):
                     self.left_cling = True
                     self.clinging = True
+                elif tile.rect.collidepoint((self.rect.left-2,self.rect.bottom)):
+                    self.left_cling = True
+                    self.clinging = True
+                elif tile.rect.collidepoint((self.rect.left-2,self.rect.centery)):
+                    self.left_cling = True
+                    self.clinging = True
                 elif tile.rect.collidepoint((self.rect.right+2, self.rect.y)):
+                    self.right_cling= True
+                    self.clinging = True
+                elif tile.rect.collidepoint((self.rect.right+2, self.rect.bottom)):
+                    self.right_cling= True
+                    self.clinging = True
+                elif tile.rect.collidepoint((self.rect.right+2, self.rect.centery)):
                     self.right_cling= True
                     self.clinging = True
             if not self.clinging:
@@ -2554,6 +2618,55 @@ class Player(Sprite):
                     self.wall_hop = True
             if self.down_vel < 1:
                 self.richtig = 0
+    
+    def predictive(self):
+        if self.in_air and self.loom.times%3 == 0:
+            if self.movement[0] > 0:
+                current_x = self.rect.right
+            else:
+                current_x = self.rect.left
+            current_y = self.rect.centery
+            current_vel = self.down_vel
+            speed = self.movement[0]
+            self.point_list = []
+            ying = True
+            for cat in range(0,self.loom.predicts_length):
+                if cat % 3 == 0:
+                    self.point_list.append([current_x,current_y])
+                current_x += speed
+                if ying:
+                    current_y += current_vel
+                if self.down_vel != 0 or self.in_air:
+                    current_vel += self.loom.gravity
+                if self.movement[0] == 0 and not self.in_air:
+                    current_y = self.rect.y
+                if cat % 3 == 0:
+                    if len(self.point_list) > 0:
+                        for rect in self.loom.can_update:
+                            if rect.rect.collidepoint(self.point_list[-1]):
+                                # return point_list
+                                if rect.rect.y > self.rect.centery:
+                                    current_y = rect.rect.y - 48
+                                    # if self.movement[0] > 0:
+                                    #     current_x -= 10
+                                    # else:
+                                    #     current_x += 10
+                                    ying = False
+                                    for cat in range(1,3):
+                                        if len(self.point_list) > 0:
+                                            self.point_list[-cat][1] = current_y
+                                        else:
+                                            break
+                                else:
+                                    ying = True
+                                    self.point_list.remove(self.point_list[-1])
+                                    return(self.point_list)
+                                break
+        elif self.in_air:
+            return self.point_list
+        else:
+            self.point_list = []
+        return self.point_list
 
 class Base_Foe(Sprite):
     """Attempts to create a basic template for an enemy"""
@@ -2582,10 +2695,13 @@ class Base_Foe(Sprite):
         self.life = 20
         self.rect.x = x
         self.rect.y = y
+        self.screct = self.rect.copy()
+        self.mobile = False
 
     def basics(self):
         self.motion = [0,0]
-        self.down_vel += self.loom.gravity
+        if self.down_vel+self.loom.gravity < 43:
+            self.down_vel += self.loom.gravity
         if self.loom.player.rect.x > self.rect.x - self.proximity and self.loom.player.rect.x < self.rect.x + self.proximity:
             self.motions()
             self.x_move()
@@ -2595,6 +2711,9 @@ class Base_Foe(Sprite):
                 self.y_move()
             if self.floor_turn:
                 self.safe_turn()
+            self.mobile = True
+        else:
+            self.mobile = False
         if self.life < 1:
             self.kill()
             self.loom.full_run[self.level_point] = False
@@ -2614,6 +2733,7 @@ class Base_Foe(Sprite):
         scroll_block = self.rect.copy()
         scroll_block.x -= self.loom.player.scroll[0]
         scroll_block.y -= self.loom.player.scroll[1]
+        self.screct = scroll_block.copy()
         if self.motion[0] < 0:
             self.blit_image = pygame.transform.flip(self.image, True, False)
         else:
@@ -2870,7 +2990,7 @@ class Toim_Chart:
                     attimpt = f"foe{self.loom.current_level[0]}_{self.loom.current_level[1]}_{foe_count}"
                     if attimpt in self.loom.full_run.keys():
                         if self.loom.full_run[attimpt]:
-                            foe = Sky_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
+                            foe = Smart_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
                             self.loom.evils.add(foe)
                     foe_count += 1
                 elif tile == '21':
@@ -3126,6 +3246,7 @@ class Sky_Goblin(Base_Foe):
         self.lost = self.listerine("EnemySheet.png", 32, 32)
         self.proximity = 320
         self.horizontal = 4
+        self.vertical = 4
 
     def update(self):
         self.image = self.lost[round((self.loom.times / 8) % 6)]
@@ -3136,9 +3257,9 @@ class Sky_Goblin(Base_Foe):
     def y_move(self):
         self.down_vel = 0
         if self.rect.y > self.loom.player.rect.y+3:
-            self.down_vel -= 6
+            self.down_vel -= self.vertical
         elif self.rect.y < self.loom.player.rect.y-3:
-            self.down_vel += 6
+            self.down_vel += self.vertical
         self.rect.y += self.down_vel
         if pygame.sprite.spritecollide(self, self.loom.can_update, False):
             if self.down_vel < 0:
@@ -3154,24 +3275,27 @@ class Sky_Goblin(Base_Foe):
             self.in_air = True
     
     def x_move(self):
-        self.left = False
-        self.right = False
-        if self.rect.centerx < self.loom.player.rect.centerx-3:
-            self.right = True
-            self.left = False
-        elif self.rect.centerx > self.loom.player.rect.centerx+3:
-            self.left = True
-            self.right = False
+        if self.loom.times % random.randint(1,20) == 0:
+            if self.rect.centerx < self.loom.player.rect.centerx-3:
+                self.right = True
+                self.left = False
+            elif self.rect.centerx > self.loom.player.rect.centerx+3:
+                self.left = True
+                self.right = False
         self.rect.x += self.motion[0]
         if pygame.sprite.spritecollide(self, self.loom.can_update, False):
             if self.left:
                 while pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                    self.rect.x += 1
+                    self.rect.x += 2
                 self.rect.x += 1
+                self.left = False
+                self.right = True
             elif self.right:
                 while pygame.sprite.spritecollide(self, self.loom.can_update, False):
-                    self.rect.x -= 1
+                    self.rect.x -= 2
                 self.rect.x -= 1
+                self.right = False
+                self.left = True
 
 if __name__ == "__main__":
     bounces = Bouncing()
