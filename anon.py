@@ -2,7 +2,7 @@ import sys
 import pygame
 from pygame.sprite import Sprite, Group
 from RP import resource_path as r
-from non import translator, letters, decoder, from_a_stone
+from non import translator, letters, decoder, from_a_stone, coder
 
 class Converter:
     """Attempts to create the front end for the converter."""
@@ -75,8 +75,9 @@ class Converter:
             button.update()
         for button in self.buttons_2:
             button.update()
-        self.texts(self.blit_number, (self.screen_rect.centerx+(self.screen_width/4),self.screen_rect.centery), 40)
-        self.texts(str(self.number), (self.screen_rect.centerx-(self.screen_width/4),self.screen_rect.centery), 40)
+        self.texts(self.blit_number, (self.screen_rect.centerx,self.screen_rect.centery+(self.screen_height/4)), 40)
+        self.texts(str(self.number), (self.screen_rect.centerx,self.screen_rect.centery-(self.screen_height/4)), 40)
+        self.texts("↓", self.screen_rect.center, 60)
         if self.deleting:
             if self.times % 5 == 0:
                 self.number = self.number[:-1]
@@ -113,6 +114,8 @@ class Converter:
                             self.blit_number = from_a_stone(decoder(self.lest, self.base_a))
                         except:
                             pass
+                if event.key == pygame.K_INSERT:
+                    self.blit_number = from_a_stone(coder(self.number, self.base_b), delimeter=" ")
                 if event.key == pygame.K_LSHIFT:
                     self.shifted = True
                 if event.key == pygame.K_RALT:

@@ -216,10 +216,10 @@ def narrow_acid(number: str, base: int):
         cat += 1
     return current
 
-def from_a_stone(finished: list):
+def from_a_stone(finished: list, delimeter: str=""):
     regards = ""
     for num in finished:
-        regards += str(num)
+        regards += (f"{delimeter}{str(num)}")
     return regards
 
 def destringer(string: str, file: str):

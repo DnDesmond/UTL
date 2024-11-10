@@ -1850,6 +1850,8 @@ class Yarn:
         self.paused = False
         self.fade = False
         self.linear = False
+        self.trail_stop = False
+        self.predicting: bool = False
         file = open(r("Relevents1.pickle"), 'rb')
         self.full_run = pickle.load(file)
         print(self.full_run)
@@ -1997,7 +1999,10 @@ class Yarn:
             wall.update()
         for tractor in self.toil.tractors:
             tractor.update()
-        points = self.player.predictive()
+        if self.predicting:
+            points = self.player.predictive()
+        else:
+            points = []
         loist = []
         currnet = 0
         for bal in self.predicts:
@@ -2055,13 +2060,11 @@ class Yarn:
         if self.fade:
             self.apparence -= 20
         self.swipe_time += 1
-        # scroll_rectangle_for_later_use = self.player.screct.copy()
         if self.traline:
-            bal = Bal(self, loom=True, screct=False)
-            # bal.rect.x = self.player.rect.x
-            # bal.rect.y = self.player.rect.y
-            bal.rect.topleft = self.player.rect.copy().topleft
-            self.trails.add(bal)
+            if not self.trail_stop:
+                bal = Bal(self, loom=True, screct=False)
+                bal.rect.topleft = self.player.rect.copy().topleft
+                self.trails.add(bal)
             for bal in self.trails:
                 scroll_block = bal.rect.copy()
                 scroll_block.x -= self.player.scroll[0]
@@ -2218,9 +2221,11 @@ class Yarn:
                         self.player.recenters()
                     if event.key == pygame.K_t:
                         self.traline = True
+                        self.trail_stop = False
                         self.trails = pygame.sprite.Group()
                     if event.key == pygame.K_y:
                         self.traline = False
+                        self.trail_stop = True
                         self.trails = pygame.sprite.Group()
                     if event.key == pygame.K_n:
                         self.red = open("Start_clause.txt.txt", 'w')
@@ -2230,6 +2235,16 @@ class Yarn:
                             self.linear = False
                         else:
                             self.linear = True
+                    if event.key == pygame.K_u:
+                        if self.trail_stop:
+                            self.trail_stop = False
+                        else:
+                            self.trail_stop = True
+                    if event.key == pygame.K_p:
+                        if self.predicting:
+                            self.predicting = False
+                        else:
+                            self.predicting = True
                     if event.key == pygame.K_ESCAPE and not self.stick:
                         if self.paused:
                             self.paused = False
