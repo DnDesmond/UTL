@@ -13,6 +13,7 @@ import pyautogui
 pyautogui.PAUSE = 0
 game_scale = 2
 from RP import resource_path as r
+import json
   
 from Breakers import *
 if __name__ == "__main__":
@@ -1852,6 +1853,7 @@ class Yarn:
         self.linear = False
         self.trail_stop = False
         self.predicting: bool = False
+        self.visible: bool = False
         file = open(r("Relevents1.pickle"), 'rb')
         self.full_run = pickle.load(file)
         print(self.full_run)
@@ -1905,7 +1907,7 @@ class Yarn:
         self.current_level[0], self.current_level[1] = int(home_1), int(home_2)
         self.walls = pygame.sprite.Group()
         try:
-            self.toil = Toim_Chart(r(f"Chared{home_1}_{home_2}.csv"), loom=self, started=False)
+            self.toil = Toim_Chart(r(f"Chared{home_1}_{home_2}.tmj"), loom=self, started=False)
         except FileNotFoundError:
             self.toil = Toim_Chart(f'UTL/UTL/Chared0_0.csv', self)
         self.level.close()
@@ -1980,21 +1982,22 @@ class Yarn:
         
     def update_screen(self):
         self.screen.fill((0, 60, 0))
-        for brick in self.beejees:
-            scroll_block = brick.rect.copy()
-            scroll_block.x -= (self.player.scroll[0]/2)
-            scroll_block.y = 0
-            self.screen.blit(brick.image, scroll_block)
-        for brick in self.beejees:
-            scroll_block = brick.rect.copy()
-            scroll_block.x -= (self.player.scroll[0]/1.5)
-            scroll_block.y = 0
-            self.screen.blit(brick.image, scroll_block)
-        for brick in self.bricks:
-            scroll_block = brick.rect.copy()
-            scroll_block.x -= self.player.scroll[0]
-            scroll_block.y -= self.player.scroll[1]
-            self.screen.blit(brick.image, scroll_block)
+        if self.visible:
+            for brick in self.beejees:
+                scroll_block = brick.rect.copy()
+                scroll_block.x -= (self.player.scroll[0]/2)
+                scroll_block.y = 0
+                self.screen.blit(brick.image, scroll_block)
+            for brick in self.beejees:
+                scroll_block = brick.rect.copy()
+                scroll_block.x -= (self.player.scroll[0]/1.5)
+                scroll_block.y = 0
+                self.screen.blit(brick.image, scroll_block)
+            for brick in self.bricks:
+                scroll_block = brick.rect.copy()
+                scroll_block.x -= self.player.scroll[0]
+                scroll_block.y -= self.player.scroll[1]
+                self.screen.blit(brick.image, scroll_block)
         for wall in self.walls:
             wall.update()
         for tractor in self.toil.tractors:
@@ -2013,13 +2016,15 @@ class Yarn:
                 scroll_block = bal.rect.copy()
                 scroll_block.x -= self.player.scroll[0]
                 scroll_block.y -= self.player.scroll[1]
-                self.screen.blit(bal.image, scroll_block)
+                if self.visible:
+                    self.screen.blit(bal.image, scroll_block)
                 loist.append(scroll_block.center)
             currnet += 1
-        scroll_block = self.toil.map_surface.get_rect().copy()
-        scroll_block.x -= self.player.scroll[0]
-        scroll_block.y -= self.player.scroll[1]
-        self.screen.blit(self.toil.map_surface, scroll_block)
+        if self.visible:
+            scroll_block = self.toil.map_surface.get_rect().copy()
+            scroll_block.x -= self.player.scroll[0]
+            scroll_block.y -= self.player.scroll[1]
+            self.screen.blit(self.toil.map_surface, scroll_block)
         for tile in self.hides:
             tile.update()
         for tile in self.can_hit:
@@ -2035,6 +2040,8 @@ class Yarn:
                 break
                 # tile.kill()
         for wall in self.walls:
+            if wall not in self.tiles:
+                self.can_update.add(wall)
             if self.sword_swipe.colliderect(wall.spare_rect):
                 wall.life -= 10
                 self.sword_swipe.x = 0
@@ -2043,7 +2050,7 @@ class Yarn:
                 self.clock.tick(57)
                 break
         if pygame.sprite.groupcollide(self.evils, self.players, False, False):
-            # self.player.recenters()
+            self.player.recenters()
             pass
         for enemy in self.evils:
             enemy.update()
@@ -2066,10 +2073,11 @@ class Yarn:
                 bal.rect.topleft = self.player.rect.copy().topleft
                 self.trails.add(bal)
             for bal in self.trails:
-                scroll_block = bal.rect.copy()
-                scroll_block.x -= self.player.scroll[0]
-                scroll_block.y -= self.player.scroll[1]
-                self.screen.blit(bal.image, scroll_block)
+                if self.visible:
+                    scroll_block = bal.rect.copy()
+                    scroll_block.x -= self.player.scroll[0]
+                    scroll_block.y -= self.player.scroll[1]
+                    self.screen.blit(bal.image, scroll_block)
                 loist.append(scroll_block.copy().center)
         if self.Φ:
             self.Φ_held += 1
@@ -2117,7 +2125,7 @@ class Yarn:
     
     def collodes(self, dir):
         # try:
-        self.toil = Toim_Chart(r(f'Chared{self.current_level[0]}_{self.current_level[1]}.csv'), self)
+        self.toil = Toim_Chart(r(f'Chared{self.current_level[0]}_{self.current_level[1]}.tmj'), self)
         # except FileNotFoundError:
         #     self.toil = Toim_Chart(f'UTL/UTL/Chared{self.current_level[0]}_{self.current_level[1]}.csv', self)
         self.tiles = self.toil.tiles
@@ -2245,6 +2253,11 @@ class Yarn:
                             self.predicting = False
                         else:
                             self.predicting = True
+                    if event.key == pygame.K_v:
+                        if self.visible:
+                            self.visible = False
+                        else:
+                            self.visible = True
                     if event.key == pygame.K_ESCAPE and not self.stick:
                         if self.paused:
                             self.paused = False
@@ -2521,8 +2534,14 @@ class Player(Sprite):
         """Enacts appropriate scroll adjustments for level changes."""
         if level == 'r':
             self.scroll[0] = 0 + 32
+            self.scroll[1] = self.loom.toil.start_y - (self.screen_height-96)#(self.loom.toil.map_surface.get_rect().height - self.loom.toil.start_y + 64)# + self.screen_height/2
+            if self.scroll[1]+(self.screen_height/2)<0:
+                self.scroll[1] = 32
         elif level == 'l':
             self.scroll[0] = self.loom.toil.map_surface.get_rect().width - self.screen_width - 32
+            self.scroll[1] = self.loom.toil.start_y - (self.screen_height-96)#self.loom.toil.map_surface.get_rect().height - self.loom.toil.start_y + 64
+            if self.scroll[1]+(self.screen_height/2)<0:
+                self.scroll[1] = 32
         elif level == 'ld':
             self.scroll[1] = 0 + 32
             self.scroll[0] = 0 + 32
@@ -2686,7 +2705,7 @@ class Player(Sprite):
 class Base_Foe(Sprite):
     """Attempts to create a basic template for an enemy"""
 
-    def __init__(self, loom=Yarn, x=0, y=0, level_point=0, width=32, height=32, image="Enemy1.png"):
+    def __init__(self, loom: Yarn, x=0, y=0, level_point=0, width=32, height=32, image="Enemy1.png"):
         super().__init__()
         self.loom = loom
         self.level_point = level_point
@@ -2753,7 +2772,8 @@ class Base_Foe(Sprite):
             self.blit_image = pygame.transform.flip(self.image, True, False)
         else:
             self.blit_image = self.image
-        self.screen.blit(self.blit_image, scroll_block)
+        if self.loom.visible:
+            self.screen.blit(self.blit_image, scroll_block)
 
     
     def y_move_up(self):
@@ -2832,19 +2852,19 @@ class Base_Foe(Sprite):
         imoge = pygame.image.load(r(sheet))
         for cat in range(imoge.get_height()//height):
             for fish in range(imoge.get_width()//width):
-                rect.x = fish*32
-                rect.y = cat*32
+                rect.x = fish*width
+                rect.y = cat*height
                 sub = imoge.subsurface(rect)
                 new_image = pygame.Surface((width,height))
                 new_image.blit(sub, (0,0))
                 new_image.set_colorkey((0,0,0))
-                lost.append(new_image)
+                lost.append(pygame.transform.scale(new_image, (self.rect.width,self.rect.height)))
         return lost
 
 class Toil(Sprite):
     """Tries to make a tile."""
 
-    def __init__(self, image, x, y, dex, ful, loom=Yarn, started=True):
+    def __init__(self, image, x, y, dex, ful, loom: Yarn, started: bool=True):
         """Initialises everything"""
         super().__init__()
         self.loom = loom
@@ -2860,8 +2880,8 @@ class Toil(Sprite):
             pygame.display.flip()
     
     def draw(self, surface, num=0):
-        if not self.type == "Half_Blue.png":
-            self.image.fill((0, (num%100)+1, (num%100)+1))
+        # if not self.type == "Half_Blue.png":
+        #     self.image.fill((0, (num%100)+1, (num%100)+1))
         self.image.blit(pygame.image.load(r(f"{self.type}")), self.image.get_rect())
         self.image = self.image
         surface.blit(self.image, (self.rect.x, self.rect.y))
@@ -2875,10 +2895,20 @@ class Toil(Sprite):
         temp.set_alpha(opacity)        
         target.blit(temp, location)
 
+class Trouble(Toil):
+    """Attempts a pre-imaged tile."""
+
+    def __init__(self, image, x, y, dex, ful, loom=Yarn, started=True):
+        super().__init__("See_through.png", x, y, dex, ful, loom=loom, started=started)
+        self.image = image
+    
+    def draw(self, surface, num=0):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
 class Toim_Chart:
     """Makes the tile map"""
 
-    def __init__(self, filename, loom=Yarn, started=True):
+    def __init__(self, filename, loom: Yarn, started=True):
         """Initialises everything"""
         self.tile_size = 64/game_scale
         self.loom = loom
@@ -2934,10 +2964,41 @@ class Toim_Chart:
     def read_csv(self, filename):
         map = []
         with open(os.path.join(filename)) as data:
-            data = csv.reader(data, delimiter=',')
+            data = json.load(data)#, delimiter=',')
             for row in data:
                 map.append(list(row))
         return map
+
+    def read_json(self, filename):
+        map: list[list] = []
+        with open(os.path.join(filename)) as data:
+            diction = dict(json.load(data))
+            data = diction['layers'][0]['data']
+            height = int(diction['layers'][0]['height'])
+            length = int(diction['layers'][0]['width'])
+            for cat in range(0, height):
+                map.append(list(data[cat*length:(cat*length)+length]))
+            # for row in data:
+            #     map.append(list(row))
+        with open("Cheque.txt", 'w') as pay:
+            for row in map:
+                pay.write(f"{str(row)}\n")
+        return map
+
+    def listerine(self, sheet="EnemySheet.png", width=32, height=32):
+        lost = []
+        rect = pygame.rect.Rect(0,0,width,height)
+        imoge = pygame.image.load(r(sheet))
+        for cat in range(imoge.get_height()//height):
+            for fish in range(imoge.get_width()//width):
+                rect.x = fish*width
+                rect.y = cat*height
+                sub = imoge.subsurface(rect)
+                new_image = pygame.Surface((width,height))
+                new_image.blit(sub, (0,0))
+                new_image.set_colorkey((0,0,0))
+                lost.append(new_image)
+        return lost
 
 # 7 = Up
 # 10 = Left
@@ -2949,7 +3010,7 @@ class Toim_Chart:
 
     def load_tiles(self, filename):
         self.tiles = []
-        map = self.read_csv(filename)
+        map = self.read_json(filename)
         foe_count = 1
         wall_count = 1
         hide_count = 1
@@ -2957,27 +3018,29 @@ class Toim_Chart:
         x_count = 0
         y_count = 0
         x,y = 0,0
+        grax = self.listerine("sprite-0003.png", width=32, height=32)
         for row in map:
             x = 0
             for tile in row:
+                tile = str(int(tile)-1)
                 if tile == '-1':
                     self.points.append((x*self.tile_size, y*self.tile_size))
                 elif tile == '0':
-                    self.tiles.append(Toil('See_Through.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started))
+                    self.tiles.append(Toil('grazz.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started))
                 elif tile == '2':
                     self.start_x, self.start_y = x * self.tile_size, y * self.tile_size
                     x_count, y_count = x * self.tile_size, y * self.tile_size
                 elif tile == '5':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started)
                     self.ldgates.add(new_tile)
                 elif tile == '6':
-                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
+                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started)
                     self.rgates.add(new_tile)
                 elif tile == '7':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started)
                     self.lugates.add(new_tile)
                 elif tile == '10':
-                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
+                    new_tile = Toil('Horizontal_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started)
                     self.lgates.add(new_tile)
                 elif tile == '11':
                     self.lstart_x, self.lstart_y = x * self.tile_size, y * self.tile_size
@@ -2992,10 +3055,10 @@ class Toim_Chart:
                 elif tile == '16':
                     self.rdstart_x, self.rdstart_y = x * self.tile_size, y * self.tile_size
                 elif tile == '17':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started)
                     self.rdgates.add(new_tile)
                 elif tile == '18':
-                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started)
+                    new_tile = Toil('Verical_No_See.png', x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, loom=self.loom, started=self.started)
                     self.rugates.add(new_tile)
                 elif tile == '19':
                     tractor = Tractor(96, (len(map))*32, x*self.tile_size, y*self.tile_size, self.loom)#41
@@ -3028,6 +3091,8 @@ class Toim_Chart:
                         if self.loom.full_run[attimpt]:
                             self.loom.hides.append(Hidden(x * self.tile_size, y * self.tile_size, loom=self.loom, dex=y, ful=len(map)+1, started=self.started, level_point=attimpt))
                     hide_count += 1
+                elif int(tile) in range(25,68):
+                    self.tiles.append(Trouble(grax[int(tile)-25], x * self.tile_size, y * self.tile_size, dex=y, ful=len(map)+1, started=self.started))
                 x += 1
             y += 1
         self.map_w, self.map_h = x * self.tile_size, y * self.tile_size
@@ -3179,12 +3244,12 @@ class Smart_Goblin(Base_Foe):
 
     def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
         super().__init__(loom, x, y, level_point, 32, 32)
-        self.lost = self.listerine("EnemySheet.png", 32, 32)
+        self.lost = self.listerine("Sprite-0001-sheet.png", 16, 16)
         self.can_jump = True
         self.jump_height = 13
     
     def update(self):
-        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        self.image: pygame.surface.Surface = self.lost[round((self.loom.times / 8) % 6)]
         self.basics()
     
     def y_move_up(self):
@@ -3258,13 +3323,14 @@ class Sky_Goblin(Base_Foe):
     def __init__(self, loom=Yarn, x=0, y=0, level_point=0):
         super().__init__(loom, x, y, level_point, 32, 32)
         self.down = False
-        self.lost = self.listerine("EnemySheet.png", 32, 32)
+        self.lost = self.listerine("Sprite-0001-sheet.png", 16, 16)
         self.proximity = 320
         self.horizontal = 4
         self.vertical = 4
 
     def update(self):
-        self.image = self.lost[round((self.loom.times / 8) % 6)]
+        self.image: pygame.surface.Surface = self.lost[round((self.loom.times / 8) % 6)]
+        self.image.set_colorkey((0,0,0))
         if self.loom.player.rect.x > self.rect.x - self.proximity and self.loom.player.rect.x < self.rect.x + self.proximity:
             self.proximity = 960
         self.basics()

@@ -3,9 +3,12 @@ import pygame
 from pygame.sprite import Sprite, Group
 from RP import resource_path as r
 from non import translator, letters, decoder, from_a_stone, coder
+from PyQt6 import QtWidgets, QtGui
+import ctypes
+ctypes.windll.shcore.SetProcessDpiAwareness(0)
 
 class Converter:
-    """Attempts to create the front end for the converter."""
+    # Attempts to create the front end for the converter.
 
     def __init__(self):
         pygame.init()
@@ -16,23 +19,24 @@ class Converter:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.buttons: Group[Button] = pygame.sprite.Group()
         self.buttons_2: Group[Button] = pygame.sprite.Group()
-        self.base_a: int = 2
-        self.base_b: int = 2
+        self.base_a: int = 10
+        self.base_b: int = 36
         self.blit_number: str = "1"
-        self.number: str = "1"
+        self.number: str = "812077"
         self.lest: list[str] = [self.number]
         self.times: int = 0
         self.deleting: bool = False
         self.shifted: bool = False
         self.auto_update: bool = False
         self.ralted: bool = False
+        pygame.display.set_caption("Basically")
         for cat in range(0, 31):
             button: Button = Button(self, (40,20), (cat*40,0), cat+1)
             if cat == 15:
                 button.rect.x += 20
             elif cat > 15:
                 button.rect.x += 40
-            if button.number == 2:
+            if button.number == 10:
                 button.hit = True
             self.buttons.add(button)
         for cat in range(0, 31):
@@ -49,8 +53,6 @@ class Converter:
                 button.rect.x += 20
             elif cat > 15:
                 button.rect.x += 40
-            if button.number == 2:
-                button.hit = True
             button.rect.y = 680
             self.buttons_2.add(button)
         for cat in range(0, 31):
@@ -59,6 +61,8 @@ class Converter:
                 button.rect.x += 20
             elif cat > 15:
                 button.rect.x += 40
+            if button.number == 36:
+                button.hit = True
             button.rect.y = 680
             button.rect.y += 20
             self.buttons_2.add(button)
@@ -155,7 +159,7 @@ class Converter:
                             break
         
     def texts(self, string: str, centerpoint: tuple[int, int], font_size: int):
-        font: pygame.font.Font = pygame.font.Font("times.ttf", font_size)
+        font: pygame.font.Font = pygame.font.Font(r("times.ttf"), font_size)
         text = font.render(string, True, (255,255,255))
         text_rect = text.get_rect()
         text_rect.center = centerpoint
@@ -170,7 +174,7 @@ class Converter:
             self.blit_number = translator(self.number, self.base_a, self.base_b)
 
 class Button(Sprite):
-    """Attempts to create the basic buttons."""
+    # Attempts to create the basic buttons
 
     def __init__(self, convert: Converter, size: tuple[int,int], x_y: tuple[int,int], number: int=1):
         super().__init__()
@@ -186,7 +190,7 @@ class Button(Sprite):
         self.rect.y = x_y[1]
         self.hit: bool = False
         self.current_image = self.image.copy()
-        font: pygame.font.Font = pygame.font.Font('times.ttf', 20)
+        font: pygame.font.Font = pygame.font.Font(r('times.ttf'), 20)
         if len(str(number))>1:
             text = font.render(f"{number}", 0, (0,3,0))
         else:
@@ -207,6 +211,10 @@ class Button(Sprite):
         else:
             self.current_image = self.image
         self.screen.blit(self.current_image, self.rect)
+
+
+app = QtWidgets.QApplication(sys.argv)
+app.setWindowIcon(QtGui.QIcon(r('eye-con.ico')))
 
 converts: Converter = Converter()
 converts.runs()
