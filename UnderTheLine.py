@@ -2978,11 +2978,6 @@ class Toim_Chart:
             length = int(diction['layers'][0]['width'])
             for cat in range(0, height):
                 map.append(list(data[cat*length:(cat*length)+length]))
-            # for row in data:
-            #     map.append(list(row))
-        with open("Cheque.txt", 'w') as pay:
-            for row in map:
-                pay.write(f"{str(row)}\n")
         return map
 
     def listerine(self, sheet="EnemySheet.png", width=32, height=32):
