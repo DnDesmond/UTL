@@ -1,0 +1,94 @@
+body {background-color: powder-blue;}
+h1 {background-color: darkslategray;}
+p {font-family: Arial;}
+blockquote {border: 7px double #000000; padding: 2px; border-radius: 40px;}
+a {color: aquamarine; display: inline-block; background-color: #000000; padding: 0px 0px;}
+a:hover {background-color: burlywood; background-image: url(Graphics/StoneCoils.png); background-size: cover;}
+abbr {text-decoration: none;}
+table, tr, th, td {border: 7px inset turquoise; background-color: steelblue;}
+table {border-spacing: 1px;}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #333333;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 16px;
+    text-decoration: none;
+    background-color: #000000;
+}
+
+li a:hover{
+    background-color: #e91515;
+}
+
+div {
+    width: 24%;
+    display: inline-block;
+    margin: auto;
+}
+
+.city {
+    width: 20%;
+    background-color: burlywood;
+    padding: 10px;
+    margin: 9px;
+    border: 7px double #000000;
+    border-radius: 30px;
+    float: left;
+}
+
+.city p {
+    border: 7px double #000000;
+    background-color: #666666;
+    color: #666666;
+    border-radius: 10px;
+}
+
+.city p:hover {
+    background-color: #FFFFFF;
+    color: blue;
+}
+
+.no_see {
+    background-image: url(Graphics/StoneCoils.png);
+}
+
+.germ {
+    width: 1202px;
+    background-color: #666666;
+    padding: 10px;
+    margin: 9px;
+    border: 7px double #000000;
+    border-radius: 30px;
+    float: left;
+    text-align: center;
+    height: 2000px;
+}
+.germ:hover {
+    background-color: #666666;
+    color: #555555;
+}
+.germ p {
+    background-color: #AAAAAA;
+    border: 7px double #000000;
+    border-radius: 10px;
+}
+.germ:hover p {
+    background-color: #555555;
+}
+.germ:hover p:hover {
+    background-color: white;
+    color: #000000;
+}
