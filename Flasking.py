@@ -1,0 +1,57 @@
+from flask import Flask, redirect, url_for, request, render_template
+import os
+app = Flask(__name__, template_folder="", static_folder="")
+
+# @app.route('/', methods=['GET',"POST"])
+# def squarenumber():
+#     if request.method == "POST":
+#         if request.form["num"] == "":
+#             return "<html><body><h1>Invalid Number</h1></body></html>"
+#         else:
+#             number = request.form["num"]
+#             sq = str(int(number)**2)
+#             return render_template("answer.html", squareofnum=sq, num=number)
+#     if request.method == "GET":
+#         return render_template("squarenum.html")
+
+# @app.route("/admin")
+# def hello_admin():
+#     strung = "<br>We have successfully harvested many gallons of orphan's blood and have barreled them to extend their shelf lives!"
+#     return f"Greetings <b><i>Administrator</i></b> {strung}"
+
+# @app.route("/", methods=["GET","POST"])
+# def enter_name():
+#     if request.method == "POST":
+#         if request.form["name"] == "admin":
+#             return redirect(url_for("hello_admin"))
+#         if "0" in request.form["name"]:
+#             return render_template("namenter.html")
+#         elif request.form["name"] == "Thy Name If Thou Darest Mortal":
+#             return render_template("funny.html", extra="You really went the extra mile didn't you!")
+#         elif "Thy Name" in request.form["name"]:
+#             return render_template("funny.html", extra="")
+#         else:
+#             # return redirect(f"/{request.form["name"]}")
+#             return render_template("greets.html", name=request.form["name"])
+#     if request.method == "GET":
+#         return render_template("namenter.html")
+
+from non import translator
+@app.route("/", methods=["GET","POST"])
+def enter_all():
+    try:
+        if request.method == "POST":
+            for thought in request.form.values():
+                if thought != "Submit":
+                    if thought == "1":
+                        raise ValueError
+                    if int(thought)<=0:
+                        raise ValueError
+            return render_template("basic.html",result=translator(request.form["current"], int(request.form["firstb"]), int(request.form["secondb"])), nombre="4", starter="10", ender="2")
+        elif request.method == "GET":
+            return render_template("basic.html", nombre="4", starter="10", ender="2")
+    except ValueError:
+        return redirect("/")
+
+if __name__ == '__main__':
+    app.run()

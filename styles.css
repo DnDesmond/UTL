@@ -1,5 +1,5 @@
 body {background-color: powder-blue;}
-h1 {background-color: darkslategray;}
+/* h1 {background-color: darkslategray;} */
 p {font-family: Arial;}
 blockquote {border: 7px double #000000; padding: 2px; border-radius: 40px;}
 a {color: aquamarine; display: inline-block; background-color: #000000; padding: 0px 0px;}
@@ -83,7 +83,7 @@ div {
 .germ p {
     background-color: #AAAAAA;
     border: 7px double #000000;
-    border-radius: 10px;
+    border-radius: 20px;
 }
 .germ:hover p {
     background-color: #555555;
@@ -91,4 +91,18 @@ div {
 .germ:hover p:hover {
     background-color: white;
     color: #000000;
+}
+
+.cats {
+    background-image: url(Graphics/Cat.png);
+    background-size: contain;
+}
+
+h1 {
+    background-color: #777777;
+    color: black;
+    border: 7px double black;
+    border-radius: 20px;
+    text-align: center;
+    /* text-decoration: line-through; */
 }

@@ -3063,7 +3063,7 @@ class Toim_Chart:
                     attimpt = f"foe{self.loom.current_level[0]}_{self.loom.current_level[1]}_{foe_count}"
                     if attimpt in self.loom.full_run.keys():
                         if self.loom.full_run[attimpt]:
-                            foe = Smart_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
+                            foe = Sky_Goblin(self.loom, x*self.tile_size, y*self.tile_size, attimpt)
                             self.loom.evils.add(foe)
                     foe_count += 1
                 elif tile == '21':
