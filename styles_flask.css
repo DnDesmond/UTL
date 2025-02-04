@@ -1,0 +1,13 @@
+body {
+    background-color: #000000;
+}
+input[type=text] {
+    color: white;
+    background-color: #666666;
+    font-size: 30px;
+}
+form {
+    color: white;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 30px;
+}

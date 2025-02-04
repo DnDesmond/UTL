@@ -5,7 +5,7 @@ from RP import resource_path as r
 from non import translator, letters, decoder, from_a_stone, coder
 from PyQt6 import QtWidgets, QtGui
 import ctypes
-ctypes.windll.shcore.SetProcessDpiAwareness(0)
+# ctypes.windll.shcore.SetProcessDpiAwareness(0)
 
 class Converter:
     # Attempts to create the front end for the converter.
@@ -30,41 +30,44 @@ class Converter:
         self.auto_update: bool = False
         self.ralted: bool = False
         pygame.display.set_caption("Basically")
+        # self.button_width, self.button_height = 40,20
+        self.button_width = self.screen_width*0.03125
+        self.button_height = self.button_width/2
         for cat in range(0, 31):
-            button: Button = Button(self, (40,20), (cat*40,0), cat+1)
+            button: Button = Button(self, (self.button_width,self.button_height), (cat*self.button_width,0), cat+1)
             if cat == 15:
-                button.rect.x += 20
+                button.rect.x += self.button_width/2
             elif cat > 15:
-                button.rect.x += 40
+                button.rect.x += self.button_width
             if button.number == 10:
                 button.hit = True
             self.buttons.add(button)
         for cat in range(0, 31):
-            button: Button = Button(self, (40,20), (cat*40,0), cat+32)
+            button: Button = Button(self, (self.button_width,self.button_height), (cat*self.button_width,0), cat+32)
             if cat == 15:
-                button.rect.x += 20
+                button.rect.x += self.button_width/2
             elif cat > 15:
-                button.rect.x += 40
-            button.rect.y += 20
+                button.rect.x += self.button_width
+            button.rect.y += self.button_height
             self.buttons.add(button)
         for cat in range(0, 31):
-            button: Button = Button(self, (40,20), (cat*40,0), cat+1)
+            button: Button = Button(self, (self.button_width,self.button_height), (cat*self.button_width,0), cat+1)
             if cat == 15:
-                button.rect.x += 20
+                button.rect.x += self.button_width/2
             elif cat > 15:
-                button.rect.x += 40
-            button.rect.y = 680
+                button.rect.x += self.button_width
+            button.rect.y = self.screen_height-self.button_height*2
             self.buttons_2.add(button)
         for cat in range(0, 31):
-            button: Button = Button(self, (40,20), (cat*40,0), cat+32)
+            button: Button = Button(self, (self.button_width,self.button_height), (cat*self.button_width,0), cat+32)
             if cat == 15:
-                button.rect.x += 20
+                button.rect.x += self.button_width/2
             elif cat > 15:
-                button.rect.x += 40
+                button.rect.x += self.button_width
             if button.number == 36:
                 button.hit = True
-            button.rect.y = 680
-            button.rect.y += 20
+            button.rect.y = self.screen_height-self.button_height*2
+            button.rect.y += self.button_height
             self.buttons_2.add(button)
     
     def runs(self):
@@ -79,9 +82,9 @@ class Converter:
             button.update()
         for button in self.buttons_2:
             button.update()
-        self.texts(self.blit_number, (self.screen_rect.centerx,self.screen_rect.centery+(self.screen_height/4)), 40)
-        self.texts(str(self.number), (self.screen_rect.centerx,self.screen_rect.centery-(self.screen_height/4)), 40)
-        self.texts("↓", self.screen_rect.center, 60)
+        self.texts(self.blit_number, (self.screen_rect.centerx,self.screen_rect.centery+(self.screen_height/4)), int(self.button_width))
+        self.texts(str(self.number), (self.screen_rect.centerx,self.screen_rect.centery-(self.screen_height/4)), int(self.button_width))
+        self.texts("↓", self.screen_rect.center, int(self.button_width*1.5))
         if self.deleting:
             if self.times % 5 == 0:
                 self.number = self.number[:-1]
@@ -99,7 +102,7 @@ class Converter:
                         self.number += str(num)
                 for num in letters:
                     if event.key == getattr(pygame, f"K_{num}"):
-                        if not self.shifted:
+                        if not self.shifted and self.base_a > 36:
                             self.number += str(num)
                         else:
                             self.number += str(num).upper()
@@ -190,7 +193,7 @@ class Button(Sprite):
         self.rect.y = x_y[1]
         self.hit: bool = False
         self.current_image = self.image.copy()
-        font: pygame.font.Font = pygame.font.Font(r('times.ttf'), 20)
+        font: pygame.font.Font = pygame.font.Font(r('times.ttf'), self.rect.height)
         if len(str(number))>1:
             text = font.render(f"{number}", 0, (0,3,0))
         else:
