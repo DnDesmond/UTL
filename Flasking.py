@@ -41,13 +41,18 @@ from non import translator
 def enter_all():
     try:
         if request.method == "POST":
-            for thought in request.form.values():
-                if thought != "Submit":
+            for key,thought in request.form.items():
+                if key != "submit" and key != "current":
                     if thought == "1":
                         raise ValueError
                     if int(thought)<=0:
                         raise ValueError
-            return render_template("basic.html",result=translator(request.form["current"], int(request.form["firstb"]), int(request.form["secondb"])), nombre="4", starter="10", ender="2")
+                    if int(thought) > 62:
+                        raise ValueError
+            base_1 = request.form["firstb"]
+            base_2 = request.form["secondb"]
+            current_value = request.form["current"]
+            return render_template("basic.html",result=translator(current_value, int(base_1), int(base_2)), nombre=current_value, starter=base_1, ender=base_2)
         elif request.method == "GET":
             return render_template("basic.html", nombre="4", starter="10", ender="2")
     except ValueError:
