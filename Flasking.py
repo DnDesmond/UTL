@@ -58,5 +58,16 @@ def enter_all():
     except ValueError:
         return redirect("/")
 
+from viper import venom
+@app.route("/viper", methods=["GET","POST"])
+def bite():
+    if request.method == "POST":
+        first: str = request.form["first"]
+        second: str = request.form["second"]
+        result = venom(first, second)
+        return render_template("fang.html",result=result, first=first, second=second)
+    elif request.method == "GET":
+        return render_template("fang.html",result="", first=1, second=1)
+
 if __name__ == '__main__':
     app.run()
