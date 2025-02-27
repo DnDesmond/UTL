@@ -49,8 +49,8 @@ def enter_all():
                         raise ValueError
                     if int(thought) > 62:
                         raise ValueError
-            base_1 = request.form["firstb"]
-            base_2 = request.form["secondb"]
+            base_1 = request.form["first_base"]
+            base_2 = request.form["second_base"]
             current_value = request.form["current"]
             return render_template("basic.html",result=translator(current_value, int(base_1), int(base_2)), nombre=current_value, starter=base_1, ender=base_2)
         elif request.method == "GET":
