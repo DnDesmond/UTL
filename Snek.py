@@ -2,6 +2,7 @@ import pygame
 pygame.init()
 from pygame.sprite import Sprite
 import sys
+import random
 
 class Game:
     """Attempts a game"""
@@ -14,6 +15,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.char = Snake(self)
         self.ticks = 0
+        self.bite = Snack(self)
 
     def run_game(self):
         while True:
@@ -36,6 +38,8 @@ class Game:
                     self.turn(2)
                 if event.key == pygame.K_RIGHT:
                     self.turn(3)
+                if event.key == pygame.K_l:
+                    self.char.lengthen()
     
     def turn(self, ind):
         for cat in range(0,4):
@@ -44,6 +48,7 @@ class Game:
     def update_screen(self):
         self.screen.fill((50,200,50))
         self.char.update()
+        self.bite.update()
         pygame.display.flip()
     
 class Snake(Sprite):
@@ -57,18 +62,41 @@ class Snake(Sprite):
         self.image = pygame.image.load("Rot.png")
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         self.rect = self.image.get_rect()
+        self.tail_0 = self.rect.copy()
         self.left = False
         self.right = True
         self.up = False
         self.down = False
         self.moves = ["up", "down", "left", "right"]
+        self.tail = 0
+        self.tails: list[pygame.rect.Rect] = [self.tail_0]
     
     def update(self):
         self.motion()
         self.game.screen.blit(self.image, self.rect)
+        for tail in self.tails:
+            self.game.screen.blit(self.image, tail)
+
     
+    def lengthen(self):
+        setattr(self, f"tail_{self.tail+1}", getattr(self, f"tail_{self.tail}").copy())
+        self.tails.append(getattr(self, f"tail_{self.tail}"))
+        self.tail += 1
+
+    def trail(self):
+        self.tails: list[pygame.rect.Rect] = []
+        for tail in range(self.tail, -1, -1):
+            if tail == 0:
+                setattr(self, f"tail{tail}", self.rect.copy())
+                self.tails.append(getattr(self, f"tail{tail}"))
+            elif tail != 0:
+                setattr(self, f"tail{tail}", getattr(self, f"tail{tail-1}").copy())
+                self.tails.append(getattr(self, f"tail{tail}"))
+
+
     def motion(self):
-        if self.game.ticks % 5 == 0:
+        if self.game.ticks % 2 == 0:
+            self.trail()
             if self.up:
                 self.rect.y -= 20
             elif self.down:
@@ -77,6 +105,31 @@ class Snake(Sprite):
                 self.rect.x -= 20
             elif self.right:
                 self.rect.x += 20
+
+class Snack(Sprite):
+    """Creates refreshments"""
+
+    def __init__(self, game):
+        super().__init__()
+        self.game: Game = game
+        self.screen = game.screen
+        self.screen_rect = self.screen.get_rect()
+        self.screen_width = self.screen_rect.width
+        self.screen_height = self.screen_rect.height
+        self.image = pygame.image.load("Rot.png")
+        self.image = pygame.transform.scale(self.image, (20,20))
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = random.randint(0, self.game.screen_width//20)*20, random.randint(0, self.game.screen_height//20)*20
+    
+    def update(self):
+        self.relocate()
+        self.screen.blit(self.image, self.rect)
+    
+    def relocate(self):
+        if self.rect.colliderect(self.game.char.rect):
+            self.rect.x, self.rect.y = random.randint(0, self.screen_width//20)*20, random.randint(0, self.screen_height//20)*20
+            self.game.char.lengthen()
+
 
 game = Game()
 game.run_game()
