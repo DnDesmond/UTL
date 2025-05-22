@@ -21,7 +21,7 @@ class Game:
         while True:
             self.check_events()
             self.update_screen()
-            self.clock.tick(10)
+            self.clock.tick(60)
             self.ticks += 1
     
     def check_events(self):
@@ -70,6 +70,7 @@ class Snake(Sprite):
         self.moves = ["up", "down", "left", "right"]
         self.tail = 0
         self.tails: list[pygame.rect.Rect] = [self.tail_0]
+        self.fools = []
     
     def update(self):
         self.motion()
@@ -82,6 +83,11 @@ class Snake(Sprite):
         setattr(self, f"tail_{self.tail+1}", getattr(self, f"tail_{self.tail}").copy())
         self.tails.append(getattr(self, f"tail_{self.tail}"))
         self.tail += 1
+    
+    def trace(self):
+        self.fools = []
+        for rect in self.tails:
+            self.fools.append((rect.x, rect.y))
 
     def trail(self):
         self.tails: list[pygame.rect.Rect] = []
@@ -92,10 +98,11 @@ class Snake(Sprite):
             elif tail != 0:
                 setattr(self, f"tail{tail}", getattr(self, f"tail{tail-1}").copy())
                 self.tails.append(getattr(self, f"tail{tail}"))
+        self.trace()
 
 
     def motion(self):
-        if self.game.ticks % 2 == 0:
+        if self.game.ticks % 5 == 0:
             self.trail()
             if self.up:
                 self.rect.y -= 20
@@ -105,6 +112,8 @@ class Snake(Sprite):
                 self.rect.x -= 20
             elif self.right:
                 self.rect.x += 20
+        if (self.rect.x,self.rect.y) in self.fools:
+            self.tail = 0
 
 class Snack(Sprite):
     """Creates refreshments"""
@@ -127,7 +136,7 @@ class Snack(Sprite):
     
     def relocate(self):
         if self.rect.colliderect(self.game.char.rect):
-            self.rect.x, self.rect.y = random.randint(0, self.screen_width//20)*20, random.randint(0, self.screen_height//20)*20
+            self.rect.x, self.rect.y = random.randint(0, self.screen_width//20-1)*20, random.randint(0, self.screen_height//20-1)*20
             self.game.char.lengthen()
 
 
