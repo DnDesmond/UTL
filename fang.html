@@ -1,14 +1,21 @@
 <!Doctype html>
 <html>
     <head>
-
+        <link rel="stylesheet" href="styles_flask.css">
     </head>
     <body>
+        <ul>
+            <li id="one"><a href="/"><p>Home</p></a></li>
+            <li class="selected"><a href="viper"><p>Addition</p></a></li>
+            <li><a href="viper"><p>Subtraction</p></a></li>
+            <li><a href="viper"><p>Multiplication</p></a></li>
+            <li><a href="viper"><p>Division</p></a></li>
+        </ul>
         <form method="post" action="#">
             <input type="text" placeholder="First Number" id="first" name="first" value="{{first}}">
             <input type="text" placeholder="Second Number" id="second" name="second" value="{{second}}">
             <input type="submit" name="submit" id="submit">
-            <p>{{result}}</p>
+            <p>Result{{result}}</p>
         </form>
     </body>
 </html>
