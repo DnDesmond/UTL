@@ -26,6 +26,7 @@ input[type=text] {
 
 input[type=text]:hover {
     border: 7px inset white;
+    background-color: #555555;
     z-index: 1;
 }
 
@@ -59,6 +60,36 @@ form input {
     position: absolute;
     text-align: center;
     z-index: 1;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    position: relative;
+    color: white;
+    display: block;
+    text-align: center;
+    padding: 16px;
+    border-radius: 20px;
+    background-color: #666666;
+    border: 5px outset white;
+    margin-left: 10px;
+    text-decoration: none;
+    z-index: 1;
+}
+
+li a:hover {
+    border: 5px inset white;
+    background-color: #555555;
 }
 
 #meine {

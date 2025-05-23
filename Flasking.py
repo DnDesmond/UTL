@@ -62,12 +62,22 @@ from viper import venom
 @app.route("/viper", methods=["GET","POST"])
 def bite():
     if request.method == "POST":
-        first: str = request.form["first"]
-        second: str = request.form["second"]
+        first = request.form["first"]
+        second = request.form["second"]
         result = venom(first, second)
         return render_template("fang.html",result=result, first=first, second=second)
     elif request.method == "GET":
         return render_template("fang.html",result="", first=1, second=1)
+
+from Alloyn_see import totals
+@app.route("/larimar", methods=["GET","POST"])
+def capacitor():
+    if request.method == "POST":
+        req = request.form["requisite"]
+        total = totals(int(req))
+        return render_template("solar.html", result=total, req=req)
+    elif request.method == "GET":
+        return render_template("solar.html")
 
 if __name__ == '__main__':
     app.run()
