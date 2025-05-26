@@ -19,10 +19,12 @@ class Game:
         self.char = Char(self, 500, 500)
         self.clock = pygame.time.Clock()
         self.image = pygame.image.load("Schwarz.png")
+        self.image.fill((102,102,102))
         self.image = pygame.transform.scale(self.image, (self.screen_width,self.screen_height))
         self.trail_op = 100
         self.times:list[int] = []
         self.bite = Bite(self)
+        self.ticks = 0
 
     def run_game(self):
         while True:
@@ -30,11 +32,13 @@ class Game:
             self.clock.tick(60)
     
     def update_screen(self):
-        self.blit_alpha(self.screen, self.image, (0,0), abs(self.trail_op))
+        if self.ticks%5 == 0:
+            self.blit_alpha(self.screen, self.image, (0,0), abs(self.trail_op))
         self.char.update()
         self.bite.update()
         self.check_events()
         pygame.display.flip()
+        self.ticks += 1
     
     
     def blit_alpha(self, target, source, location, opacity):
@@ -115,6 +119,7 @@ class Char(Sprite):
         self.x = x
         self.y = y
         self.image = pygame.image.load("Rot.png")
+        self.image.fill((0,0,0))
         self.image = pygame.transform.scale(self.image, (self.width,self.height))
         self.rect = self.image.get_rect()
         self.up = False
@@ -122,7 +127,7 @@ class Char(Sprite):
         self.left = False
         self.right = False
         self.moves = ["up", "down", "left", "right"]
-        self.speed = 5
+        self.speed = 20
         self.time_col = 1
         self.colours = []
         self.pos = (0,0)
@@ -132,7 +137,8 @@ class Char(Sprite):
             self.colours.append((cat, 0, cat))
         
     def update(self):
-        self.motion()
+        if self.game.ticks%5 == 0:
+            self.motion()
         self.colour_check()
         self.screen.blit(self.image, self.rect)
     
