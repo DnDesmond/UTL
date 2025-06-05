@@ -16,6 +16,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.char = Snake(self)
         self.ticks = 0
+        self.clicks = 0
         self.bite = Snack(self)
         # self.cols = []
         # for r in range(0,255,10):
@@ -46,11 +47,26 @@ class Game:
                     self.turn(3)
                 if event.key == pygame.K_l:
                     self.char.lengthen()
+        # if self.char.rect.y > self.bite.rect.y and not self.char.down:
+        #     self.turn(0)
+        # if self.char.rect.y < self.bite.rect.y and not self.char.up:
+        #     self.turn(1)
+        # if self.char.rect.x > self.bite.rect.x and not self.char.right:
+        #     self.turn(2)
+        # if self.char.rect.x < self.bite.rect.x and not self.char.left:
+        #     self.turn(3)
+        # self.clicks += 1
+        # if self.clicks > 20:
+        #     if self.char.up or self.char.down:
+        #         self.turn(3)
+        #     else:
+        #         self.turn(0)
                     # self.char.reimage((200,200,200))
     
     def turn(self, ind):
         for cat in range(0,4):
             setattr(self.char, self.char.moves[cat], cat==ind)
+        self.clicks = 0
 
     def update_screen(self):
         # self.screen.fill((self.cols[(self.ticks%len(self.cols))]))
@@ -70,8 +86,9 @@ class Snake(Sprite):
     def __init__(self, game):
         super().__init__()
         self.game:Game = game
-        self.width = 20
-        self.height = 20
+        self.scale = 20
+        self.width = self.scale
+        self.height = self.scale
         self.image = pygame.image.load("Skull.png")
         self.image.set_colorkey((0,0,0))
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
@@ -137,43 +154,43 @@ class Snake(Sprite):
             sector.append(self.rect.topleft)
         self.fools.pop()
         x,y = point[0],point[1]
-        if (x+20, y) in sector and (x, y+20) in sector:
+        if (x+self.scale, y) in sector and (x, y+self.scale) in sector:
             return 0
-        elif (x+20, y) in sector and (x-20, y) in sector:
+        elif (x+self.scale, y) in sector and (x-self.scale, y) in sector:
             return 3
-        elif (x-20, y) in sector and (x, y+20) in sector:
+        elif (x-self.scale, y) in sector and (x, y+self.scale) in sector:
             return 6
-        elif (x, y+20) in sector and (x, y-20) in sector:
+        elif (x, y+self.scale) in sector and (x, y-self.scale) in sector:
             return 1
-        elif (x+20, y) in sector and (x, y-20) in sector:
+        elif (x+self.scale, y) in sector and (x, y-self.scale) in sector:
             return 2 
-        elif (x-20, y) in sector and (x, y-20) in sector:
+        elif (x-self.scale, y) in sector and (x, y-self.scale) in sector:
             return 8
     
     def rattle(self):
         point = self.fools[0]
         x,y = point[0], point[1]
         poin2 = self.fools[1]
-        if (x,y-20) == poin2:
+        if (x,y-self.scale) == poin2:
             self.game.screen.blit(self.images[4], self.fools[0])
-        elif (x+20,y) == poin2:
+        elif (x+self.scale,y) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.images[4],270), self.fools[0])
-        elif (x,y+20) == poin2:
+        elif (x,y+self.scale) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.images[4],180), self.fools[0])
-        elif (x-20,y) == poin2:
+        elif (x-self.scale,y) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.images[4],90), self.fools[0])
 
     def skull(self):
         point = self.rect.topleft
         x,y = point[0], point[1]
         poin2 = self.fools[-1]
-        if (x,y-20) == poin2:
+        if (x,y-self.scale) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.image,180), self.rect)
-        elif (x+20,y) == poin2:
+        elif (x+self.scale,y) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.image,90), self.rect)
-        elif (x,y+20) == poin2:
+        elif (x,y+self.scale) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.image,0), self.rect)
-        elif (x-20,y) == poin2:
+        elif (x-self.scale,y) == poin2:
             self.game.screen.blit(pygame.transform.rotate(self.image,270), self.rect)
 
     def breakdown(self):
@@ -182,6 +199,7 @@ class Snake(Sprite):
             for fish in range(0,3):
                 imager = pygame.surface.Surface((20,20))
                 imager.blit(image,(-cat*20,-fish*20))
+                imager = pygame.transform.scale(imager, (self.scale,self.scale))
                 imager.set_colorkey((0,0,0))
                 self.images.append(imager.copy())
 
@@ -219,17 +237,17 @@ class Snake(Sprite):
         if self.game.ticks % 1 == 0:
             self.trail()
             if self.up:
-                self.rect.y -= 20
+                self.rect.y -= self.scale
             elif self.down:
-                self.rect.y += 20
+                self.rect.y += self.scale
             elif self.left:
-                self.rect.x -= 20
+                self.rect.x -= self.scale
             elif self.right:
-                self.rect.x += 20
+                self.rect.x += self.scale
         if (self.rect.x,self.rect.y) in self.fools[:-2]:
             self.tail = len(self.fools[self.fools.index((self.rect.topleft)):])
             # self.tail = 0
-        self.lengthen()
+        # self.lengthen()
 
 class Snack(Sprite):
     """Creates refreshments"""
@@ -242,9 +260,9 @@ class Snack(Sprite):
         self.screen_width = self.screen_rect.width
         self.screen_height = self.screen_rect.height
         self.image = pygame.image.load("Rot.png")
-        self.image = pygame.transform.scale(self.image, (20,20))
+        self.image = pygame.transform.scale(self.image, (self.game.char.scale,self.game.char.scale))
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = random.randint(0, self.game.screen_width//20)*20, random.randint(0, self.game.screen_height//20)*20
+        self.rect.x, self.rect.y = random.randint(0, self.game.screen_width//self.game.char.scale)*self.game.char.scale, random.randint(0, self.game.screen_height//self.game.char.scale)*self.game.char.scale
     
     def update(self):
         self.relocate()
@@ -252,7 +270,7 @@ class Snack(Sprite):
     
     def relocate(self):
         if self.rect.colliderect(self.game.char.rect):
-            self.rect.x, self.rect.y = random.randint(0, self.screen_width//20-1)*20, random.randint(0, self.screen_height//20-1)*20
+            self.rect.x, self.rect.y = random.randint(0, self.screen_width//self.game.char.scale-1)*self.game.char.scale, random.randint(0, self.screen_height//self.game.char.scale-1)*self.game.char.scale
             self.game.char.lengthen()
 
 
