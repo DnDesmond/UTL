@@ -37,7 +37,7 @@ while True:
         surface.blit(surfactant, (cat,0))
     display.blit(surface, (0,0))
     display.blit(image, (0,0))
-    if ranged>1280:
+    if ranged>1280*1.25:
         ranged = 0
     ranged += 0.5
     pygame.display.flip()
