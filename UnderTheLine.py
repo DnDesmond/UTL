@@ -2189,7 +2189,7 @@ class Yarn:
         for event in pygame.event.get():
             if not self.paused:
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
+                    if event.key == pygame.K_q:#Quits
                         try:
                             self.level = open("LEVEL.txt", 'w')
                         except FileNotFoundError:
@@ -2202,9 +2202,9 @@ class Yarn:
                             pickle.dump(self.full_run, file)
                         pygame.quit()
                         sys.exit()
-                    if event.key == pygame.K_j:
+                    if event.key == pygame.K_j:#Resets foes
                         self.foe_reset()
-                    if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if event.key == pygame.K_UP or event.key == pygame.K_w:#Jumps
                         if self.player.air_time < 5:
                             self.parab()
                             self.player.up = True
@@ -2214,51 +2214,51 @@ class Yarn:
                         else:
                             self.jump_hold = True
                         self.player.up_timer = 0
-                    if event.key == pygame.K_DOWN:
+                    if event.key == pygame.K_DOWN:#Cancels jump
                         self.player.gravitate = True
-                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:#Left
                         self.player.left = True
-                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:#Right
                         self.player.right = True
-                    if event.key == pygame.K_SPACE and self.swipe_time > 15 and not self.Φ:
+                    if event.key == pygame.K_SPACE and self.swipe_time > 15 and not self.Φ:#Sword Slash
                         self.attack = True
                         self.can_hit = self.evils.copy()
                         self.swipe_time = 0
                         self.Φ = True
-                    if event.key == pygame.K_r:
+                    if event.key == pygame.K_r:#Returns player to room entry
                         self.player.recenters()
-                    if event.key == pygame.K_t:
+                    if event.key == pygame.K_t:#Activates trails
                         self.traline = True
                         self.trail_stop = False
                         self.trails = pygame.sprite.Group()
-                    if event.key == pygame.K_y:
+                    if event.key == pygame.K_y:#Deactivates trails
                         self.traline = False
                         self.trail_stop = True
                         self.trails = pygame.sprite.Group()
-                    if event.key == pygame.K_n:
+                    if event.key == pygame.K_n:#Resets base game defeat variable
                         self.red = open("Start_clause.txt.txt", 'w')
                         self.red.close()
-                    if event.key == pygame.K_l:
+                    if event.key == pygame.K_l:#Activates and deactivates lines
                         if self.linear:
                             self.linear = False
                         else:
                             self.linear = True
-                    if event.key == pygame.K_u:
+                    if event.key == pygame.K_u:#Stops and starts trails without deleting
                         if self.trail_stop:
                             self.trail_stop = False
                         else:
                             self.trail_stop = True
-                    if event.key == pygame.K_p:
+                    if event.key == pygame.K_p:#Activites predictive points
                         if self.predicting:
                             self.predicting = False
                         else:
                             self.predicting = True
-                    if event.key == pygame.K_v:
+                    if event.key == pygame.K_v:#Triggers terrain visibility
                         if self.visible:
                             self.visible = False
                         else:
                             self.visible = True
-                    if event.key == pygame.K_ESCAPE and not self.stick:
+                    if event.key == pygame.K_ESCAPE and not self.stick:#Pauses?
                         if self.paused:
                             self.paused = False
                         elif not self.paused:

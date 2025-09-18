@@ -1,6 +1,6 @@
 import random
 
-nums = [random.randint(0,200) for x in range(0,10000)]
+nums = [random.randint(0,2000) for x in range(0,10000)]
 
 def swap(loist, a, b):
     t = loist[a]
@@ -60,6 +60,7 @@ def quicks(l):
 print(nums)
 nums = quicks(nums)
 print(nums)
-for num in range(0,201):
+for num in range(0,2001):
     if num not in nums:
-        print(num)
+        # print(num)
+        import quicks

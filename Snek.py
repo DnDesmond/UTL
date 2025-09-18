@@ -18,11 +18,7 @@ class Game:
         self.ticks = 0
         self.clicks = 0
         self.bite = Snack(self)
-        # self.cols = []
-        # for r in range(0,255,10):
-        #     for g in range(0,255,10):
-        #         for b in range(0,255,10):
-        #             self.cols.append((r,g,b))
+        self.eaten = []
 
     def run_game(self):
         while True:
@@ -61,7 +57,6 @@ class Game:
         #         self.turn(3)
         #     else:
         #         self.turn(0)
-                    # self.char.reimage((200,200,200))
     
     def turn(self, ind):
         for cat in range(0,4):
@@ -78,6 +73,7 @@ class Game:
             print(picks(self.char.rect.topleft, self.screen_width))
         self.char.update()
         self.bite.update()
+        pygame.draw.line(self.screen,(0,0,0),(620,360),self.char.rect.center,1)
         pygame.display.flip()
     
 class Snake(Sprite):
@@ -113,6 +109,7 @@ class Snake(Sprite):
         for image in self.images:
             self.og_images.append(image.copy())
         self.cur = (4,4,4)
+        self.og_images.append(self.image)
     
     def update(self):
         self.motion()
@@ -138,7 +135,6 @@ class Snake(Sprite):
 
     def reimage(self, colour):
         self.images = []
-        self.og_images.append(self.image)
         for image in self.og_images.copy():
             new = self.recolour(image, self.cur, colour)
             new.set_colorkey((0,0,0))
@@ -154,23 +150,28 @@ class Snake(Sprite):
             sector.append(self.rect.topleft)
         self.fools.pop()
         x,y = point[0],point[1]
+        added = 0
+        if point in self.game.eaten:
+            added = 9
         if (x+self.scale, y) in sector and (x, y+self.scale) in sector:
-            return 0
+            return 0+added
         elif (x+self.scale, y) in sector and (x-self.scale, y) in sector:
-            return 3
+            return 1+added
         elif (x-self.scale, y) in sector and (x, y+self.scale) in sector:
-            return 6
+            return 2+added
         elif (x, y+self.scale) in sector and (x, y-self.scale) in sector:
-            return 1
+            return 3+added
         elif (x+self.scale, y) in sector and (x, y-self.scale) in sector:
-            return 2 
+            return 6+added
         elif (x-self.scale, y) in sector and (x, y-self.scale) in sector:
-            return 8
+            return 8+added
     
     def rattle(self):
         point = self.fools[0]
         x,y = point[0], point[1]
         poin2 = self.fools[1]
+        if point in self.game.eaten:
+            self.game.eaten.remove(point)
         if (x,y-self.scale) == poin2:
             self.game.screen.blit(self.images[4], self.fools[0])
         elif (x+self.scale,y) == poin2:
@@ -195,8 +196,8 @@ class Snake(Sprite):
 
     def breakdown(self):
         image = pygame.image.load("Tails.png")
-        for cat in range(0,3):
-            for fish in range(0,3):
+        for fish in range(0,6):
+            for cat in range(0,3):
                 imager = pygame.surface.Surface((20,20))
                 imager.blit(image,(-cat*20,-fish*20))
                 imager = pygame.transform.scale(imager, (self.scale,self.scale))
@@ -270,6 +271,7 @@ class Snack(Sprite):
     
     def relocate(self):
         if self.rect.colliderect(self.game.char.rect):
+            self.game.eaten.append((self.rect.x, self.rect.y))
             self.rect.x, self.rect.y = random.randint(0, self.screen_width//self.game.char.scale-1)*self.game.char.scale, random.randint(0, self.screen_height//self.game.char.scale-1)*self.game.char.scale
             self.game.char.lengthen()
 
