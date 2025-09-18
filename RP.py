@@ -8,5 +8,5 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     # Remove if pyinstalling
     if relative_path.endswith(".png"):
-        relative_path = (f"Graphics/{relative_path}")
+        relative_path = (f"{relative_path}")
     return os.path.join(base_path, relative_path)

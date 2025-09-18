@@ -3,7 +3,11 @@ pygame.init()
 from pygame.sprite import Sprite
 import sys
 import random
-from Colour_Picker import picks
+from Colour_Picker import picks as base_picks
+from RP import resource_path as rp
+
+def picks(point, width, range):
+    return base_picks(point, width, range, inverse_channels=[0,0,0,1,0,0])
 
 class Game:
     """Attempts a game"""
@@ -85,7 +89,7 @@ class Snake(Sprite):
         self.scale = 20
         self.width = self.scale
         self.height = self.scale
-        self.image = pygame.image.load("Skull.png")
+        self.image = pygame.image.load(rp("Brot.png"))
         self.image.set_colorkey((0,0,0))
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         self.rect = self.image.get_rect()
@@ -118,7 +122,9 @@ class Snake(Sprite):
         for point in self.fools[1:]:
             # self.game.screen.blit(self.image, point)
             try:
-                self.game.screen.blit(self.images[self.adjutant(point)], point)
+                temp = self.images[self.adjutant(point)]
+                temp.fill(picks(point, 1680, self.tail*50))
+                self.game.screen.blit(temp, point)
             except TypeError:
                 pass
         self.rattle()
@@ -173,13 +179,15 @@ class Snake(Sprite):
         if point in self.game.eaten:
             self.game.eaten.remove(point)
         if (x,y-self.scale) == poin2:
-            self.game.screen.blit(self.images[4], self.fools[0])
+            temp = self.images[4]
         elif (x+self.scale,y) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.images[4],270), self.fools[0])
+            temp = pygame.transform.rotate(self.images[4],270)
         elif (x,y+self.scale) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.images[4],180), self.fools[0])
+            temp = pygame.transform.rotate(self.images[4],180)
         elif (x-self.scale,y) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.images[4],90), self.fools[0])
+            temp = pygame.transform.rotate(self.images[4],90)
+        temp.fill(picks(point, 1680, self.tail*50))
+        self.game.screen.blit(temp, self.fools[0])
 
     def skull(self):
         point = self.rect.topleft
@@ -260,13 +268,14 @@ class Snack(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.screen_width = self.screen_rect.width
         self.screen_height = self.screen_rect.height
-        self.image = pygame.image.load("Rot.png")
+        self.image = pygame.image.load(rp("Brot.png"))
         self.image = pygame.transform.scale(self.image, (self.game.char.scale,self.game.char.scale))
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = random.randint(0, self.game.screen_width//self.game.char.scale)*self.game.char.scale, random.randint(0, self.game.screen_height//self.game.char.scale)*self.game.char.scale
     
     def update(self):
         self.relocate()
+        self.image.fill(picks(self.rect.topleft, 1680, self.game.char.tail*10))
         self.screen.blit(self.image, self.rect)
     
     def relocate(self):
