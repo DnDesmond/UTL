@@ -7,7 +7,7 @@ from Colour_Picker import picks as base_picks
 from RP import resource_path as rp
 import os
 
-#Issue is with adjustant not returning other than 0
+#Issue is with adjutant not returning other than 0
 os.chdir("alien_invasion/UTL")
 def base_picks(point, width, range, inverse_channels=[0,0,0,0,0,0]):
     greens = width//3
@@ -55,7 +55,7 @@ def calcs(x, bar, range=255):
     return res
 
 def picks(point, width, range):
-    return base_picks(point, width, range, inverse_channels=[0,0,0,0,0,0])
+    return base_picks(point, width, range, inverse_channels=[0,0,0,1,0,0])
 
 class Game:
     """Attempts a game"""
@@ -95,34 +95,14 @@ class Game:
                     self.turn(3)
                 if event.key == pygame.K_l:
                     self.char.lengthen()
-        # if self.char.rect.y > self.bite.rect.y and not self.char.down:
-        #     self.turn(0)
-        # if self.char.rect.y < self.bite.rect.y and not self.char.up:
-        #     self.turn(1)
-        # if self.char.rect.x > self.bite.rect.x and not self.char.right:
-        #     self.turn(2)
-        # if self.char.rect.x < self.bite.rect.x and not self.char.left:
-        #     self.turn(3)
-        # self.clicks += 1
-        # if self.clicks > 20:
-        #     if self.char.up or self.char.down:
-        #         self.turn(3)
-        #     else:
-        #         self.turn(0)
-    
+                    
     def turn(self, ind):
         for cat in range(0,4):
             setattr(self.char, self.char.moves[cat], cat==ind)
         self.clicks = 0
 
     def update_screen(self):
-        # self.screen.fill((self.cols[(self.ticks%len(self.cols))]))
-        # self.screen.fill((23,99,127))
         self.screen.fill((102,102,102))
-        # try:
-        #     self.char.reimage(picks(self.char.rect.topleft, self.screen_width, self.char.tail*10))
-        # except ValueError:
-        #     print(picks(self.char.rect.topleft, self.screen_width))
         self.char.update()
         self.bite.update()
         pygame.draw.line(self.screen,(0,0,0),(620,360),self.char.rect.center,1)
@@ -150,11 +130,8 @@ class Snake(Sprite):
         self.tail = 1
         self.tails: list[pygame.rect.Rect] = [self.tail_0]
         self.fools = [(self.rect.x, self.rect.y)]
-        # self.image.set_palette((0,0,0))
         self.image = pygame.PixelArray(self.image)
-        # self.image.replace((4,4,4),(102,102,102))
         self.image = self.image.make_surface()
-        # self.image.fill((0,0,0))
         self.images = []
         self.breakdown()
         self.og_images = []
@@ -166,23 +143,14 @@ class Snake(Sprite):
     
     def update(self):
         self.motion()
-        # self.game.screen.blit(self.image, self.rect)
         self.skull()
         for point in self.fools[1:]:
-            # self.game.screen.blit(self.image, point)
-            # try:
-                # self.reimage(picks(point, self.game.screen_width, self.tail*10))
-                temp = self.temps.copy()[self.adjutant(point)].copy()
-                temp = self.recolour(temp, (4,4,4), picks(point, self.game.screen_width, self.tail*10))
-                self.game.screen.blit(temp, point)
-            # except TypeError:
-            #     pass
+            temp = self.temps.copy()[self.adjutant(point)].copy()
+            clonk = self.fools[1:].index(point)*20,0
+            temp = self.recolour(temp, (4,4,4), picks(clonk, self.game.screen_width, self.tail*10))
+            self.game.screen.blit(temp, point)
         self.rattle()
-        # for point in self.fools:
-        #     self.game.screen.blit(self.image, point)
-        # for tail in self.tails:
-        #     self.game.screen.blit(self.image, tail)
-    
+
     def recolour(self, surface, colour, new):
         surface = pygame.PixelArray(surface)
         surface.replace((colour),(new))
@@ -239,20 +207,26 @@ class Snake(Sprite):
             temp = pygame.transform.rotate(self.images[4],180)
         elif (x-self.scale,y) == poin2:
             temp = pygame.transform.rotate(self.images[4],90)
+        clonk = self.fools.index(point)*20,0
+        temp = self.recolour(temp.copy(), (4,4,4), picks(clonk, self.game.screen_width, self.tail*10))
         self.game.screen.blit(temp, self.fools[0])
 
     def skull(self):
         point = self.rect.topleft
         x,y = point[0], point[1]
         poin2 = self.fools[-1]
+        temp = pygame.transform.rotate(self.image,270)
         if (x,y-self.scale) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.image,180), self.rect)
+            temp = pygame.transform.rotate(self.image,180)
         elif (x+self.scale,y) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.image,90), self.rect)
+            temp = pygame.transform.rotate(self.image,90)
         elif (x,y+self.scale) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.image,0), self.rect)
+            temp = pygame.transform.rotate(self.image,0)
         elif (x-self.scale,y) == poin2:
-            self.game.screen.blit(pygame.transform.rotate(self.image,270), self.rect)
+            temp = pygame.transform.rotate(self.image,270)
+        clonk = [len(self.fools)*20]
+        temp = self.recolour(temp.copy(), (4,4,4), picks(clonk, self.game.screen_width, self.tail*10))
+        self.game.screen.blit(temp, self.rect.topleft)
 
     def breakdown(self):
         image = pygame.image.load(rp("Tails.png"))
@@ -265,9 +239,6 @@ class Snake(Sprite):
                 self.images.append(imager.copy())
 
     def lengthen(self):
-        # setattr(self, f"tail_{self.tail+1}", getattr(self, f"tail_{self.tail}").copy())
-        # self.tails.append(getattr(self, f"tail_{self.tail}"))
-        # self.fools.append((self.rect.x, self.rect.y))
         self.fools.reverse()
         self.fools.append(self.fools[0])
         self.fools.reverse()
@@ -277,26 +248,10 @@ class Snake(Sprite):
         while len(self.fools)>self.tail:
             self.fools.remove(self.fools[0])
         self.fools.append((self.rect.x, self.rect.y))
-        # self.fools = []
-        # for rect in self.tails:
-        #     self.fools.append((rect.x, rect.y))
-
-    def trail(self):
-        # self.tails: list[pygame.rect.Rect] = []
-        # for tail in range(self.tail, -1, -1):
-        #     if tail == 0:
-        #         setattr(self, f"tail{tail}", self.rect.copy())
-        #         self.tails.append(getattr(self, f"tail{tail}"))
-        #     elif tail != 0:
-        #         setattr(self, f"tail{tail}", getattr(self, f"tail{tail-1}").copy())
-        #         self.tails.append(getattr(self, f"tail{tail}"))
-        # self.trace()
-        self.trace()
-
 
     def motion(self):
         if self.game.ticks % 1 == 0:
-            self.trail()
+            self.trace()
             if self.up:
                 self.rect.y -= self.scale
             elif self.down:
@@ -305,10 +260,19 @@ class Snake(Sprite):
                 self.rect.x -= self.scale
             elif self.right:
                 self.rect.x += self.scale
+            if self.tail < 21:
+                self.lengthen()
+            # Consummate v's!
+            if self.rect.x > self.game.screen_width:
+                self.rect.x = -20
+            if self.rect.x < -20:
+                self.rect.x = self.game.screen_width+20
+            if self.rect.y > self.game.screen_height:
+                self.rect.y = -20
+            if self.rect.y < -20:
+                self.rect.y = self.game.screen_height+20
         if (self.rect.x,self.rect.y) in self.fools[:-2]:
             self.tail = len(self.fools[self.fools.index((self.rect.topleft)):])
-            # self.tail = 0
-        # self.lengthen()
 
 class Snack(Sprite):
     """Creates refreshments"""
