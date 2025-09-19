@@ -5,9 +5,57 @@ import sys
 import random
 from Colour_Picker import picks as base_picks
 from RP import resource_path as rp
+import os
+
+#Issue is with adjustant not returning other than 0
+os.chdir("alien_invasion/UTL")
+def base_picks(point, width, range, inverse_channels=[0,0,0,0,0,0]):
+    greens = width//3
+    blues = (width//3)*2
+    reds1 = 0
+    reds2 = width
+    x = point[0]
+    green = calcs(x, greens, range)
+    blue = calcs(x, blues, range)
+    if x < width//2:
+        red = calcs(x, reds1, range)
+    else:
+        red = calcs(x, reds2, range)
+    if inverse_channels[0]==1:
+        red = 255-red
+    if inverse_channels[1]==1:
+        green = 255-green
+    if inverse_channels[2]==1:
+        blue = 255-blue
+    if inverse_channels[3]==1:
+        temp = red
+        red = green
+        green = temp
+    if inverse_channels[4]==1:
+        temp = red
+        red = blue
+        blue = temp
+    if inverse_channels[5]==1:
+        temp = blue
+        blue = green
+        green = temp
+    return (red,green,blue)
+
+def calcs(x, bar, range=255):
+    if x <= bar:
+        res = x-(bar-range)
+    elif x >= bar:
+        res = (bar+range)-x
+    mod = res/abs(range+1)
+    res = mod*255
+    if res > range:
+        res = range
+    if res < 0:
+        res = 1
+    return res
 
 def picks(point, width, range):
-    return base_picks(point, width, range, inverse_channels=[0,0,0,1,0,0])
+    return base_picks(point, width, range, inverse_channels=[0,0,0,0,0,0])
 
 class Game:
     """Attempts a game"""
@@ -71,10 +119,10 @@ class Game:
         # self.screen.fill((self.cols[(self.ticks%len(self.cols))]))
         # self.screen.fill((23,99,127))
         self.screen.fill((102,102,102))
-        try:
-            self.char.reimage(picks(self.char.rect.topleft, self.screen_width, self.char.tail*10))
-        except ValueError:
-            print(picks(self.char.rect.topleft, self.screen_width))
+        # try:
+        #     self.char.reimage(picks(self.char.rect.topleft, self.screen_width, self.char.tail*10))
+        # except ValueError:
+        #     print(picks(self.char.rect.topleft, self.screen_width))
         self.char.update()
         self.bite.update()
         pygame.draw.line(self.screen,(0,0,0),(620,360),self.char.rect.center,1)
@@ -89,7 +137,7 @@ class Snake(Sprite):
         self.scale = 20
         self.width = self.scale
         self.height = self.scale
-        self.image = pygame.image.load(rp("Brot.png"))
+        self.image = pygame.image.load(rp("Skull.png"))
         self.image.set_colorkey((0,0,0))
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         self.rect = self.image.get_rect()
@@ -112,6 +160,7 @@ class Snake(Sprite):
         self.og_images = []
         for image in self.images:
             self.og_images.append(image.copy())
+        self.temps = self.og_images.copy()
         self.cur = (4,4,4)
         self.og_images.append(self.image)
     
@@ -121,12 +170,13 @@ class Snake(Sprite):
         self.skull()
         for point in self.fools[1:]:
             # self.game.screen.blit(self.image, point)
-            try:
-                temp = self.images[self.adjutant(point)]
-                temp.fill(picks(point, 1680, self.tail*50))
+            # try:
+                # self.reimage(picks(point, self.game.screen_width, self.tail*10))
+                temp = self.temps.copy()[self.adjutant(point)].copy()
+                temp = self.recolour(temp, (4,4,4), picks(point, self.game.screen_width, self.tail*10))
                 self.game.screen.blit(temp, point)
-            except TypeError:
-                pass
+            # except TypeError:
+            #     pass
         self.rattle()
         # for point in self.fools:
         #     self.game.screen.blit(self.image, point)
@@ -137,6 +187,7 @@ class Snake(Sprite):
         surface = pygame.PixelArray(surface)
         surface.replace((colour),(new))
         surface = surface.make_surface()
+        surface.set_colorkey((0,0,0))
         return surface
 
     def reimage(self, colour):
@@ -171,11 +222,13 @@ class Snake(Sprite):
             return 6+added
         elif (x-self.scale, y) in sector and (x, y-self.scale) in sector:
             return 8+added
+        return 1
     
     def rattle(self):
         point = self.fools[0]
         x,y = point[0], point[1]
         poin2 = self.fools[1]
+        temp = self.image
         if point in self.game.eaten:
             self.game.eaten.remove(point)
         if (x,y-self.scale) == poin2:
@@ -186,7 +239,6 @@ class Snake(Sprite):
             temp = pygame.transform.rotate(self.images[4],180)
         elif (x-self.scale,y) == poin2:
             temp = pygame.transform.rotate(self.images[4],90)
-        temp.fill(picks(point, 1680, self.tail*50))
         self.game.screen.blit(temp, self.fools[0])
 
     def skull(self):
@@ -203,7 +255,7 @@ class Snake(Sprite):
             self.game.screen.blit(pygame.transform.rotate(self.image,270), self.rect)
 
     def breakdown(self):
-        image = pygame.image.load("Tails.png")
+        image = pygame.image.load(rp("Tails.png"))
         for fish in range(0,6):
             for cat in range(0,3):
                 imager = pygame.surface.Surface((20,20))
@@ -268,7 +320,7 @@ class Snack(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.screen_width = self.screen_rect.width
         self.screen_height = self.screen_rect.height
-        self.image = pygame.image.load(rp("Brot.png"))
+        self.image = pygame.image.load(rp("Rot.png"))
         self.image = pygame.transform.scale(self.image, (self.game.char.scale,self.game.char.scale))
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = random.randint(0, self.game.screen_width//self.game.char.scale)*self.game.char.scale, random.randint(0, self.game.screen_height//self.game.char.scale)*self.game.char.scale
