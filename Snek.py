@@ -5,6 +5,16 @@ import sys
 import random
 from Colour_Picker import picks as base_picks
 from RP import resource_path as rp
+from non import translator
+
+def hexed(strung):
+    one = strung[0:2]
+    two = strung[2:4]
+    three = strung[4:6]
+    one = int(translator(one, 16, 10))
+    two = int(translator(two, 16, 10))
+    three = int(translator(three, 16, 10))
+    return (one,two,three)
 
 def picks(point, width, range):
     return base_picks(point, width, range, inverse_channels=[0,0,0,1,0,0])
@@ -75,7 +85,7 @@ class Game:
     def update_screen(self):
         # self.screen.fill((self.cols[(self.ticks%len(self.cols))]))
         # self.screen.fill((23,99,127))
-        self.screen.fill((102,102,102))
+        self.screen.fill(hexed("222222"))
         try:
             self.char.reimage(picks(self.char.rect.topleft, self.screen_width, self.char.tail*10))
         except ValueError:

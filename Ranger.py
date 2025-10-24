@@ -2,6 +2,9 @@ from Colour_Picker import picks as base_picks
 import pygame
 pygame.init()
 import sys
+import os
+
+os.chdir("UTL")
 
 def picks(point, width, range):
     return base_picks(point, width, range, inverse_channels=[1,0,0,0,0,0])
@@ -22,9 +25,9 @@ display = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 # image.set_colorkey((255,255,255))#
 vignette = (25,25,25)
 
-for cat in range(0,1680):
-    surfactant.fill(picks((cat,0), 1680, 500))
-    surface.blit(surfactant, (cat,0))
+# for cat in range(0,1680):
+#     surfactant.fill(picks((cat,0), 1680, 500))
+#     surface.blit(surfactant, (cat,0))
 
 paused = False
 ranged = 0
@@ -40,11 +43,11 @@ while True:
     #     surfactant.fill(picks((cat,0), 1680, ranged))
     #     surface.blit(surfactant, (cat,0))
     for cat in range(0,1050):
-        surfactant.fill(picks((0,cat), 1050, ranged))
+        surfactant.fill(picks((cat,cat), 1050, ranged))
         surface.blit(surfactant, (0,cat))
     display.blit(surface, (0,0))
     # display.blit(image, (0,0))
-    if ranged>1680*1.25:
+    if ranged>1680*0.6:
         ranged = 0
     if not paused:
         ranged += 2
