@@ -4,7 +4,7 @@ import os
 from pygame.sprite import Sprite
 from math import sqrt
 
-os.chdir("UTL")
+# os.chdir("UTL")
 
 def eqs(point, point_2):
     x1,y1 = point
@@ -78,7 +78,7 @@ def dotxline(point, cap, cap_2):
     full = length(cap, cap_2)
     half = length(cap, point)
     halved = length(cap_2, point)
-    if half + halved >= full-2 and half + halved <= full+2:
+    if half + halved >= full-1 and half + halved <= full+1:
         return True
     else:
         return False
@@ -95,12 +95,13 @@ class Game:
         self.char = Block(self)
         self.clock = pygame.time.Clock()
         self.colly = False
-        self.line_caps = [(200,500),(1500,1500)]
+        self.line_caps = [(501,700),(700,700)]
+        self.savey = ()
     
     def run_game(self):
         while True:
-            self.check_events()
             self.update_screen()
+            self.check_events()
             self.clock.tick(60)
 
     def update_screen(self):
@@ -110,23 +111,24 @@ class Game:
             self.screen.fill((40,234,123))
         self.colls()
         self.char.update()
-        pygame.draw.line(self.screen, (4,4,4), self.screen_rect.center, self.char.rect.center)
+        # pygame.draw.line(self.screen, (4,4,4), self.screen_rect.center, self.char.rect.center)
         pygame.draw.line(self.screen, (4,4,4), self.line_caps[0], self.line_caps[1])
         pygame.display.flip()
     
     def colls(self):
         try:
             point, point_2 = self.line_caps
-            point_3, point_4 = self.char.rect.center, self.screen_rect.center
+            point_3, point_4 = self.char.rect.topleft, (self.char.rect.bottomleft[0]+1,self.char.rect.bottomleft[1])
             eq = eqs(point, point_2)
             eq1 = eqs(point_3, point_4)
             col = simuls(eq, eq1)
-            pygame.draw.circle(self.screen, (4,4,4), col, 10, 10)
-            pygame.draw.circle(self.screen, (40,4,4), point, 10, 10)
-            pygame.draw.circle(self.screen, (4,40,4), point_2, 10, 10)
-            pygame.draw.circle(self.screen, (4,4,40), point_3, 10, 10)
-            pygame.draw.circle(self.screen, (40,40,40), point_4, 10, 10)
-            self.colly = dotxline(col, point_3, point_4)
+            self.savey = col
+            # pygame.draw.circle(self.screen, (4,4,4), col, 10, 10)
+            # pygame.draw.circle(self.screen, (40,4,4), point, 10, 10)
+            # pygame.draw.circle(self.screen, (4,40,4), point_2, 10, 10)
+            # pygame.draw.circle(self.screen, (4,4,40), point_3, 10, 10)
+            # pygame.draw.circle(self.screen, (40,40,40), point_4, 10, 10)
+            self.colly = dotxline(col, point, point_2) and dotxline(col, point_3, point_4)
         except ZeroDivisionError:
             self.colly = False
 
@@ -159,14 +161,17 @@ class Block(Sprite):
         self.screen_width = self.game.screen_rect.width
         self.screen_height = self.game.screen_rect.height
         self.image = pygame.image.load("Rot.png")
-        self.image = pygame.transform.scale(self.image, (20,20))
+        self.image = pygame.transform.scale(self.image, (30,30))
         self.rect = self.image.get_rect()
+        self.image = pygame.transform.scale(self.image, (30,30))
         self.width = self.rect.width
         self.height = self.rect.height
         self.richtig = False
         self.falsch = False
         self.floored = False
         self.x_1, self.y_1 = self.game.screen_rect.center
+        self.exos = self.rect.center
+        self.deley = 0
 
         self.down = 0
         self.right = 0
@@ -176,9 +181,10 @@ class Block(Sprite):
         self.screen.blit(self.image, (self.rect.x,self.rect.y))
     
     def motion(self):
-        self.colls()
-        self.rect.x += round(self.right)
         self.rect.y += round(self.down)
+        self.colls()
+        self.exos = self.rect.center
+        self.rect.x += round(self.right)
         if self.richtig and self.right < 12:
             self.right += 1
         if self.falsch and self.right > -12:
@@ -188,14 +194,27 @@ class Block(Sprite):
         if self.right < 0:
             self.right += 0.5
         
-        if self.down < 25:
+        if self.down < 15:
             self.down += 1
     
     def colls(self):
+        self.game.colls()
         if self.rect.bottom > self.screen_height:
             if self.down > 0:
                 self.down = 0
             self.rect.y = self.screen_height-self.height
+        if self.game.colly:
+            self.down = 0
+            if self.exos[1] < self.rect.centery:
+                while self.game.colly:
+                    self.rect.y -= 1
+                    self.game.colls()
+            if self.exos[0] < self.rect.centery:
+                while self.game.colly:
+                    self.rect.y += 1
+                    self.game.colls()
+                
+
         
 
 class Fruit(Sprite):
