@@ -5,54 +5,16 @@ import sys
 import random
 from Colour_Picker import picks as base_picks
 from RP import resource_path as rp
-import os
-os.chdir("alien_invasion/UTL")
-channels = [0,0,0,0,0,0]
-#Issue is with adjutant not returning other than 0
-def base_picks(point, width, range, inverse_channels=[0,0,0,0,0,0]):
-    greens = width//3
-    blues = (width//3)*2
-    reds1 = 0
-    reds2 = width
-    x = point[0]
-    green = calcs(x, greens, range)
-    blue = calcs(x, blues, range)
-    if x < width//2:
-        red = calcs(x, reds1, range)
-    else:
-        red = calcs(x, reds2, range)
-    if inverse_channels[0]==1:
-        red = 255-red
-    if inverse_channels[1]==1:
-        green = 255-green
-    if inverse_channels[2]==1:
-        blue = 255-blue
-    if inverse_channels[3]==1:
-        temp = red
-        red = green
-        green = temp
-    if inverse_channels[4]==1:
-        temp = red
-        red = blue
-        blue = temp
-    if inverse_channels[5]==1:
-        temp = blue
-        blue = green
-        green = temp
-    return (red,green,blue)
+from non import translator
 
-def calcs(x, bar, range=255):
-    if x <= bar:
-        res = x-(bar-range)
-    elif x >= bar:
-        res = (bar+range)-x
-    mod = res/abs(range+1)
-    res = mod*255
-    if res > range:
-        res = range
-    if res < 0:
-        res = 1
-    return res
+def hexed(strung):
+    one = strung[0:2]
+    two = strung[2:4]
+    three = strung[4:6]
+    one = int(translator(one, 16, 10))
+    two = int(translator(two, 16, 10))
+    three = int(translator(three, 16, 10))
+    return (one,two,three)
 
 def picks(point, width, range):
     return base_picks(point, width, range, inverse_channels=channels)
@@ -108,7 +70,13 @@ class Game:
         self.clicks = 0
 
     def update_screen(self):
-        self.screen.fill((102,102,102))
+        # self.screen.fill((self.cols[(self.ticks%len(self.cols))]))
+        # self.screen.fill((23,99,127))
+        self.screen.fill(hexed("222222"))
+        try:
+            self.char.reimage(picks(self.char.rect.topleft, self.screen_width, self.char.tail*10))
+        except ValueError:
+            print(picks(self.char.rect.topleft, self.screen_width))
         self.char.update()
         self.bite.update()
         # pygame.draw.line(self.screen,(0,0,0),(620,360),self.char.rect.center,1)
