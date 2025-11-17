@@ -96,7 +96,8 @@ class Game:
         self.clock = pygame.time.Clock()
         self.colly = False
         # self.line_caps = [(501,700),(700,700)]
-        self.lines = [((501,700),(700,700))]
+        self.temps = []
+        self.lines = [((501,700),(700,700)),((801,600),(1000,600))]
     
     def run_game(self):
         while True:
@@ -114,15 +115,20 @@ class Game:
         # pygame.draw.line(self.screen, (4,4,4), self.screen_rect.center, self.char.rect.center)
         for line in self.lines:
             pygame.draw.line(self.screen, (4,4,4), line[0], line[1])
+        if len(self.temps) > 0:
+            pygame.draw.line(self.screen, (4,4,4), self.temps[0], pygame.mouse.get_pos())
         pygame.display.flip()
     
     def colls(self):
+        self.char.lineate()
         for line in self.lines:
             for linec in self.char.lines:
                 self.colly = self.actuolls(line[0], line[1], linec[0], linec[1])
                 if self.colly == True:
-                    print("TRUE")
+                    # print("TRUE")
                     break
+            if self.colly == True:
+                break
         
     
     def actuolls(self, point, point_2, point_3, point_4):
@@ -153,6 +159,11 @@ class Game:
                     self.char.richtig = False
                 if event.key == pygame.K_LEFT:
                     self.char.falsch = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.temps.append(pygame.mouse.get_pos())
+                if len(self.temps) > 1:
+                    self.lines.append(self.temps)
+                    self.temps = []
                    
 class Block(Sprite):
     """Attempts a block"""
@@ -179,9 +190,12 @@ class Block(Sprite):
         self.right = 0
 
     def update(self):
-        self.lines = [(self.rect.topleft,(self.rect.bottomleft[0],self.rect.bottomleft[1]+1))]#,(self.rect.topright,(self.rect.bottomright[0],self.rect.bottomright[1]+1))]
+        self.lines = [(self.rect.topleft,(self.rect.bottomleft[0]+1,self.rect.bottomleft[1])),(self.rect.topright,(self.rect.bottomright[0]+1,self.rect.bottomright[1]))]#,(self.rect.topright,(self.rect.bottomright[0],self.rect.bottomright[1]+1))]
         self.motion()
         self.screen.blit(self.image, (self.rect.x,self.rect.y))
+    
+    def lineate(self):
+        self.lines = [(self.rect.topleft,(self.rect.bottomleft[0]+1,self.rect.bottomleft[1])),(self.rect.topright,(self.rect.bottomright[0]+1,self.rect.bottomright[1]))]
     
     def motion(self):
         self.rect.y += round(self.down)
@@ -212,7 +226,7 @@ class Block(Sprite):
                 while self.game.colly:
                     self.rect.y -= 1
                     self.game.colls()
-            if self.exos[0] < self.rect.centery:
+            if self.exos[1] > self.rect.centery:
                 while self.game.colly:
                     self.rect.y += 1
                     self.game.colls()
