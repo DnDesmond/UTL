@@ -17,7 +17,7 @@ def hexed(strung):
     return (one,two,three)
 
 def picks(point, width, range):
-    return base_picks(point, width, range, inverse_channels=[0,0,0,1,0,0])
+    return base_picks(point, width, range, inverse_channels=channels)
 
 class Game:
     """Attempts a game"""
@@ -57,6 +57,12 @@ class Game:
                     self.turn(3)
                 if event.key == pygame.K_l:
                     self.char.lengthen()
+                for cat in range(0,6):
+                    if event.key == getattr(pygame, f"K_{cat}"):
+                        if channels[cat] == 1:
+                            channels[cat] = 0
+                        elif channels[cat] == 0:
+                            channels[cat] = 1
                     
     def turn(self, ind):
         for cat in range(0,4):
@@ -73,7 +79,7 @@ class Game:
             print(picks(self.char.rect.topleft, self.screen_width))
         self.char.update()
         self.bite.update()
-        pygame.draw.line(self.screen,(0,0,0),(620,360),self.char.rect.center,1)
+        # pygame.draw.line(self.screen,(0,0,0),(620,360),self.char.rect.center,1)
         pygame.display.flip()
     
 class Snake(Sprite):
@@ -239,7 +245,7 @@ class Snake(Sprite):
                 self.rect.y = -20
             if self.rect.y < -20:
                 self.rect.y = self.game.screen_height+20
-        if (self.rect.x,self.rect.y) in self.fools[:-2]:
+        if (self.rect.x,self.rect.y) in self.fools[:-1]:
             self.tail = len(self.fools[self.fools.index((self.rect.topleft)):])
 
 class Snack(Sprite):
@@ -252,14 +258,18 @@ class Snack(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.screen_width = self.screen_rect.width
         self.screen_height = self.screen_rect.height
-        self.image = pygame.image.load(rp("Rot.png"))
-        self.image = pygame.transform.scale(self.image, (self.game.char.scale,self.game.char.scale))
-        self.rect = self.image.get_rect()
+        self.cheris = pygame.image.load(rp("Cherie2.png"))
+        self.apfel = pygame.image.load(rp("Apfel.png"))
+        self.fruits = {"Cherry":self.cheris, "Apfel":self.apfel}
+        for kind, harvest in self.fruits.items():
+            setattr(self, kind, pygame.transform.scale(harvest, (self.game.char.scale,self.game.char.scale)))
+        self.rect = self.fruits["Cherry"].get_rect()
         self.rect.x, self.rect.y = random.randint(0, self.game.screen_width//self.game.char.scale)*self.game.char.scale, random.randint(0, self.game.screen_height//self.game.char.scale)*self.game.char.scale
+        self.image = random.choice(list(self.fruits.values()))
     
     def update(self):
         self.relocate()
-        self.image.fill(picks(self.rect.topleft, 1680, self.game.char.tail*10))
+        # self.image.fill(picks(self.rect.topleft, 1680, self.game.char.tail*10))
         self.screen.blit(self.image, self.rect)
     
     def relocate(self):
@@ -267,6 +277,7 @@ class Snack(Sprite):
             self.game.eaten.append((self.rect.x, self.rect.y))
             self.rect.x, self.rect.y = random.randint(0, self.screen_width//self.game.char.scale-1)*self.game.char.scale, random.randint(0, self.screen_height//self.game.char.scale-1)*self.game.char.scale
             self.game.char.lengthen()
+            self.image = random.choice(list(self.fruits.values()))
 
 
 game = Game()
