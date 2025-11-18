@@ -95,8 +95,9 @@ class Game:
         self.char = Block(self)
         self.clock = pygame.time.Clock()
         self.colly = False
-        self.line_caps = [(501,700),(700,700)]
-        self.savey = ()
+        # self.line_caps = [(501,700),(700,700)]
+        self.temps = []
+        self.lines = [((501,700),(700,700)),((801,600),(1000,600))]
     
     def run_game(self):
         while True:
@@ -109,28 +110,36 @@ class Game:
             self.screen.fill((123+10,49+10,78+10))
         else:
             self.screen.fill((40,234,123))
-        self.colls()
+        # self.colls()
         self.char.update()
         # pygame.draw.line(self.screen, (4,4,4), self.screen_rect.center, self.char.rect.center)
-        pygame.draw.line(self.screen, (4,4,4), self.line_caps[0], self.line_caps[1])
+        for line in self.lines:
+            pygame.draw.line(self.screen, (4,4,4), line[0], line[1])
+        if len(self.temps) > 0:
+            pygame.draw.line(self.screen, (4,4,4), self.temps[0], pygame.mouse.get_pos())
         pygame.display.flip()
     
     def colls(self):
+        self.char.lineate()
+        for line in self.lines:
+            for linec in self.char.lines:
+                self.colly = self.actuolls(line[0], line[1], linec[0], linec[1])
+                if self.colly == True:
+                    # print("TRUE")
+                    break
+            if self.colly == True:
+                break
+        
+    
+    def actuolls(self, point, point_2, point_3, point_4):
         try:
-            point, point_2 = self.line_caps
-            point_3, point_4 = self.char.rect.topleft, (self.char.rect.bottomleft[0]+1,self.char.rect.bottomleft[1])
             eq = eqs(point, point_2)
             eq1 = eqs(point_3, point_4)
             col = simuls(eq, eq1)
-            self.savey = col
-            # pygame.draw.circle(self.screen, (4,4,4), col, 10, 10)
-            # pygame.draw.circle(self.screen, (40,4,4), point, 10, 10)
-            # pygame.draw.circle(self.screen, (4,40,4), point_2, 10, 10)
-            # pygame.draw.circle(self.screen, (4,4,40), point_3, 10, 10)
-            # pygame.draw.circle(self.screen, (40,40,40), point_4, 10, 10)
-            self.colly = dotxline(col, point, point_2) and dotxline(col, point_3, point_4)
+            colly = dotxline(col, point, point_2) and dotxline(col, point_3, point_4)
         except ZeroDivisionError:
-            self.colly = False
+            colly = False
+        return colly
 
     def check_events(self):
         for event in pygame.event.get():
@@ -150,6 +159,11 @@ class Game:
                     self.char.richtig = False
                 if event.key == pygame.K_LEFT:
                     self.char.falsch = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.temps.append(pygame.mouse.get_pos())
+                if len(self.temps) > 1:
+                    self.lines.append(self.temps)
+                    self.temps = []
                    
 class Block(Sprite):
     """Attempts a block"""
@@ -177,8 +191,12 @@ class Block(Sprite):
         self.right = 0
 
     def update(self):
+        self.lines = [(self.rect.topleft,(self.rect.bottomleft[0]+1,self.rect.bottomleft[1])),(self.rect.topright,(self.rect.bottomright[0]+1,self.rect.bottomright[1]))]#,(self.rect.topright,(self.rect.bottomright[0],self.rect.bottomright[1]+1))]
         self.motion()
         self.screen.blit(self.image, (self.rect.x,self.rect.y))
+    
+    def lineate(self):
+        self.lines = [(self.rect.topleft,(self.rect.bottomleft[0]+1,self.rect.bottomleft[1])),(self.rect.topright,(self.rect.bottomright[0]+1,self.rect.bottomright[1]))]
     
     def motion(self):
         self.rect.y += round(self.down)
@@ -209,7 +227,7 @@ class Block(Sprite):
                 while self.game.colly:
                     self.rect.y -= 1
                     self.game.colls()
-            if self.exos[0] < self.rect.centery:
+            if self.exos[1] > self.rect.centery:
                 while self.game.colly:
                     self.rect.y += 1
                     self.game.colls()
