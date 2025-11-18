@@ -4,7 +4,7 @@ import os
 from pygame.sprite import Sprite
 from math import sqrt
 
-os.chdir("UTL")
+# os.chdir("UTL")
 
 def eqs(point, point_2):
     x1,y1 = point
