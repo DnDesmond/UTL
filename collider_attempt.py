@@ -32,7 +32,9 @@ class Game:
         self.screen_height = self.screen_rect.height
         self.player = Player(self)
         self.clock = pygame.time.Clock()
-        self.horizons = [((501,600),(700,600))]
+        self.horizons = [((401,600),(700,600)),((504,400),(510,400))]
+        self.tears = [((501,600),(501,400))]
+        self.temps = []
     
     def run_game(self):
         while True:
@@ -47,6 +49,10 @@ class Game:
         self.player.update()
         for line in self.horizons:
             pygame.draw.line(self.screen, (190,190,190), line[0], line[1])
+        for line in self.tears:
+            pygame.draw.line(self.screen, (190,190,190), line[0], line[1])
+        if len(self.temps) == 1:
+            pygame.draw.line(self.screen, (215,104,157), self.temps[0], (pygame.mouse.get_pos()[0],self.temps[0][1]))
         pygame.display.flip()
     
     def check_events(self):
@@ -65,13 +71,22 @@ class Game:
                     sys.exit()
                 if event.key == pygame.K_RIGHT:
                     self.player.rechts = True
+                    self.player.hori_times = 0
                 if event.key == pygame.K_LEFT:
                     self.player.links = True
+                    self.player.hori_times = 0
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
                     self.player.rechts = False
                 if event.key == pygame.K_LEFT:
                     self.player.links = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if len(self.temps) < 1:
+                    self.temps.append(pygame.mouse.get_pos())
+                else:
+                    self.temps.append((pygame.mouse.get_pos()[0],self.temps[0][1]))
+                    self.horizons.append(self.temps.copy())
+                    self.temps = []
 
 class Player(Sprite):
     """Creates a playerish thingummy"""
@@ -89,6 +104,7 @@ class Player(Sprite):
         self.deli()
         self.exos = [self.rect.center]
         self.times = 0
+        self.hori_times = 0
 
     def update(self):
         # self.deli()
@@ -98,6 +114,7 @@ class Player(Sprite):
         self.colls()
         self.game.screen.blit(self.image, self.rect)
         self.times += 1
+        self.hori_times += 1
     
     def deli(self):
         self.sides = [(self.rect.topleft, self.rect.bottomleft), (self.rect.topright, self.rect.bottomright)]
@@ -128,6 +145,11 @@ class Player(Sprite):
                 self.cour(line)
             if horizon(self.sides[1][0], self.sides[1][1], line[0], line[1]):
                 self.cour(line)
+        for line in self.game.tears:
+            if horizon(line[0], line[1], self.caps[0][0], self.caps[0][1]):
+                self.sacre(line)
+            if horizon(line[0], line[1], self.caps[1][0], self.caps[1][1]):
+                self.sacre(line)
 
         if self.rect.bottom > self.game.screen_height:
             self.rect.y -= self.rect.bottom - self.game.screen_height
@@ -142,6 +164,16 @@ class Player(Sprite):
                 self.rect.y += 3
             self.deli()
             self.down = 0
+
+    def sacre(self, line):
+        if self.hori_times > 1:
+            if self.right >= 0:
+                self.rect.x -= self.rect.right - line[0][0]
+            if self.right < 0:
+                self.rect.x += line[0][0] - self.rect.left
+                self.rect.x += 3
+            self.deli()
+            self.right = 0
 
 
 game = Game()
