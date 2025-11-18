@@ -34,8 +34,11 @@ class Game:
         self.clock = pygame.time.Clock()
         self.horizons = []#[((401,600),(700,600)),((503,400),(531,400))]
         self.tears = []#[((501,600),(501,402))]
+        self.full_horizons = []
+        self.full_tears = []
         self.temps = []
         self.temp = 0
+        self.dots = False
     
     def run_game(self):
         while True:
@@ -48,13 +51,14 @@ class Game:
         # if horizon(self.lines[0][0], self.lines[0][1], self.player.rect.center, self.screen_rect.center):
         #     self.screen.fill((176,150,150))
         self.player.update()
-        for line in self.horizons:
+        for line in self.full_horizons:
             pygame.draw.line(self.screen, (190,190,190), line[0], line[1])
-        for line in self.tears:
+        for line in self.full_tears:
             pygame.draw.line(self.screen, (190,190,190), line[0], line[1])
-        for x in range(0,self.screen_width, 30):
-            for y in range(0,self.screen_height, 30):
-                pygame.draw.circle(self.screen, (4,100,100), (x,y), 1, 1)
+        if self.dots:
+            for x in range(0,self.screen_width, 30):
+                for y in range(0,self.screen_height, 30):
+                    pygame.draw.circle(self.screen, (4,100,100), (x,y), 1, 1)
         self.linify()
         pygame.display.flip()
     
@@ -86,6 +90,11 @@ class Game:
                 if event.key == pygame.K_LEFT:
                     self.player.links = True
                     self.player.hori_times = 0
+                if event.key == pygame.K_l:
+                    if self.dots:
+                        self.dots = False
+                    else:
+                        self.dots = True
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
                     self.player.rechts = False
@@ -98,8 +107,8 @@ class Game:
                         self.temps.append([(phoint[0]//30)*30,(phoint[1]//30)*30])
                     else:
                         self.temps.append([(pygame.mouse.get_pos()[0]//30)*30,self.temps[0][1]])
+                        self.full_horizons.append((self.temps[0].copy(),self.temps[1].copy()))
                         if self.temps[0][0] < self.temps[1][0]:
-                            print(self.temps)
                             self.temps[0][0] += 3
                             self.temps[1][0] -= 3
                         else:
@@ -113,6 +122,7 @@ class Game:
                         self.temps.append([(phoint[0]//30)*30,(phoint[1]//30)*30])
                     else:
                         self.temps.append([self.temps[0][0],(pygame.mouse.get_pos()[1]//30)*30])
+                        self.full_tears.append((self.temps[0].copy(),self.temps[1].copy()))
                         if self.temps[0][1] < self.temps[1][1]:
                             self.temps[0][1] += 3
                             self.temps[1][1] -= 3
