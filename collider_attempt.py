@@ -39,6 +39,9 @@ class Game:
         self.temps = []
         self.temp = 0
         self.dots = False
+        self.block_scale = 10
+        self.line_cap_x = 3
+        self.line_cap_y = 3
     
     def run_game(self):
         while True:
@@ -56,8 +59,8 @@ class Game:
         for line in self.full_tears:
             pygame.draw.line(self.screen, (190,190,190), line[0], line[1])
         if self.dots:
-            for x in range(0,self.screen_width, 30):
-                for y in range(0,self.screen_height, 30):
+            for x in range(0,self.screen_width, self.block_scale):
+                for y in range(0,self.screen_height, self.block_scale):
                     pygame.draw.circle(self.screen, (4,100,100), (x,y), 1, 1)
         self.linify()
         pygame.display.flip()
@@ -80,7 +83,8 @@ class Game:
                     if self.player.down < -25:
                         self.player.down = -25
                         # self.player.rect.y -= 2
-                    self.player.times = 0
+                    if self.player.down > 3:
+                        self.player.times = 0
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
@@ -104,31 +108,31 @@ class Game:
                 phoint = pygame.mouse.get_pos()
                 if event.button == 1:
                     if len(self.temps) < 1:
-                        self.temps.append([(phoint[0]//30)*30,(phoint[1]//30)*30])
+                        self.temps.append([(phoint[0]//self.block_scale)*self.block_scale,(phoint[1]//self.block_scale)*self.block_scale])
                     else:
-                        self.temps.append([(pygame.mouse.get_pos()[0]//30)*30,self.temps[0][1]])
+                        self.temps.append([(pygame.mouse.get_pos()[0]//self.block_scale)*self.block_scale,self.temps[0][1]])
                         self.full_horizons.append((self.temps[0].copy(),self.temps[1].copy()))
                         if self.temps[0][0] < self.temps[1][0]:
-                            self.temps[0][0] += 3
-                            self.temps[1][0] -= 3
+                            self.temps[0][0] += self.line_cap_x
+                            self.temps[1][0] -= self.line_cap_x
                         else:
-                            self.temps[0][0] -= 3
-                            self.temps[1][0] += 3
+                            self.temps[0][0] -= self.line_cap_x
+                            self.temps[1][0] += self.line_cap_x
                         self.horizons.append(self.temps.copy())
                         self.temps = []
                     self.temp = 0
                 if event.button == 3:
                     if len(self.temps) < 1:
-                        self.temps.append([(phoint[0]//30)*30,(phoint[1]//30)*30])
+                        self.temps.append([(phoint[0]//self.block_scale)*self.block_scale,(phoint[1]//self.block_scale)*self.block_scale])
                     else:
-                        self.temps.append([self.temps[0][0],(pygame.mouse.get_pos()[1]//30)*30])
+                        self.temps.append([self.temps[0][0],(pygame.mouse.get_pos()[1]//self.block_scale)*self.block_scale])
                         self.full_tears.append((self.temps[0].copy(),self.temps[1].copy()))
                         if self.temps[0][1] < self.temps[1][1]:
-                            self.temps[0][1] += 3
-                            self.temps[1][1] -= 3
+                            self.temps[0][1] += self.line_cap_y
+                            self.temps[1][1] -= self.line_cap_y
                         else:
-                            self.temps[0][1] -= 3
-                            self.temps[1][1] += 3
+                            self.temps[0][1] -= self.line_cap_y
+                            self.temps[1][1] += self.line_cap_y
                         self.tears.append(self.temps.copy())
                         self.temps = []
                     self.temp = 1
@@ -189,6 +193,9 @@ class Player(Sprite):
 
     
     def colls(self):
+        self.prev_x = self.rect.x
+        self.prev_y = self.rect.y
+        self.prev_d = self.down
         hit = False
         for line in self.game.horizons:
             for side in range(len(self.sides)):
@@ -207,6 +214,18 @@ class Player(Sprite):
                     self.sacre(line)
                     hit = True
                     break
+        self.cory = abs(abs(self.rect.y)-abs(self.prev_y))
+        self.corx = abs(abs(self.rect.x)-abs(self.prev_x))
+        if self.cory >= 2 and self.corx >= 2:
+            if self.cory < self.corx:
+                self.rect.x = self.prev_x
+                self.down = self.prev_d
+            elif self.corx < self.cory:
+                self.rect.y = self.prev_y
+        # elif self.cory == 0:
+        #     pass
+        # elif self.corx == 0:
+        #     pass
 
         if self.rect.bottom > self.game.screen_height:
             self.rect.y -= self.rect.bottom - self.game.screen_height
