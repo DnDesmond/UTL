@@ -34,6 +34,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.horizons = []#[((401,600),(700,600)),((503,400),(531,400))]
         self.tears = []#[((501,600),(501,402))]
+        self.spires = [((400,600),(600,400))]
         self.full_horizons = []
         self.full_tears = []
         self.temps = []
@@ -42,6 +43,8 @@ class Game:
         self.block_scale = 10
         self.line_cap_x = 3
         self.line_cap_y = 3
+        self.spiralise()
+        # self.player.rect.x += self.screen_width//2
     
     def run_game(self):
         while True:
@@ -62,6 +65,8 @@ class Game:
             for x in range(0,self.screen_width, self.block_scale):
                 for y in range(0,self.screen_height, self.block_scale):
                     pygame.draw.circle(self.screen, (4,100,100), (x,y), 1, 1)
+        for line in self.spires:
+            pygame.draw.line(self.screen, (110,210,110), line[0], line[1])
         self.linify()
         pygame.display.flip()
     
@@ -72,6 +77,19 @@ class Game:
         if self.temp == 1:
             if len(self.temps) == 1:
                 pygame.draw.line(self.screen, (215,104,157), self.temps[0], (self.temps[0][0],pygame.mouse.get_pos()[1]))
+    
+    def spiralise(self):
+        skip = False
+        for line in self.spires:
+            for y in range(0,self.screen_width):
+                for x in range(0,self.screen_height):
+                    if dotxline((x,y), line[0], line[1], 0):
+                        if skip == False:
+                            self.horizons.append(((x,y),(x,y)))
+                            skip = True
+                        else:
+                            skip = False
+        print(len(self.horizons))
     
     def check_events(self):
         for event in pygame.event.get():
@@ -199,21 +217,21 @@ class Player(Sprite):
         hit = False
         for line in self.game.horizons:
             for side in range(len(self.sides)):
-                if hit:
-                    break
-                if horizon(self.sides[side][0], self.sides[side][1], line[0], line[1]):
-                    self.cour(line)
-                    hit = True
-                    break
+                if not hit:
+                    # break
+                    if horizon(self.sides[side][0], self.sides[side][1], line[0], line[1]):
+                        self.cour(line)
+                        hit = True
+                        break
         hit = False
         for line in self.game.tears:
             for cap in range(len(self.caps)):
-                if hit:
-                    break
-                if horizon(line[0], line[1], self.caps[cap][0], self.caps[cap][1]):
-                    self.sacre(line)
-                    hit = True
-                    break
+                if not hit:
+                    # break
+                    if horizon(line[0], line[1], self.caps[cap][0], self.caps[cap][1]):
+                        self.sacre(line)
+                        hit = True
+                        break
         self.cory = abs(abs(self.rect.y)-abs(self.prev_y))
         self.corx = abs(abs(self.rect.x)-abs(self.prev_x))
         if self.cory >= 2 and self.corx >= 2:
@@ -222,10 +240,6 @@ class Player(Sprite):
                 self.down = self.prev_d
             elif self.corx < self.cory:
                 self.rect.y = self.prev_y
-        # elif self.cory == 0:
-        #     pass
-        # elif self.corx == 0:
-        #     pass
 
         if self.rect.bottom > self.game.screen_height:
             self.rect.y -= self.rect.bottom - self.game.screen_height
