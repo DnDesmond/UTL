@@ -1,6 +1,6 @@
 import sys
 import os
-from math import sqrt
+from math import sqrt, acos, degrees
 
 import pygame
 from pygame.sprite import Sprite
@@ -46,7 +46,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.horizons = []#[((401,600),(700,600)),((503,400),(531,400))]
         self.tears = []#[((501,600),(501,402))]
-        self.spires = [((400,600),(600,400))]
+        self.spires = []#[((400,600),(600,400))]
         self.full_horizons = []
         self.full_tears = []
         self.temps = []
@@ -89,6 +89,16 @@ class Game:
         if self.temp == 1:
             if len(self.temps) == 1:
                 pygame.draw.line(self.screen, (215,104,157), self.temps[0], (self.temps[0][0],pygame.mouse.get_pos()[1]))
+        if self.temp == 2:
+                if len(self.temps) == 1:
+                    adjacent = abs(self.temps[0][1]-pygame.mouse.get_pos()[1]//10*10)
+                    hypotenuse = sqrt(((self.temps[0][0]-pygame.mouse.get_pos()[0]//10*10)**2)+((self.temps[0][1]-pygame.mouse.get_pos()[1]//10*10)**2))
+                    if hypotenuse != 0:
+                        if round(degrees(acos(adjacent/hypotenuse))) == 45:
+                            pygame.draw.line(self.screen, (115,204,157), self.temps[0], (pygame.mouse.get_pos()[0]//10*10, pygame.mouse.get_pos()[1]//10*10))
+                        else:
+                            pygame.draw.line(self.screen, (245,104,157), self.temps[0], (pygame.mouse.get_pos()[0]//10*10, pygame.mouse.get_pos()[1]//10*10))
+
     
     def spiralise(self):
         skip = False
@@ -166,6 +176,14 @@ class Game:
                         self.tears.append(self.temps.copy())
                         self.temps = []
                     self.temp = 1
+                if event.button == 4:
+                    if len(self.temps) < 1:
+                        self.temps.append([(phoint[0]//self.block_scale)*self.block_scale,(phoint[1]//self.block_scale)*self.block_scale])
+                    else:
+                        self.temps.append((pygame.mouse.get_pos()[0]//10*10, pygame.mouse.get_pos()[1]//10*10))
+                        self.spires.append(self.temps.copy())
+                        self.temps = []
+                    self.temp = 2
 
 class Player(Sprite):
     """Creates a playerish thingummy"""
@@ -230,6 +248,16 @@ class Player(Sprite):
         self.prev_d = self.down
         self.prev_r = self.right
         hit = False
+        for line in self.game.spires:
+            for side in range(len(self.lines)):
+                # if not hit:
+                col = diagonal_colls(line[0], line[1], self.lines[side][0], self.lines[side][1])
+                if col:
+                    hit = self.monte(col, line, self.lines[side])
+                    # hit = True
+                    if hit:
+                        break
+        hit = False
         for line in self.game.horizons:
             for side in range(len(self.sides)):
                 if not hit:
@@ -246,16 +274,6 @@ class Player(Sprite):
                     if horizon(line[0], line[1], self.caps[cap][0], self.caps[cap][1]):
                         self.sacre(line)
                         hit = True
-                        break
-        hit = False
-        for line in self.game.spires:
-            for side in range(len(self.lines)):
-                # if not hit:
-                col = diagonal_colls(line[0], line[1], self.lines[side][0], self.lines[side][1])
-                if col:
-                    hit = self.monte(col, line, self.lines[side])
-                    # hit = True
-                    if hit:
                         break
         self.cory = abs(abs(self.rect.y)-abs(self.prev_y))
         self.corx = abs(abs(self.rect.x)-abs(self.prev_x))
@@ -298,14 +316,14 @@ class Player(Sprite):
             if dotxline(point, line[0], line[1]) and dotxline(point, side[0], side[1]):
                 downed = False
                 if self.diag_times > 4:
-                    if self.down >= 0:
+                    if point[1] > self.rect.centery:#self.down >= 0:
                         self.rect.y -= self.rect.bottom - point[1]
                 else:    
                     self.rect.y += point[1] - self.rect.top
                     self.rect.y += 3
                     self.diag_times = 0
                     downed = True
-                if self.down < 0 and not downed:
+                if point[1] < self.rect.centery:#self.down < 0 and not downed:
                     self.rect.y += point[1] - self.rect.top
                     self.rect.y += 3
                     self.diag_times = 0
