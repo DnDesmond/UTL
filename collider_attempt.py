@@ -7,7 +7,7 @@ from pygame.sprite import Sprite
 
 pygame.init()
 
-from linearity import dotxline, eqs, other
+from linearity import dotxline, eqs, other, simuls
 
 # def horizon(point, point_2, point_3, point_4):
 #     # eq_1 = eqs(point, point_2)
@@ -17,6 +17,18 @@ from linearity import dotxline, eqs, other
 #     point_col = (col_x,line_y)
 #     coll:bool = dotxline(point_col, point, point_2)
 #     return coll
+
+def diagonal_colls(point, point_2, vert_3, vert_4):
+    # if vert_3[0] == vert_4[0]:
+        eq_1 = eqs(point, point_2)
+        col_x = vert_3[0]
+        col_y = other(eq_1["coy"], eq_1["cofx"], col_x, eq_1["c"])
+        return (col_x,col_y)
+    # else:
+    #     eq_1 = eqs(point, point_2)
+    #     col_y = vert_3[1]
+    #     col_x = other(eq_1["cofx"], eq_1["coy"], col_y, eq_1["c"])
+    #     return (col_x,col_y)
 
 def horizon(vert, vert_2, hori, hori_2):
     coll = dotxline((vert[0],hori[1]),vert, vert_2) and dotxline((vert[0],hori[1]),hori, hori_2)
@@ -43,7 +55,7 @@ class Game:
         self.block_scale = 10
         self.line_cap_x = 3
         self.line_cap_y = 3
-        self.spiralise()
+        # self.spiralise()
         # self.player.rect.x += self.screen_width//2
     
     def run_game(self):
@@ -172,6 +184,7 @@ class Player(Sprite):
         self.exos = [self.rect.center]
         self.times = 0
         self.hori_times = 0
+        self.diag_times = 0
 
     def update(self):
         # self.deli()
@@ -184,6 +197,7 @@ class Player(Sprite):
         #     pygame.draw.line(self.game.screen, (200,160,160), line[0], line[1])
         self.times += 1
         self.hori_times += 1
+        self.diag_times += 1
     
     def deli(self):
         self.sides = [(self.rect.topleft, self.rect.bottomleft), 
@@ -214,6 +228,7 @@ class Player(Sprite):
         self.prev_x = self.rect.x
         self.prev_y = self.rect.y
         self.prev_d = self.down
+        self.prev_r = self.right
         hit = False
         for line in self.game.horizons:
             for side in range(len(self.sides)):
@@ -232,6 +247,16 @@ class Player(Sprite):
                         self.sacre(line)
                         hit = True
                         break
+        hit = False
+        for line in self.game.spires:
+            for side in range(len(self.lines)):
+                # if not hit:
+                col = diagonal_colls(line[0], line[1], self.lines[side][0], self.lines[side][1])
+                if col:
+                    hit = self.monte(col, line, self.lines[side])
+                    # hit = True
+                    if hit:
+                        break
         self.cory = abs(abs(self.rect.y)-abs(self.prev_y))
         self.corx = abs(abs(self.rect.x)-abs(self.prev_x))
         if self.cory >= 2 and self.corx >= 2:
@@ -240,6 +265,7 @@ class Player(Sprite):
                 self.down = self.prev_d
             elif self.corx < self.cory:
                 self.rect.y = self.prev_y
+                self.right = self.prev_r
 
         if self.rect.bottom > self.game.screen_height:
             self.rect.y -= self.rect.bottom - self.game.screen_height
@@ -266,6 +292,36 @@ class Player(Sprite):
                 # self.rect.x += 3
             self.deli()
             self.right = 0
+    
+    def monte(self, point, line, side):
+        if self.times > 1:
+            if dotxline(point, line[0], line[1]) and dotxline(point, side[0], side[1]):
+                downed = False
+                if self.diag_times > 4:
+                    if self.down >= 0:
+                        self.rect.y -= self.rect.bottom - point[1]
+                else:    
+                    self.rect.y += point[1] - self.rect.top
+                    self.rect.y += 3
+                    self.diag_times = 0
+                    downed = True
+                if self.down < 0 and not downed:
+                    self.rect.y += point[1] - self.rect.top
+                    self.rect.y += 3
+                    self.diag_times = 0
+                # if downed:
+                #     if self.right > 0:
+                #         self.rect.x -= self.right
+                #         self.rect.x += point[0] - self.rect.right
+                #     if self.right < 0:
+                #         self.rect.x += self.right
+                #         self.rect.x -= self.rect.left - point[0]
+                self.deli()
+                self.down = 0
+                # self.right = 0
+                return True
+            else:
+                return False
 
 
 game = Game()
