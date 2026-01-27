@@ -6,7 +6,7 @@ from non import letters
 from sraith import diction #type:ignore
 import random
 
-os.chdir("C:/Users/isaac")
+# os.chdir("C:/Users/isaac")
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (879,73)
 
 fadaí = {"a":"á","e":"é","i":"í","o":"ó","u":"ú"}
@@ -29,12 +29,12 @@ class Engine:
         self.choices = ["first", "second", "third", "fourth", "fifth", "sixth"]
         # self.choices = ["first", "second"]
         self.chosen = random.choice(self.choices)
-        self.chosen = self.choices[5]
+        self.chosen = self.choices[1]
         self.second = Alt(self.chosen, self)#first
         self.covered = 0
         # self.second.bocht, self.second.spórt, self.second.greann = True, True, True
         self.hidden = True
-        # self.hidden = False
+        # self.hidden = False 
 
     def passage(self):
         try:
@@ -145,12 +145,10 @@ class Alt:
                 cur += word + " "
                 lengthage = len(cur)
             else:
-                # if cur != ", ":
                 self.subs.append(cur)
                 width = self.runner.font.render(self.subs[-1], 0, (70,0,20)).get_rect().width
                 dist = (self.runner.width-width)/2
                 self.widths.append(dist)
-                # negst = ""
                 cur = word + " "
                 lengthage = len(cur)
             ind += 1
