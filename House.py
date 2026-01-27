@@ -5,8 +5,14 @@ pygame.init()
 from non import letters
 from sraith import sraiths #type:ignore
 import random
+from RP import resource_path as rp
 
-os.chdir("C:/Users/isaac")
+# keys = [x for x in sraiths.keys()]
+# t = sraiths[keys[0]]
+# sraiths[keys[0]] = sraiths[keys[1]]
+# sraiths[keys[1]] = t
+
+# os.chdir("C:/Users/isaac")
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (879,73)
 
 fadaí = {"a":"á","e":"é","i":"í","o":"ó","u":"ú"}
@@ -34,12 +40,16 @@ class Engine:
         self.choices = [x for x in self.sraiths[[x for x in sraiths.keys()][0]]]
         # self.choices = ["first", "second"]
         self.chosen = random.choice(self.choices)
-        self.chosen = self.choices[5]
+        self.chosen = self.choices[0]
         self.second = Alt(self.chosen, self)#first
         self.covered = 0
         # self.second.bocht, self.second.spórt, self.second.greann = True, True, True
         self.hidden = True
         # self.hidden = False
+        self.titles = [x for x in self.sraiths.keys()]
+        # self.menus:list[Menu] = []
+        self.menu_big = Big_Menu(self.titles, self)
+        self.backs = self.chosen
 
     def passage(self):
         try:
