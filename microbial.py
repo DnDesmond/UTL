@@ -1,12 +1,17 @@
 import sys
 import csv
 import serial 
+import os
+
+os.chdir("C:/Users/Computer Science 8/UTL/Project")
 
 com = "11"
 # ser = serial.Serial(f"COM{com}", 115200)
 import time
 
-for com in range(0,13):
+ser = None
+
+for com in range(0,25):
     try:
         ser = serial.Serial(f"COM{com}", 115200)
         print("Connected")
@@ -15,7 +20,7 @@ for com in range(0,13):
         pass
 
 if not ser:
-    print("Failed to connect on COM's 0-12.")
+    print("Failed to connect on COM's 0-24.")
     sys.exit()
 
 import time
@@ -26,7 +31,7 @@ def reconnection(com):
     print(f"Device connectivity failed or non-extent for COM{com}")
     while commed == False:
         time.sleep(5)
-        for com in range(0,13):
+        for com in range(0,25):
             try:
                 ser = serial.Serial(f"COM{com}", 115200)
                 print(f"Reconnected for COM{com}")
@@ -34,15 +39,16 @@ def reconnection(com):
                 break
             except serial.serialutil.SerialException:
                 pass
-            if com == 12:
-                print("Reconnection failed for COM's 0-12")
+            if com == 24:
+                print("Reconnection failed for COM's 0-24")
     return ser
 
-
-while True:
-    try:
-        line = ser.readline().decode("utf-8", errors="ignore")
-
-        print(line)
-    except serial.serialutil.SerialException:
-        ser = reconnection(com)
+with open("Recieved_data.csv", "w") as file:
+    while True:
+        try:
+            line = ser.readline().decode("utf-8", errors="ignore")
+            if line != " ":
+                print(line)
+                file.write(f"{line}")
+        except serial.serialutil.SerialException:
+            ser = reconnection(com)
