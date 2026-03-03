@@ -2,12 +2,15 @@ import sys
 import csv
 import serial 
 import os
+from model import Core
 
 os.chdir("C:/Users/Computer Science 8/UTL/Project")
 
 com = "11"
 # ser = serial.Serial(f"COM{com}", 115200)
 import time
+
+core = Core()
 
 ser = None
 
@@ -44,11 +47,23 @@ def reconnection(com):
     return ser
 
 with open("Recieved_data.csv", "w") as file:
+    vis_mult = 6
+    for mind in core.thinks:
+        mind.clear()
     while True:
         try:
             line = ser.readline().decode("utf-8", errors="ignore")
-            if line != " ":
+            brecht = line.split(",")
+            if "Conclusion" in str(line):
+                file.close()
+                print(line)
+                sys.exit()
+            elif line != " ":
                 print(line)
                 file.write(f"{line}")
+                core.socratic.append(vis_mult*round(float(brecht[1])))
+                core.platonic.append(vis_mult*round(float(brecht[0])))
+                core.diogenic.append(vis_mult*round(float(brecht[2])*100))# multiplies risk for visual effect
+                core.pulse()
         except serial.serialutil.SerialException:
             ser = reconnection(com)
