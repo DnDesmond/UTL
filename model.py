@@ -1,5 +1,6 @@
 import sys
 import random
+import csv
 import pygame
 from pygame import *
 pygame.init()
@@ -12,6 +13,33 @@ class Core:
         self.screen_rect = self.screen.get_rect()
         self.height, self.width = self.screen_rect.height, self.screen_rect.height
         self.clock = pygame.time.Clock()
+        with open("Recieved_data.csv", "r") as file:
+            handled = [x for x in file]
+            filt = ""
+            for x in handled:
+                filt += x
+            handled = filt.strip()
+            handled = handled.replace(" ", "")
+            handled = handled.replace("\n", "")
+            iter = 0
+            # while True:
+            #     try:
+            #         handled.
+        self.cezve = csv.reader(handled, delimiter=",")
+        part = ""
+        parts = []
+        iter = 0
+        for line in self.cezve:
+            part += f"{line[0]},"
+            if iter > 2:
+                parts.append(part)
+                iter = 0
+            iter += 1
+        print(parts)
+        # for part in parts:
+        #     print(f"{part}\n")
+        # print(handled)
+        # print(self.already)
         self.socratic = []
         self.platonic = []
         self.diogenic = []
@@ -87,8 +115,26 @@ class Paper:
         pygame.draw.line(self.linea[840], (0,0,255), (0,1050-whys[2]), (0,1050-self.past_whys[2]))
         self.past_whys = whys.copy()
 
-    
+class Populus:
+    """Creates the actual model and returns values for risk and population"""
 
-core = Core()
+    def __init__(self, core:Core):
+        self.core = core
+        # Due to difficulty in specific populations we model on a sample of 2000
+        self.pop = 2000
+        # Expected life of 4-6 weeks in days
+        self.lifespan = 35
+        self.additions = []
+
+    def loss(self):
+        death_rate = self.risk
+    
+    def gain(self):
+        if self.core.screen:
+            pass
+
+
 if __name__ == "__main__":
-    core.run_all()
+    core = Core()
+    while True:
+        core.pulse()

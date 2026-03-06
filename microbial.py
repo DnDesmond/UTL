@@ -2,6 +2,7 @@ import sys
 import csv
 import serial 
 import os
+import encodings
 from model import Core
 
 os.chdir("C:/Users/Computer Science 8/UTL/Project")
