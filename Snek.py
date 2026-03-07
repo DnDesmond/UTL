@@ -16,6 +16,8 @@ def hexed(strung):
     three = int(translator(three, 16, 10))
     return (one,two,three)
 
+channels = [0,0,0,0,0,0]
+
 def picks(point, width, range):
     return base_picks(point, width, range, inverse_channels=channels)
 
@@ -33,6 +35,7 @@ class Game:
         self.clicks = 0
         self.bite = Snack(self)
         self.eaten = []
+        self.channels = [0,0,0,0,0,0]
 
     def run_game(self):
         while True:
@@ -57,6 +60,7 @@ class Game:
                     self.turn(3)
                 if event.key == pygame.K_l:
                     self.char.lengthen()
+                channels = self.channels
                 for cat in range(0,6):
                     if event.key == getattr(pygame, f"K_{cat}"):
                         if channels[cat] == 1:

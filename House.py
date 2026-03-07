@@ -2,10 +2,14 @@ import sys
 import os
 import pygame
 pygame.init()
+import random
+import time
+import json
 from non import letters
 from sraith import sraiths #type:ignore
-import random
 from RP import resource_path as rp
+
+sraiths = json.load(open("camel.txt", "r", encoding="utf-8"))
 
 # keys = [x for x in sraiths.keys()]
 # t = sraiths[keys[0]]
@@ -16,6 +20,7 @@ from RP import resource_path as rp
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (879,73)
 
 fadaí = {"a":"á","e":"é","i":"í","o":"ó","u":"ú"}
+umlauten = {"a":"ä","o":"ö","u":"ü"}
 
 errs = [" ", ".", ",", "-", "'", "\"", ":", "!"]
 ends = [".", "", ". ", "!"]
@@ -23,21 +28,27 @@ ends = [".", "", ". ", "!"]
 class Engine:
     """It's a pun"""
 
-    def __init__(self):
-        self.screen = pygame.display.set_mode((400,400))
+    def __init__(self, width=400, height=400, line_spacing=22):
+        self.screen = pygame.display.set_mode((width,height))
         self.screen_rect = self.screen.get_rect()
         self.width = self.screen_rect.width
         self.height = self.screen_rect.height
         self.clock = pygame.time.Clock()
         self.capped = False
         self.fada = False
+        self.umlaut = False
+        self.char_lim = 50
+        # basic y increment = 22
+        self.y_inc = line_spacing
+        self.colour_t = (160,160,160)
+        self.colour_s = (140,240,140)
         self.font = pygame.font.Font(rp("Odd.otf"), 21)
         # self.choices = ["first", "second", "third", "fourth", "fifth", "sixth"]
         self.sraiths:list[dict] = sraiths
         # for name,content in sraiths.items():
         #     setattr(self, name, content)
         #     self.sraiths.append(getattr(self, name))
-        self.choices = [x for x in self.sraiths[[x for x in sraiths.keys()][0]]]
+        self.choices = [x for x in self.sraiths[[x for x in self.sraiths.keys()][0]]]
         # self.choices = ["first", "second"]
         self.chosen = random.choice(self.choices)
         self.chosen = self.choices[0]
@@ -50,6 +61,7 @@ class Engine:
         # self.menus:list[Menu] = []
         self.menu_big = Big_Menu(self.titles, self)
         self.backs = self.chosen
+        self.start = time.time()
 
     def passage(self):
         try:
@@ -83,12 +95,13 @@ class Engine:
                     else:
                         self.hidden = True
                 if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
+                    self.bow()
                 if event.key == pygame.K_LSHIFT:
                     self.capped = True
                 if event.key == pygame.K_RALT:
                     self.fada = True
+                if event.key == pygame.K_LALT:
+                    self.umlaut = True
                 if event.key == pygame.K_9:
                     self.rewrite(self.backs, sraith=sraiths[self.menu_big.titles[self.menu_big.menus.index(self.menu_big.forth_menu)]])
                 for char in letters:
@@ -96,6 +109,9 @@ class Engine:
                         if self.fada:
                             if char in fadaí.keys():
                                 char = fadaí[char]
+                        if self.umlaut:
+                            if char in umlauten.keys():
+                                char = umlauten[char]
                         if self.capped:
                             char = char.upper()
                         try:
@@ -111,42 +127,53 @@ class Engine:
                     self.capped = False
                 if event.key == pygame.K_RALT:
                     self.fada = False
+                if event.key == pygame.K_LALT:
+                    self.umlaut = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.menu_big.hidden:
                     col = False
                     for button in self.menu_big.buttons:
                         if button.rect.collidepoint(pygame.mouse.get_pos()):
                             self.menu_big.relist(button.text)
+                            self.menu_big.cast = button
                             col = True
                     for button in self.menu_big.forth_menu.buttons:
                         if button.rect.collidepoint(pygame.mouse.get_pos()):
                             self.rewrite(button.text, sraith=sraiths[self.menu_big.titles[self.menu_big.menus.index(self.menu_big.forth_menu)]])
+                            self.menu_big.last = button
                             col = True
                     if col == False:
                         self.menu_big.hidden = True
                         for menu in self.menu_big.menus:
                             menu.hidden = True
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                self.bow()
     
+    def bow(self):
+        pygame.quit()
+        # with open("Timekeeps.txt", 'a') as file:
+        #     file.write(f"{str(time.time()-self.start)}\n")
+        time.sleep(0.1)
+        sys.exit()
+
     def texts(self):
         y = 0
-        colour_t = (160,160,160)#(140,140,140)#(70,0,20)#(140,140,140)
+        # y_inc = 29
+        colour_t = self.colour_t#(160,160,160)#(140,140,140)#(70,0,20)#(140,140,140)
         colour_b = (70,0,20)
         box = self.font.render(f"{self.second.par}", (70,0,20) , (140,140,140))
         for line in self.second.backs:
-            box = self.font.render(line, 0, (140,240,140))
+            box = self.font.render(line, 0, self.colour_s)#(140,240,140))
             self.screen.blit(box, ((self.width-box.get_rect().width)/2, y))
-            y += 22
-        y = self.covered*22
+            y += self.y_inc
+        y = self.covered*self.y_inc
         for line in self.second.subs:
             if not self.hidden:
                 box = self.font.render(line, 0, colour_t)#, colour_t)
             if self.hidden:
                 box = self.font.render(line, 0, colour_t, colour_t)
             self.screen.blit(box, (self.dist_calc(line,box), y))
-            y += 22
+            y += self.y_inc
     
     def dist_calc(self, line:str, box:pygame.surface.Surface):
         dist = (self.width-self.second.widths[self.second.subs.index(line)]) - box.get_rect().width
@@ -179,6 +206,8 @@ class Alt:
         self.greann = False
         self.scoil = False
         self.blian = False
+        # 400 pixels works with 50 characters
+        self.char_lim = self.runner.char_lim
         self.par = f"{"x"*1000}"
         self.lines = sraith[text].split(".")
         self.subs = []
@@ -197,7 +226,7 @@ class Alt:
         cur = ""
         ind = 0
         for word in words:
-            if lengthage + len(negst) < 50:
+            if lengthage + len(negst) < self.char_lim:
                 cur += word + " "
                 lengthage = len(cur)
             else:
@@ -267,6 +296,8 @@ class Big_Menu(Menu):
         for button in self.buttons:
             button.rect.x -= 100
         self.forth_menu = self.menus[0]
+        self.last = self.menus[0].buttons[0]
+        self.cast = self.buttons[0]
     
     def relist(self, title):
         self.forth_menu = self.menus[self.titles.index(title)]
@@ -303,7 +334,11 @@ class Button:
         self.menu.image.blit(self.image, (0,self.rect.y))
 
     def imager(self):
-        if not self.lighter:
+        if self.menu.engine.menu_big.last == self:
+            self.image.fill((180,0,70))
+        elif self.menu.engine.menu_big.cast == self:
+            self.image.fill((140,0,60))
+        elif not self.lighter:
             self.image.fill(self.background)
         else:
             self.image.fill(self.background_l)
@@ -319,5 +354,6 @@ class Button:
 
 # for line in second.lines:
 #     print(line)
-runner = Engine()
-runner.run_it()
+if __name__ == "__main__":
+    runner = Engine()
+    runner.run_it()
