@@ -230,12 +230,10 @@ class Alt:
                 cur += word + " "
                 lengthage = len(cur)
             else:
-                # if cur != ", ":
                 self.subs.append(cur)
                 width = self.runner.font.render(self.subs[-1], 0, (70,0,20)).get_rect().width
                 dist = (self.runner.width-width)/2
                 self.widths.append(dist)
-                # negst = ""
                 cur = word + " "
                 lengthage = len(cur)
             ind += 1
