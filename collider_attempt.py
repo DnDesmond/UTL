@@ -271,6 +271,8 @@ class Player(Sprite):
             for cap in range(len(self.caps)):
                 if not hit:
                     # break
+                    print(line)
+                    print(self.caps[cap][0])
                     if horizon(line[0], line[1], self.caps[cap][0], self.caps[cap][1]):
                         self.sacre(line)
                         hit = True

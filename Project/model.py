@@ -1,10 +1,11 @@
 import sys
 import random
 from math import sin, pi
+import time
 import csv
 import json
 import pygame
-from pygame import *
+# from pygame import *
 pygame.init()
 
 from cleaner import cleans #type:ignore
@@ -14,39 +15,26 @@ class Core:
 
     def __init__(self):
         """Initialises all values and imports a version of the received data which has been cleaned"""
+        print("For each what-if enter 0 for False or 1 for True:")
+        val = input("\tSine-Wave Temperatures: ")
+        falsify = False
+        if val == "1":
+            falsify = True
+        val = input("\tDrought: ")
+        drought = False
+        if val == "1":
+            drought = True
+        val = input("\tHumid: ")
+        humid = False
+        if val == "1":
+            humid = True
+        cleans(falsify, drought, humid)
+        print("\nPreparing model...")
+        time.sleep(1)
         self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
         self.screen_rect = self.screen.get_rect()
         self.height, self.width = self.screen_rect.height, self.screen_rect.height
         self.clock = pygame.time.Clock()
-        # with open("Recieved_data.csv", "r") as file:
-        #     handled = [x for x in file]
-        #     filt = ""
-        #     for x in handled:
-        #         filt += x
-        #     handled = filt.strip()
-        #     handled = handled.replace(" ", "")
-        #     handled = handled.replace("\n", "")
-        #     iter = 0
-            # while True:
-            #     try:
-            #         handled.
-        # self.cezve = csv.reader(handled, delimiter=",")
-        # part = ""
-        # parts = []
-        # iter = 0
-        # print(self.cezve)
-        # for line in self.cezve:
-        #     part += f"{line[0]},"
-        #     if iter > 1:
-        #         parts.append(part)
-        #         iter = 0
-        #     iter += 1
-        # print(parts)
-        # for part in parts:
-        #     print(f"{part}\n")
-        # print(handled)
-        # print(self.already)
-        cleans()
         self.cleaned = json.load(open("Cleaned_data.json", "r", encoding="utf-8"))
         self.socratic = []
         self.platonic = []
@@ -63,16 +51,17 @@ class Core:
         self.vis_mult = vis_mult
         self.sinus = []
         for x in self.cleaned:
-            self.socratic.append(vis_mult*x[1])
+            if falsify:
+                self.socratic.append(x[1])
+            else:
+                self.socratic.append(vis_mult*x[1])
             self.platonic.append(vis_mult*x[0])
             self.diogenic.append(vis_mult*x[2]*100)
-        for x in range(0,3601):
-            x = x/40
-            # x = x%10
-            # x = 5-x
-            x = (x*pi)/2
-            self.sinus.append((sin(0.3*x)+2)*100)
-        self.socratic = self.sinus.copy()
+        # for x in range(0,3601):
+        #     x = x/40
+        #     x = (x*pi)/2
+        #     self.sinus.append((sin(0.3*x)+2)*100)
+        # self.socratic = self.sinus.copy()
         self.paper = Paper(self)
     
     def pulse(self):
@@ -99,6 +88,9 @@ class Core:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
 # each tick remove the zero ind and add a new rightmost, recolour the center with pixels at points for output data corresponding to a 1:100 scale
 
@@ -109,10 +101,11 @@ class Paper:
         self.core = core
         self.screen = self.core.screen
         self.screen_rect = self.core.screen_rect
-        self.image = pygame.surface.Surface((1680,1050))
+        self.width, self.height = self.screen_rect.width, self.screen_rect.height
+        self.image = pygame.surface.Surface((self.width,self.height))
         self.linea:list[pygame.surface.Surface] = []
-        for x in range(0,1680):
-            self.linea.append(pygame.surface.Surface((1,1050)))
+        for x in range(0,self.width):
+            self.linea.append(pygame.surface.Surface((1,self.height)))
         for line in self.linea:
             line.fill((200,220,200))
         # for x in range(500,600):
@@ -134,16 +127,16 @@ class Paper:
     
     def cycle(self):
         self.linea.remove(self.linea[0])
-        self.linea.append(pygame.surface.Surface((1,1050)))
+        self.linea.append(pygame.surface.Surface((1,self.height)))
         self.linea[-1].fill((200,220,200))
         whys = [self.core.socratic[0], self.core.platonic[0], self.core.diogenic[0]]
         # y = self.core.socratic[0]
-        self.linea[840].blit(self.red, (0,1050-self.core.socratic.pop(0)))
-        self.linea[840].blit(self.green, (0,1050-self.core.platonic.pop(0)))
-        self.linea[840].blit(self.blue, (0,1050-self.core.diogenic.pop(0)))
-        pygame.draw.line(self.linea[840], (255,0,0), (0,1050-whys[0]), (0,1050-self.past_whys[0]))
-        pygame.draw.line(self.linea[840], (0,255,0), (0,1050-whys[1]), (0,1050-self.past_whys[1]))
-        pygame.draw.line(self.linea[840], (0,0,255), (0,1050-whys[2]), (0,1050-self.past_whys[2]))
+        self.linea[840].blit(self.red, (0,self.height-self.core.socratic.pop(0)))
+        self.linea[840].blit(self.green, (0,self.height-self.core.platonic.pop(0)))
+        self.linea[840].blit(self.blue, (0,self.height-self.core.diogenic.pop(0)))
+        pygame.draw.line(self.linea[840], (255,0,0), (0,self.height-whys[0]), (0,self.height-self.past_whys[0]))
+        pygame.draw.line(self.linea[840], (0,255,0), (0,self.height-whys[1]), (0,self.height-self.past_whys[1]))
+        pygame.draw.line(self.linea[840], (0,0,255), (0,self.height-whys[2]), (0,self.height-self.past_whys[2]))
         self.past_whys = whys.copy()
         self.risky()
     

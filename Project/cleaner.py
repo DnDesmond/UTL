@@ -1,6 +1,7 @@
+from math import sin, pi
 import json
 
-def cleans(falsify=False):
+def cleans(falsify=False, drought=False, humid=False):
     with open("Recieved_data.csv", "r") as file:
         handled = [x for x in file]
         filt = ""
@@ -18,16 +19,29 @@ def cleans(falsify=False):
     lines = []
     line = []
     iter = 0
+    sinus = []
+    for x in range(0,3601):
+        x = x/40
+        x = (x*pi)/2
+        sinus.append((sin(0.3*x)+2)*100)
     for num in cleanish:
         line.append(float(num))
         if iter > 1:
+            if drought:
+                line[0] -= 40
+            if humid:
+                line[0] += 30
+                line[1] += 20
             lines.append(line)
             line = []
             iter = 0
+        elif iter == 1:
+            if falsify:
+                line.pop()
+                line.append(sinus.pop(0))
+            iter += 1
         else:
             iter += 1
-    if falsify:
-        pass
     filed = json.dumps(lines)
     with open("Cleaned_data.json", "w") as file:
         file.write(filed)
