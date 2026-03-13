@@ -44,6 +44,9 @@ class Core:
                 self.temp = "-2"
                 humid = True
         cleans(falsify, drought, humid)
+        self.falsify = falsify
+        self.drought = drought
+        self.humid = humid
         print("\nPreparing model...")
         time.sleep(1)
         self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
@@ -74,6 +77,7 @@ class Core:
             self.platonic.append(vis_mult*x[0])
             self.diogenic.append(vis_mult*x[2]*100)
         self.modelling = False
+        self.lastemp = 3600
         # for x in range(0,3601):
         #     x = x/40
         #     x = (x*pi)/2
@@ -91,11 +95,26 @@ class Core:
     
     def continuate(self):
         # Does the actual modelling
-        for mind in self.thinks:
-            if mind == self.thinks[0]:
-                mind.append(self.paper.past_whys[0]+random.randint(-2,3))
-            else:
-                mind.append(26)
+        self.diogenic = []
+        y = self.paper.past_whys[1]
+        if y > 100:
+            self.platonic.append(y+random.randint(-4,3))
+        else:
+            self.platonic.append(y+random.randint(-2,5))
+        x = self.lastemp
+        self.lastemp += 1
+        x = x/40
+        x = (x*pi)/2
+        # self.socratic = []
+        # Upon switching to modelling instead of displaying data Sine-Wave temperatures are activated by default
+        self.socratic.append((((sin(0.3*x)+2))*100)+random.randint(-10,11))
+        # if self.humid:
+        #     self.platonic[-1] += 30
+        #     self.socratic[-1] += 25
+        # if self.drought:
+        #     self.platonic[-1] -= 40
+        self.paper.risky()
+        # self.diogenic.append(26)
     
     def wipe(self):
         """Removes all data contained in the data lists"""
@@ -156,15 +175,18 @@ class Paper:
         self.linea.remove(self.linea[0])
         self.linea.append(pygame.surface.Surface((1,self.height)))
         self.linea[-1].fill((200,220,200))
-        whys = [self.core.socratic[0], self.core.platonic[0], self.core.diogenic[0]]
         # y = self.core.socratic[0]
         try:
+            whys = [self.core.socratic[0], self.core.platonic[0], self.core.diogenic[0]]
             self.linea[840].blit(self.red, (0,self.height-self.core.socratic.pop(0)))
             self.linea[840].blit(self.green, (0,self.height-self.core.platonic.pop(0)))
             self.linea[840].blit(self.blue, (0,self.height-self.core.diogenic.pop(0)))
         except IndexError:
             self.modelling = True
+            # self.core.diogenic = []
             self.core.continuate()
+            # self.risky()
+            whys = [self.core.socratic[0], self.core.platonic[0], self.core.diogenic[0]]
         pygame.draw.line(self.linea[840], (255,0,0), (0,self.height-whys[0]), (0,self.height-self.past_whys[0]))
         pygame.draw.line(self.linea[840], (0,255,0), (0,self.height-whys[1]), (0,self.height-self.past_whys[1]))
         pygame.draw.line(self.linea[840], (0,0,255), (0,self.height-whys[2]), (0,self.height-self.past_whys[2]))
@@ -190,7 +212,7 @@ class Paper:
             risk += -0.2
         else:
             risk += 0.5
-        self.core.diogenic[0] = risk*self.core.vis_mult*100
+        self.core.diogenic.insert(0,risk*self.core.vis_mult*100)
         print([risk,temp,soil])
 
 # model based upon changes to the already gathered data, add what-ifs for: sinesoidal temp measure, falling or rising soil with temp or time, disasterousness, (you'll find others)

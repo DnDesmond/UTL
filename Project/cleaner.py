@@ -1,3 +1,4 @@
+import random
 from math import sin, pi
 import json
 
@@ -23,7 +24,7 @@ def cleans(falsify=False, drought=False, humid=False):
     for x in range(0,3601):
         x = x/40
         x = (x*pi)/2
-        sinus.append((sin(0.3*x)+2)*100)
+        sinus.append((((sin(0.3*x)+2))*100)+random.randint(-10,11))
     for num in cleanish:
         line.append(float(num))
         if iter > 1:
@@ -31,7 +32,7 @@ def cleans(falsify=False, drought=False, humid=False):
                 line[0] -= 40
             if humid:
                 line[0] += 30
-                line[1] += 20
+                line[1] += 25
             lines.append(line)
             line = []
             iter = 0
