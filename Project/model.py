@@ -15,19 +15,34 @@ class Core:
 
     def __init__(self):
         """Initialises all values and imports a version of the received data which has been cleaned"""
+        self.temp = 0
         print("For each what-if enter 0 for False or 1 for True:")
-        val = input("\tSine-Wave Temperatures: ")
-        falsify = False
-        if val == "1":
+        val = input("\tPreset scenarios: ")
+        drought, falsify, humid = [False for x in range(0,3)]
+        if val == "0":
+            val = input("\tSine-Wave Temperatures: ")
+            falsify = False
+            if val == "1":
+                falsify = True
+            val = input("\tDrought: ")
+            drought = False
+            if val == "1":
+                drought = True
+            val = input("\tHumid: ")
+            humid = False
+            if val == "1":
+                humid = True
+        elif val == "2":# For testing of non_adjusted scenario
             falsify = True
-        val = input("\tDrought: ")
-        drought = False
-        if val == "1":
-            drought = True
-        val = input("\tHumid: ")
-        humid = False
-        if val == "1":
-            humid = True
+        else:
+            val = input("\tGlobal Warming[0], Flooding[1]: ")
+            falsify = True
+            if val == "0":
+                self.temp = "1"
+                drought = True
+            else:
+                self.temp = "-2"
+                humid = True
         cleans(falsify, drought, humid)
         print("\nPreparing model...")
         time.sleep(1)
@@ -55,8 +70,10 @@ class Core:
                 self.socratic.append(x[1])
             else:
                 self.socratic.append(vis_mult*x[1])
+            self.socratic[-1] += vis_mult*self.temp*20
             self.platonic.append(vis_mult*x[0])
             self.diogenic.append(vis_mult*x[2]*100)
+        self.modelling = False
         # for x in range(0,3601):
         #     x = x/40
         #     x = (x*pi)/2
@@ -67,8 +84,18 @@ class Core:
     def pulse(self):
         """Runs as a central function to continue progression of the module"""
         self.check_events()
+        if self.modelling:
+            self.continuate()
         self.update_screen()
         self.clock.tick(60)
+    
+    def continuate(self):
+        # Does the actual modelling
+        for mind in self.thinks:
+            if mind == self.thinks[0]:
+                mind.append(self.paper.past_whys[0]+random.randint(-2,3))
+            else:
+                mind.append(26)
     
     def wipe(self):
         """Removes all data contained in the data lists"""
@@ -131,14 +158,23 @@ class Paper:
         self.linea[-1].fill((200,220,200))
         whys = [self.core.socratic[0], self.core.platonic[0], self.core.diogenic[0]]
         # y = self.core.socratic[0]
-        self.linea[840].blit(self.red, (0,self.height-self.core.socratic.pop(0)))
-        self.linea[840].blit(self.green, (0,self.height-self.core.platonic.pop(0)))
-        self.linea[840].blit(self.blue, (0,self.height-self.core.diogenic.pop(0)))
+        try:
+            self.linea[840].blit(self.red, (0,self.height-self.core.socratic.pop(0)))
+            self.linea[840].blit(self.green, (0,self.height-self.core.platonic.pop(0)))
+            self.linea[840].blit(self.blue, (0,self.height-self.core.diogenic.pop(0)))
+        except IndexError:
+            self.modelling = True
+            self.core.continuate()
         pygame.draw.line(self.linea[840], (255,0,0), (0,self.height-whys[0]), (0,self.height-self.past_whys[0]))
         pygame.draw.line(self.linea[840], (0,255,0), (0,self.height-whys[1]), (0,self.height-self.past_whys[1]))
         pygame.draw.line(self.linea[840], (0,0,255), (0,self.height-whys[2]), (0,self.height-self.past_whys[2]))
+        pygame.draw.line(self.screen, (125,125,125), (0,self.height-180), (self.width,self.height-180))
+        pygame.draw.line(self.screen, (125,125,125), (0,self.height-120), (self.width,self.height-120))
         self.past_whys = whys.copy()
-        self.risky()
+        try:
+            self.risky()
+        except IndexError:
+            self.core.continuate()
     
     def risky(self):
         temp = self.core.socratic[0]/self.core.vis_mult
