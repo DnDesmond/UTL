@@ -49,7 +49,8 @@ def reconnection(com):
 
 with open("Recieved_data.csv", "w") as file:
     vis_mult = 6
-    core.wipe()
+    for mind in core.thinks:
+        mind.clear()
     while True:
         try:
             line = ser.readline().decode("utf-8", errors="ignore")
@@ -61,6 +62,7 @@ with open("Recieved_data.csv", "w") as file:
             elif line != " ":
                 print(line)
                 file.write(f"{line}")
+                # Adds live data intake
                 core.socratic.append(vis_mult*round(float(brecht[1])))
                 core.platonic.append(vis_mult*round(float(brecht[0])))
                 core.diogenic.append(vis_mult*round(float(brecht[2])*100))# multiplies risk for visual effect

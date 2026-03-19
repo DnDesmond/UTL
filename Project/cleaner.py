@@ -2,7 +2,7 @@ import random
 from math import sin, pi
 import json
 
-def cleans(falsify=False, drought=False, humid=False):
+def cleans(falsify=False, drought=False, humid=False, shivers=False):
     with open("Recieved_data.csv", "r") as file:
         handled = [x for x in file]
         filt = ""
@@ -33,6 +33,8 @@ def cleans(falsify=False, drought=False, humid=False):
             if humid:
                 line[0] += 30
                 line[1] += 25
+            if shivers:
+                line[1] -= 42
             lines.append(line)
             line = []
             iter = 0

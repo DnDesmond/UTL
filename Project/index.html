@@ -1,0 +1,112 @@
+<!Doctype html>
+
+<html>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+        <title>Project</title>
+    </head>
+    <body>
+        <a href="#6"><p style="width: fit-content;">Forst</p></a>
+        <h1>Project Report</h1>
+        <div class="contra">
+            <h3>Investigation</h3>
+            <p><b><u>Investigation and Research:</u></b></p>
+            <h4><u>Title:</u></h4>
+            <p>To estimate changes in and predict risk to insect populations considering relevant environmental variables.</p>
+            <h4><u>Thesis statement:</u></h4>
+            <p>Upon hearing the problem presented and the themes associated, my first thought was the modelling of animal populations and how they react to the adjustment of various environmental effects. In order for me to work with this I shall have to consider various populations, how realistic it is to simulate the habitats of these populations and whether it's feasible for me to model multiple interdependent populations or if I should stick to a single population and focus more heavily on the environmental factors inclement upon their saturation. Obviously it would be preferable for me to model multiple but the limitations of the micropython language and the time limit may restrict to a single more detailed simulation.</p>
+            <p>(Insects):<b>Chorthippus Brunneus</b></p>
+            <p><u>Relevant effects of environmental variables on animal populations:</u></p>
+            <p>Possible Variables:</p>
+            <p>&nbsp&nbsp&nbsp&nbsp-&nbspHumidity</p>
+            <p>&nbsp&nbsp&nbsp&nbsp-&nbspTemperature</p>
+            <p>&nbsp&nbsp&nbsp&nbsp-&nbspTree Cover</p>
+            <p>&nbsp&nbsp&nbsp&nbsp-&nbspSoil Moisture Level</p>
+            <p>&nbsp&nbsp&nbsp&nbsp-&nbspRainfall</p>
+            <p>The effects of a relatively high temperature can include increased growth and development rate, a potential additional instar growth stage, increased mass and size, an increased number of egg pods per female and an advanced rate at which eggs reach maturity.</p>
+            <p>The effects of an excessively low temperature are far more impactful, with an extreme loss in survivability accompanying falling temperatures; and a complete loss of egg gestation at temperatures below 20 degrees.</p>
+            <p>High soil moisture seems to have neither negative nor positive impacts but particularly low soil moisture is linked to increased hatching time, a loss in survival rates for incubation and other negative effects on the development of larvae.</p>
+            <p>An unfortunate side effect found in the study of environmental sciences is that there are rarely existing solutions, while I can make reference to studies conducted, the relations between technology and how we can use it to study the environment are still new and being explored. It is my hope that this project can stand as an example for future feasibility studies and researches into the unseen naiveté of potential projects.</p>
+        </div>
+        <br>
+        <div class="contra">
+            <h3><u>Create</u></h3>
+            <p>I was attempting to interface the microbit and the python code successfully with no connection errors, having succeeded in this I will now move onto implementing the data collection and warning systems on the microbit, following this I will move onto the advanced requirements. I have successfully established automating reading of the COM ports to ensure successful connection in every instance as well as insulating code such that upon disconnection it will attempt reconnection every 5 seconds.I must restructure my system to communicate with serial ports instead of a recorded csv.</p>
+            <p>I have implemented the data collection systems on the Microbit and will now move on to implementing the code that will record the received data in a csv on the receiving device. I have also successfully implemented the alarm system upon temperature dropping to dangerous levels for Corthippus Brunneus. Furthermore I have switched my code to receive data from serial ports continuously instead of receiving a singular pre-recorded csv.</p>
+            <p>I have decided that due to time constraints I will restrict the on device model to a simplified risk calculation while retaining the more complex mathematics to the python model to be held off device, the on device will still meet the BR3 process simulation requirement whereby it will simulate a risk of high death rates for the C. Brunneus Genus, The actual modelling python file will use more complelx population maths to attempt extrapolation of a population based upon the data used for the initial selection of C. Brunneus as ideal for monitoring as well as the continuing environmental and risk data provided by the microbit.</p>
+            <p>I have encountered an issue, the modelling software I have been recommended to use does not meet my personal requirements for readability nor live display of data. I have decided to use the pygame module to allow me to put visual materia on the screen, through this and my past experience in modelling I have created an interface that lets me graph live input or live modelled data. It is my contention that this interface is more tasteful and feels more graphically useful. My solution to this has required me to wrap all of my modelling code in the display interface, while this is restrictive I feel it allows me to focus more easily on my work.</p>
+            <p>I realised that I have been spelling received incorrectly in the csv file names, while it is unfortunate that this happened I have an eye for sentiment and will thus keep it in as a harmless foible.</p>
+            <p>I have created the code to actually continue to model temperatures and soil moisture upon running out of pre-existing values, this means that both newly modelled data and data collected from my microbit are used in the modelling and simulation process thus fulfilling the requirements set in the advanced requirements.</p>
+            <p>I wrote the interactive part at the start of the process, which allows one to choose between modelling the pre-set disaster scenarios from AR 1 or modelling based off a personal selection of the possible variables.</p>
+            <p>I have realised there is a risk of unavailability for the pygame module so I have empowered my code to be capable of running in the absence of the module, albeit in an obviously reduced capacity. It is imperative that one hoping to experience the full effect of my file do so via the pygame module as otherwise the results will not be visually as appealing. The project is now completed to my full standards and fits each one of the BR's and AR's. It is my belief that I have gone above and beyond in the fulfillment of the brief.</p>
+            <p>My model works to intake the data from the microbit and to return a reasonable value for the risk of extinction or mass death of the C. Brunneus genus in the range 0 to 1 with 1 meriting full extinction. It values the effect of soil moisture on the risk of extinction as being circa half of the deciding factor and directly proportional, due to its incredible effect on the survival rates as shown in the investigation portion. It also looks at temperature in brackets and changes the risk value depending on where it falls, giving spikes in risk for temperatures below 20 and above thirty, as these temperatures are dangerous to C. Brunneus eggs and larvae. It then takes the temperature, soil moisture and calculated risk values and plots them on a live updating graph, adjusted for the visibility of the data. Risk is multiplied to make it visible alongside the obviously larger values for temperature and soil moisture. The data taken in is obviously heavily multiplied to make it fit visual aesthetics for readability.</p>
+            <p>I created a testing file and created the following test table based on it:</p>
+            <table>
+                <tr>
+                    <th>Test Case:</th>
+                    <th>Temperature:</th>
+                    <th>Soil Moisture:</th>
+                    <th>Expected Risk:</th>
+                    <th>Actual Risk:</th>
+                    <th>Pass/Fail:</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>50</td>
+                    <td>0.69</td>
+                    <td>0.69</td>
+                    <td>Pass</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>10</td>
+                    <td>50</td>
+                    <td>0.69</td>
+                    <td>0.69</td>
+                    <td>Pass</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>20</td>
+                    <td>50</td>
+                    <td>0.69</td>
+                    <td>0.69</td>
+                    <td>Pass</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>23</td>
+                    <td>50</td>
+                    <td>-0.01</td>
+                    <td>-0.01</td>
+                    <td>Pass</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>27</td>
+                    <td>50</td>
+                    <td>-0.01</td>
+                    <td>-0.01</td>
+                    <td>Pass</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td>30</td>
+                    <td>50</td>
+                    <td>0.69</td>
+                    <td>0.69</td>
+                    <td>Pass</td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td>40</td>
+                    <td>50</td>
+                    <td>0.69</td>
+                    <td>0.69</td>
+                    <td>Pass</td>
+                </tr>
+            </table>
+        </div>
+    </body>
+</html>

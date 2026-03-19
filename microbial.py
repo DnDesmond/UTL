@@ -62,6 +62,7 @@ with open("Recieved_data.csv", "w") as file:
             elif line != " ":
                 print(line)
                 file.write(f"{line}")
+                # Adds live data intake
                 core.socratic.append(vis_mult*round(float(brecht[1])))
                 core.platonic.append(vis_mult*round(float(brecht[0])))
                 core.diogenic.append(vis_mult*round(float(brecht[2])*100))# multiplies risk for visual effect
