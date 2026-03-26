@@ -1,0 +1,46 @@
+p {
+    /* background-color: aqua; */
+    font-family: 'Courier New', Courier, monospace;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: royalblue;
+}
+/* p:hover {
+} */
+
+table {
+    background-color: blue;
+    border: 2px aquamarine double;
+    border-radius: 5px;
+    padding: 2px;
+    margin-left: 30%;
+    align-items: center;
+}
+
+/* tr {
+    background-color: cadetblue;
+    border: 2px single aquamarine;
+    border-radius: 5px;
+} */
+
+td, th {
+    background-color: cadetblue;
+    border: 3px outset rgb(150, 255, 220);
+    border-radius: 5px;
+}
+
+td:hover, th:hover {
+    background-color: rgb(71, 118, 120);
+}
+
+.contra {
+    background-color: rgb(87, 173, 146);
+    border-radius: 7px;
+    border: rgb(172, 255, 227) double 4px;
+    padding: 7px;
+}
+
+body {
+    color: rgb(226, 226, 226);
+    background-color: black;
+}
