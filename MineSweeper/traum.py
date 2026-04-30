@@ -1,6 +1,7 @@
 import sys
 import os
 import random
+import json
 
 import pygame
 pygame.init()
@@ -8,20 +9,46 @@ pygame.init()
 class Numb:
     """Creates the basic class"""
 
-    def __init__(self):
+    def __init__(self, orient=0):
         self.screen = pygame.display.set_mode((600,600))
         self.screen_rect = self.screen.get_rect()
         self.width, self.height = self.screen_rect.width, self.screen_rect.height
+        self.orient = orient
         self.buttons:list[Button] = []
         # self.buttons2:list[Button] = []
         # self.buttons3:list[Button] = []
         # self.buttons4:list[Button] = []
         self.tiers = [self.buttons]#, self.buttons2, self.buttons3, self.buttons4]
-        counts = 2
-        tiers = 3
-        self.diagonals = True
+        if self.orient == -1:
+            counts = 5
+            tiers = 1
+            self.diagonals = False
+            self.counter = 0
+        elif self.orient == 0:
+            counts = 3
+            tiers = 3
+            self.diagonals = True
+            self.counter = 1
+        elif self.orient == 1:
+            counts = 5
+            tiers = 2
+            self.diagonals = False
+            self.counter = 0
+        elif self.orient == 2:
+            counts = 2
+            tiers = 3
+            self.diagonals = True
+            self.counter = 3
+        with open("loaf.json", 'r') as file:
+            deus = json.loads(file.readline())
+            print(deus)
+        tritia = deus[str(orient)]
+        counts = tritia["counts"]
+        tiers = tritia["tiers"]
+        self.diagonals = tritia["diagonals"]
+        self.counter = tritia["counter"]
+        hidden = tritia["hidden"]
         width = counts*50
-        self.counter = 3
         gap = (self.width-width)/2
         for cat in range(0,counts):
             setattr(self, f"button{cat}", Button(cat,self))
@@ -36,7 +63,10 @@ class Numb:
                 self.tiers[-1][-1].rect.topleft = [(cat*50)+gap, 40+tier*50]
         self.font = pygame.font.match_font("Times New Roman")
         self.font = pygame.font.Font(self.font, 24)
-        # self.tiers[-1][2].hidden = True
+        # if self.orient == 1:
+        #     self.tiers[-1][2].hidden = True
+        for core in hidden:
+            self.tiers[core[0]][core[1]].hidden = True
         # for cat in range(0,counts):
         #     setattr(self, f"button{cat}", Button(cat,self,1))
         #     self.buttons2.append(getattr(self, f"button{cat}"))
