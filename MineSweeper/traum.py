@@ -2,6 +2,7 @@ import sys
 import os
 import random
 import json
+from RP import resource_path as rp
 
 import pygame
 pygame.init()
@@ -39,7 +40,7 @@ class Numb:
             tiers = 3
             self.diagonals = True
             self.counter = 3
-        with open("loaf.json", 'r') as file:
+        with open(rp("loaf.json"), 'r') as file:
             deus = json.loads(file.readline())
             print(deus)
         tritia = deus[str(orient)]
@@ -67,6 +68,8 @@ class Numb:
         #     self.tiers[-1][2].hidden = True
         for core in hidden:
             self.tiers[core[0]][core[1]].hidden = True
+        self.total = self._numerate()
+        # print(self.total)
         # for cat in range(0,counts):
         #     setattr(self, f"button{cat}", Button(cat,self,1))
         #     self.buttons2.append(getattr(self, f"button{cat}"))
@@ -127,7 +130,9 @@ class Numb:
                     if not button.hidden:
                         if button.rect.collidepoint(pygame.mouse.get_pos()):
                             button.collisory()
+                            self.past.post = False
                             self.past = button
+                            # self.past.post = True
 
     def _mouseups(self, event):
         pass
@@ -140,6 +145,15 @@ class Numb:
             game.runs()
         else:
             sys.exit()
+    
+    def _numerate(self):
+        total = 0
+        stretch = [[y.hidden for y in x] for x in self.tiers]
+        for tier in stretch:
+            for bool in tier:
+                if not bool:
+                    total += 1
+        return total
 
 class Button:
     """Creates a button"""
@@ -156,14 +170,18 @@ class Button:
         self.hidden = False
         self.diagonals = self.game.diagonals
         self.indexe = ind
+        self.post = False
         self.y = y
     
     def update(self):
-        try:
-            self.image.fill(self.beg)
-        except ValueError:
-            print(f"Invalid colour of: {self.beg}")
-            self.game._ends()
+        if (self.post and self.game.total > 0) and self.devilled == False:
+            self.image.fill((156,157,12))
+        else:
+            try:
+                self.image.fill(self.beg)
+            except ValueError:
+                print(f"Invalid colour of: {self.beg}")
+                self.game._ends()
         if not self.hidden:
             self.screen.blit(self.image, self.rect)
 
@@ -203,11 +221,13 @@ class Button:
         # Colour changes for valid selections
         elif not self.collided:
             self.beg = [x-100 for x in self.beg]
+            self.game.total -= 1
         else:
             self.beg = [x+100 for x in self.beg]
+            self.game.total += 1
 
 
 
 if __name__ == "__main__":
-    game = Numb()
+    game = Numb(-1)
     game.runs()
