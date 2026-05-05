@@ -2,7 +2,10 @@ import sys
 import os
 import random
 import json
+import time
 from RP import resource_path as rp
+
+os.chdir(f"{__file__.removesuffix(os.path.basename(__file__))}")
 
 import pygame
 pygame.init()
@@ -20,29 +23,29 @@ class Numb:
         # self.buttons3:list[Button] = []
         # self.buttons4:list[Button] = []
         self.tiers = [self.buttons]#, self.buttons2, self.buttons3, self.buttons4]
-        if self.orient == -1:
-            counts = 5
-            tiers = 1
-            self.diagonals = False
-            self.counter = 0
-        elif self.orient == 0:
-            counts = 3
-            tiers = 3
-            self.diagonals = True
-            self.counter = 1
-        elif self.orient == 1:
-            counts = 5
-            tiers = 2
-            self.diagonals = False
-            self.counter = 0
-        elif self.orient == 2:
-            counts = 2
-            tiers = 3
-            self.diagonals = True
-            self.counter = 3
+        # if self.orient == -1:
+        #     counts = 5
+        #     tiers = 1
+        #     self.diagonals = False
+        #     self.counter = 0
+        # elif self.orient == 0:
+        #     counts = 3
+        #     tiers = 3
+        #     self.diagonals = True
+        #     self.counter = 1
+        # elif self.orient == 1:
+        #     counts = 5
+        #     tiers = 2
+        #     self.diagonals = False
+        #     self.counter = 0
+        # elif self.orient == 2:
+        #     counts = 2
+        #     tiers = 3
+        #     self.diagonals = True
+        #     self.counter = 3
         with open(rp("loaf.json"), 'r') as file:
             deus = json.loads(file.readline())
-            print(deus)
+            # print(deus)
         tritia = deus[str(orient)]
         counts = tritia["counts"]
         tiers = tritia["tiers"]
@@ -100,6 +103,12 @@ class Numb:
             for button in tier:
                 button.update()
         pygame.display.flip()
+        self.sojourn()
+    
+    def sojourn(self):
+        if self.total == 0:
+            time.sleep(1)
+            self._ends(False, True)
     
     def check_events(self):
         for event in pygame.event.get():
@@ -132,17 +141,25 @@ class Numb:
                             button.collisory()
                             self.past.post = False
                             self.past = button
-                            # self.past.post = True
+                            self.past.post = True
 
     def _mouseups(self, event):
         pass
 
-    def _ends(self, resets=False):
+    def _ends(self, resets=False, ups=False):
         pygame.quit()
         if resets:
             pygame.init()
-            game = Numb()
+            game = Numb(self.orient)
             game.runs()
+        if ups:
+            try:
+                pygame.init()
+                game = Numb(self.orient+1)
+                game.runs()
+            except:
+                pygame.quit()
+                sys.exit()
         else:
             sys.exit()
     
@@ -171,19 +188,26 @@ class Button:
         self.diagonals = self.game.diagonals
         self.indexe = ind
         self.post = False
+        self.sunday = True
         self.y = y
     
     def update(self):
         if (self.post and self.game.total > 0) and self.devilled == False:
-            self.image.fill((156,157,12))
+            if self.sunday == False:
+                self.image.fill((156,157,12))
+            else:
+                self.colourise()
         else:
-            try:
-                self.image.fill(self.beg)
-            except ValueError:
-                print(f"Invalid colour of: {self.beg}")
-                self.game._ends()
+            self.colourise()
         if not self.hidden:
             self.screen.blit(self.image, self.rect)
+
+    def colourise(self):
+        try:
+            self.image.fill(self.beg)
+        except ValueError:
+            print(f"Invalid colour of: {self.beg}")
+            self.game._ends()
 
     def collisory(self):
         ind = self.game.past.indexe
@@ -229,5 +253,5 @@ class Button:
 
 
 if __name__ == "__main__":
-    game = Numb(-1)
+    game = Numb(0)
     game.runs()
