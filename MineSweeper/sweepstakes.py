@@ -143,53 +143,9 @@ class Field:
             for x in range(0,0):
                 pass
     
-    # def stick(self):
-    #     for y in range(len(self.rows)):
-    #         up = False
-    #         down = False
-    #         if y != 0:
-    #             up = self.rows[y-1]
-    #         if y != len(self.rows):
-    #             down = self.rows[y+1]
-    #         row = self.rows[y]
-    #         for x in range(len(row)):
-    #             left = False
-    #             right = False
-    #             if x != 0:
-    #                 left = row[x-1]
-    #             if x != len(row):
-    #                 right = row[x+1]
-    
     def stuck(self):
         cope_rows = []
         cope_row = []
-        # for y in range(len(self.rows)):
-        #     row = self.rows.copy()[y]
-        #     for x in range(len(row)):
-        #         tile = row.copy()[x]
-        #         if tile != 1:
-        #             for cat in range(-1,2):
-        #                 try:
-        #                     tile += self.checkers(self.rows[y-1], cat, x)
-        #                 except IndexError:
-        #                     pass
-        #                 try: 
-        #                     tile += self.checkers(self.rows[y+1], cat, x)
-        #                 except IndexError:
-        #                     pass
-        #             try:
-        #                 tile += self.checkers(row, -1, x)
-        #             except IndexError:
-        #                 pass
-        #             try:
-        #                 tile += self.checkers(row, 1, x)
-        #             except IndexError:
-        #                 pass
-        #             if tile == 1:
-        #                 tile = 9
-                # cope_row.append(tile)
-            # cope_rows.append(cope_row.copy())
-            # cope_row = []
         up_portents = [-1,0,1]
         portents = [-1,1]
         down_portents = [-1,0,1]

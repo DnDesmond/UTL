@@ -253,5 +253,5 @@ class Button:
 
 
 if __name__ == "__main__":
-    game = Numb(0)
+    game = Numb(4)
     game.runs()

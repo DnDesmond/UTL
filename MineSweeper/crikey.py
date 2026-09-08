@@ -1,6 +1,9 @@
 import json
 import os
-os.chdir("C:/Users/Computer Science 8/UTL/MineSweeper")
+
+# Sets directory to the one containing this file
+os.chdir(f"{__file__.removesuffix(os.path.basename(__file__))}")
+
 deus = {}
 
 counts = 5
@@ -41,6 +44,14 @@ counter = 0
 hidden = [[0,0],[0,1],[0,3],[0,4],[1,0],[1,4]]
 tritia = {"counts":counts,"tiers":tiers,"diagonals":diagonals,"counter":counter,"hidden":hidden}
 deus[3] = tritia.copy()
+
+counts = 6
+tiers = 5
+diagonals = True
+counter = 0
+hidden = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[3,2],[3,3],[4,1],[4,2],[4,3],[4,4]]
+tritia = {"counts":counts,"tiers":tiers,"diagonals":diagonals,"counter":counter,"hidden":hidden}
+deus[4] = tritia.copy()
 
 with open("loaf.json", "w") as file:
     txt = json.dumps(deus)
