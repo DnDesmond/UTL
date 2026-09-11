@@ -45,11 +45,12 @@ hidden = [[0,0],[0,1],[0,3],[0,4],[1,0],[1,4]]
 tritia = {"counts":counts,"tiers":tiers,"diagonals":diagonals,"counter":counter,"hidden":hidden}
 deus[3] = tritia.copy()
 
-counts = 6
-tiers = 5
+counts = 4
+tiers = 3
 diagonals = True
 counter = 0
-hidden = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[3,2],[3,3],[4,1],[4,2],[4,3],[4,4]]
+# hidden = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[3,2],[3,3],[4,1],[4,2],[4,3],[4,4]]
+hidden = [[0,1],[0,2],[2,1],[2,2]]
 tritia = {"counts":counts,"tiers":tiers,"diagonals":diagonals,"counter":counter,"hidden":hidden}
 deus[4] = tritia.copy()
 
