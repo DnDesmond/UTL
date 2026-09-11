@@ -3,7 +3,7 @@ import os
 import random
 import json
 import time
-from RP import resource_path as rp
+from RP import resource_path as rp #type:ignore
 
 os.chdir(f"{__file__.removesuffix(os.path.basename(__file__))}")
 
@@ -18,35 +18,16 @@ class Numb:
         self.screen_rect = self.screen.get_rect()
         self.width, self.height = self.screen_rect.width, self.screen_rect.height
         self.orient = orient
+        self.maps()
+        self.clock = pygame.time.Clock()
+
+    def maps(self):
         self.buttons:list[Button] = []
-        # self.buttons2:list[Button] = []
-        # self.buttons3:list[Button] = []
-        # self.buttons4:list[Button] = []
-        self.tiers = [self.buttons]#, self.buttons2, self.buttons3, self.buttons4]
-        # if self.orient == -1:
-        #     counts = 5
-        #     tiers = 1
-        #     self.diagonals = False
-        #     self.counter = 0
-        # elif self.orient == 0:
-        #     counts = 3
-        #     tiers = 3
-        #     self.diagonals = True
-        #     self.counter = 1
-        # elif self.orient == 1:
-        #     counts = 5
-        #     tiers = 2
-        #     self.diagonals = False
-        #     self.counter = 0
-        # elif self.orient == 2:
-        #     counts = 2
-        #     tiers = 3
-        #     self.diagonals = True
-        #     self.counter = 3
+        self.tiers = [self.buttons]
         with open(rp("loaf.json"), 'r') as file:
             deus = json.loads(file.readline())
             # print(deus)
-        tritia = deus[str(orient)]
+        tritia = deus[str(self.orient)]
         counts = tritia["counts"]
         tiers = tritia["tiers"]
         self.diagonals = tritia["diagonals"]
@@ -54,6 +35,7 @@ class Numb:
         hidden = tritia["hidden"]
         width = counts*50
         gap = (self.width-width)/2
+
         for cat in range(0,counts):
             setattr(self, f"button{cat}", Button(cat,self))
             self.buttons.append(getattr(self, f"button{cat}"))
@@ -65,28 +47,14 @@ class Numb:
                 setattr(self, f"button{cat}", Button(cat, self, tier))
                 self.tiers[-1].append(getattr(self, f"button{cat}"))
                 self.tiers[-1][-1].rect.topleft = [(cat*50)+gap, 40+tier*50]
+
         self.font = pygame.font.match_font("Times New Roman")
         self.font = pygame.font.Font(self.font, 24)
-        # if self.orient == 1:
-        #     self.tiers[-1][2].hidden = True
         for core in hidden:
             self.tiers[core[0]][core[1]].hidden = True
         self.total = self._numerate()
-        # print(self.total)
-        # for cat in range(0,counts):
-        #     setattr(self, f"button{cat}", Button(cat,self,1))
-        #     self.buttons2.append(getattr(self, f"button{cat}"))
-        #     self.buttons2[-1].rect.topleft = [(cat*50)+gap, 90]
-        # for cat in range(0,counts):
-        #     setattr(self, f"button{cat}", Button(cat,self,2))
-        #     self.buttons3.append(getattr(self, f"button{cat}"))
-        #     self.buttons3[-1].rect.topleft = [(cat*50)+gap, 140]
-        # for cat in range(0,counts):
-        #     setattr(self, f"button{cat}", Button(cat,self,3))
-        #     self.buttons4.append(getattr(self, f"button{cat}"))
-        #     self.buttons4[-1].rect.topleft = [(cat*50)+gap, 190]
         self.past = Button(-2, self, -2)
-        self.clock = pygame.time.Clock()
+
     
     def runs(self):
         while True:
@@ -147,20 +115,17 @@ class Numb:
         pass
 
     def _ends(self, resets=False, ups=False):
-        pygame.quit()
         if resets:
-            pygame.init()
-            game = Numb(self.orient)
-            game.runs()
-        if ups:
+            self.maps()
+        elif ups:
             try:
-                pygame.init()
-                game = Numb(self.orient+1)
-                game.runs()
+                self.orient += 1
+                self.maps()
             except:
                 pygame.quit()
                 sys.exit()
         else:
+            pygame.quit()
             sys.exit()
     
     def _numerate(self):
@@ -253,5 +218,5 @@ class Button:
 
 
 if __name__ == "__main__":
-    game = Numb(4)
+    game = Numb(-1)
     game.runs()
