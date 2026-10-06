@@ -7,7 +7,7 @@ from RP import resource_path as rp # type:ignore
 import pygame
 pygame.init()
 
-print(pygame.font.get_fonts())
+# print(pygame.font.get_fonts())
 
 class Keane:
     """Central class to game"""

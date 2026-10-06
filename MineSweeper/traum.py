@@ -122,6 +122,7 @@ class Numb:
                 self.orient += 1
                 self.maps()
             except:
+                print("The code exited at line 125, either it was successful or there was a mapping error, check the scale in crikey if this exit was unexpected.")
                 pygame.quit()
                 sys.exit()
         else:

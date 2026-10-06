@@ -54,6 +54,14 @@ hidden = [[0,1],[0,2],[2,1],[2,2]]
 tritia = {"counts":counts,"tiers":tiers,"diagonals":diagonals,"counter":counter,"hidden":hidden}
 deus[4] = tritia.copy()
 
+counts = 4
+tiers = 3
+diagonals = True
+counter = 1
+hidden = [[0,0], [0,3], [2,0], [2,3]]
+tritia = {"counts":counts,"tiers":tiers,"diagonals":diagonals,"counter":counter,"hidden":hidden}
+deus[5] = tritia.copy()
+
 with open("loaf.json", "w") as file:
     txt = json.dumps(deus)
     file.write(f"{txt}\n")
